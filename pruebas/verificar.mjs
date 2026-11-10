@@ -38,31 +38,31 @@ const test = (name, fn) => { fn(); passed++; console.log('ok -', name); };
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
 
-test('RUM-01 sin datos guardados abre el ejemplo y no guarda nada', () => {
+test('DAT-01 sin datos guardados abre el ejemplo y no guarda nada', () => {
   assert.equal(t.demo, true);
   assert.equal(store['rumbo-v1'], undefined);
 });
 
-test('RUM-12 montos escritos con punto o coma de miles y decimales', () => {
+test('FMT-03 montos escritos con punto o coma de miles y decimales', () => {
   const cases = {'1.500': 1500, '1,500': 1500, '12,50': 12.5, '12.5': 12.5, '1.500,50': 1500.5, '1,500.50': 1500.5,
     '1.000.000': 1000000, 'Bs 250': 250, '0.500': 0.5, '250': 250, '': 0, '-300': 300};
   for (const [txt, want] of Object.entries(cases)) assert.equal(t.parseAmt(txt), want, txt);
 });
 
-test('RUM-02 proyección sin rendimiento es lineal', () => {
+test('PRO-03 proyección sin rendimiento es lineal', () => {
   const p = t.project(1000, 500, 0, 12);
   assert.equal(p.length, 13);
   assert.equal(p[12], 1000 + 500 * 12);
 });
 
-test('RUM-02 el rendimiento solo crece saldos positivos', () => {
+test('PRO-03 el rendimiento solo crece saldos positivos', () => {
   const p = t.project(12000, 0, 12, 1);
   assert.ok(Math.abs(p[1] - 12120) < 1e-6);
   const n = t.project(-5000, 0, 12, 12);
   assert.equal(n[12], -5000);
 });
 
-test('RUM-03 ritmo: fijos completos y variable promediado', () => {
+test('PRO-02 ritmo: fijos completos y variable promediado', () => {
   t.S = {settings: {currency: 'MXN', patrimonio: 0, rendimiento: 0, metaAhorro: 0, horasMes: 160, onboarded: true},
     fijos: [{id: 'a', tipo: 'ingreso', cat: 'sueldo', nombre: 'Sueldo', monto: 10000},
             {id: 'b', tipo: 'gasto', cat: 'casa', nombre: 'Renta', monto: 3000}],
@@ -77,7 +77,7 @@ test('RUM-03 ritmo: fijos completos y variable promediado', () => {
   assert.ok(Math.abs(B.neto - (10000 - 3000 - 1200 / B.months)) < 1e-6);
 });
 
-test('RUM-04 ¿y si…? recortar 50% suma la mitad del promedio', () => {
+test('PRO-08 ¿y si…? recortar 50% suma la mitad del promedio', () => {
   const B = t.baseline();
   t.ui.wi = {comida: 50}; t.ui.wiExtra = 1000;
   const W = t.whatIfNeto(B);
@@ -85,7 +85,7 @@ test('RUM-04 ¿y si…? recortar 50% suma la mitad del promedio', () => {
   t.ui.wi = {}; t.ui.wiExtra = 0;
 });
 
-test('RUM-05 ahorros que se acaban: el titular lo dice', () => {
+test('PRO-07 ahorros que se acaban: el titular lo dice', () => {
   t.S.settings.patrimonio = 1000;
   t.S.fijos = [{id: 'b', tipo: 'gasto', cat: 'casa', nombre: 'Renta', monto: 3000}];
   assert.match(t.vRumbo(), /se acaban en/);

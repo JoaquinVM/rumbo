@@ -7,12 +7,12 @@ Las reglas de este archivo mandan sobre las de Foundry dentro de este repo.
 ## Al empezar
 
 1. `git pull`.
-2. Leer `docs/REQUISITOS.md` y `docs/PENDIENTES.md`.
+2. Leer `docs/REQUISITOS.md`, `docs/PENDIENTES.md` y, si el cambio es visual, `docs/DISENO.md`.
 3. Si un cambio depende del panorama de otras apps, leer `docs/INVESTIGACION.md`.
 
 ## Fuente de verdad
 
-- `docs/REQUISITOS.md` dice qué hace Rumbo. Cada función apunta a un ID (`RUM-03`).
+- `docs/REQUISITOS.md` dice qué hace Rumbo. Cada función apunta a un ID (`PRO-02`).
 - Si Joaquín pide algo que no está en los requisitos, se propone el requisito primero.
 - Si un cambio altera lo que hace Rumbo, el requisito se actualiza en el mismo commit.
 
@@ -38,3 +38,4 @@ Las reglas de este archivo mandan sobre las de Foundry dentro de este repo.
 ## Estilo
 
 - Textos en español claros y amables, sin tecnicismos. Código y commits en inglés.
+- Diseño: seguir `docs/DISENO.md` (estilo Bloques sólidos). Un cambio visual se propone y se aprueba antes de hacerlo.
