@@ -10,7 +10,7 @@ assert.ok(m, 'index.html has an inline script');
 const END = 'initStore();\n})();';
 assert.ok(m[1].includes(END), 'script ends with initStore()');
 // Test-only hook: expose the closure's functions without changing the app.
-const code = m[1].replace(END, `globalThis.__t = {project, baseline, whatIfNeto, monthData, render, vRumbo, vMovs, vDesglose, vFijos, ui,
+const code = m[1].replace(END, `globalThis.__t = {parseAmt, project, baseline, whatIfNeto, monthData, render, vRumbo, vMovs, vDesglose, vFijos, ui,
   get S(){return S}, set S(v){S=v}, get demo(){return demo}};
 initStore();
 })();`);
@@ -41,6 +41,12 @@ const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return 
 test('RUM-01 sin datos guardados abre el ejemplo y no guarda nada', () => {
   assert.equal(t.demo, true);
   assert.equal(store['rumbo-v1'], undefined);
+});
+
+test('RUM-12 montos escritos con punto o coma de miles y decimales', () => {
+  const cases = {'1.500': 1500, '1,500': 1500, '12,50': 12.5, '12.5': 12.5, '1.500,50': 1500.5, '1,500.50': 1500.5,
+    '1.000.000': 1000000, 'Bs 250': 250, '0.500': 0.5, '250': 250, '': 0, '-300': 300};
+  for (const [txt, want] of Object.entries(cases)) assert.equal(t.parseAmt(txt), want, txt);
 });
 
 test('RUM-02 proyección sin rendimiento es lineal', () => {

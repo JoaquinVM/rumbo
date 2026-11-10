@@ -206,7 +206,20 @@ const parseISO = s => { const [y,m,d] = s.split('-').map(Number); return new Dat
 const todayISO = () => iso(new Date());
 const monthKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
 const sum = (a, f = x => x) => a.reduce((t, x) => t + f(x), 0);
-const parseAmt = v => { const n = parseFloat(String(v).replace(/[^\d.,-]/g, '').replace(/,(?=\d{3}\b)/g, '').replace(',', '.')); return isFinite(n) ? Math.abs(n) : 0; };
+// Reads amounts as people type them: "1.500" and "1,500" are 1500; "12,50", "1.500,50" and "1,500.50" keep decimals.
+const parseAmt = v => {
+  let s = String(v).replace(/[^\d.,]/g, '');
+  const dot = s.lastIndexOf('.'), com = s.lastIndexOf(',');
+  if (dot >= 0 && com >= 0) {
+    const dec = dot > com ? '.' : ',';
+    s = s.split(dec === '.' ? ',' : '.').join('').replace(dec, '.');
+  } else if (dot >= 0 || com >= 0) {
+    const parts = s.split(dot >= 0 ? '.' : ',');
+    const thousands = parts.length > 2 || (parts[parts.length - 1].length === 3 && parts[0] !== '0' && parts[0] !== '');
+    s = thousands ? parts.join('') : parts.join('.');
+  }
+  const n = parseFloat(s); return isFinite(n) ? n : 0;
+};
 let fmtCache = {};
 function money(n, opt = {}) {
   const cur = S.settings.currency || 'MXN';

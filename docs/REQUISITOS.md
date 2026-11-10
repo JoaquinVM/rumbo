@@ -18,3 +18,4 @@ Estado: **v0, prototipo.** Todo lo de abajo está construido y cubierto por `npm
 | RUM-09 | Movimientos por mes, agrupados por día, con alta, edición y borrado en dos toques. | a mano |
 | RUM-10 | Desglose del mes: por cada 100 que entran a dónde va cada categoría, horas de trabajo que cuesta y cuánto suma en 10 años. | a mano |
 | RUM-11 | Datos privados por persona en la base del artifact; si no hay base, solo en el navegador, y lo dice. | a mano |
+| RUM-12 | Los montos se leen como se escriben: punto o coma de miles (`1.500`, `1,500` = 1500) y decimales (`12,50`, `1.500,50`). | verificar |
