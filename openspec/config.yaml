@@ -1,0 +1,49 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Rumbo es la app de finanzas personales de Joaquín (Bolivia, uso personal). Responde «a este ritmo, ¿a dónde llego?».
+
+  Stack (no cambiarlo sin una propuesta aprobada):
+  - Una sola página `index.html`: HTML, CSS y JavaScript sin librerías, sin compilación y sin dependencias de npm.
+    La gráfica es SVG propio. Fuentes de Google Fonts (Bricolage Grotesque e Instrument Sans).
+  - Se publica como artifact privado de claude.ai, siempre a la misma URL
+    (https://claude.ai/artifact/Pa47kuqzy96qmKqbB6Bc5z), con las capacidades `db` y `user`. Publicar requiere el sí
+    de Joaquín.
+  - Datos privados por persona en la base del artifact, bajo `data/users/<id>/rumbo` y sus subcolecciones. Sin base
+    disponible, guarda en localStorage y lo dice. Nunca hay servidor propio.
+  - Pruebas: `npm run verificar` (Node 20, `pruebas/verificar.mjs`) carga el script de `index.html` en un contexto
+    de Node y prueba las funciones de cálculo. Corre también en GitHub Actions en cada PR.
+  - Diseño: `docs/DISENO.md` (estilo Bloques sólidos). Dominio y entidades: `docs/DOMINIO.md`.
+  - Repo `JoaquinVM/rumbo`; es un sistema de Foundry y sus reglas están en `CLAUDE.md`.
+
+  Orden de construcción de la v1 (cada cambio depende de los anteriores; se aplica y archiva uno a la vez):
+  1. estilo-bloques-solidos  2. base-bolivianos-y-cuentas  3. metas  4. fijos-por-confirmar-y-hoy
+  5. proyeccion-v1  6. deudas  7. categorias-y-topes
+
+  Reglas de negocio que no se negocian:
+  - Moneda base boliviano; formato «Bs 1.234,50».
+  - Se guardan solo hechos (cuentas, movimientos, fijos, ocurrencias, deudas, metas, apartados, categorías, ajustes).
+    Saldos, patrimonio, ritmo, libre, proyección y avance de topes se calculan siempre.
+  - Ningún campo guardado se renombra, borra ni cambia de tipo sin plan de migración, respaldo previo y verificación.
+
+rules:
+  proposal:
+    - Nombrar la capability con la ruta exacta de openspec/specs cuando ya existe.
+    - Decir si el cambio toca dinero, cantidades o datos guardados (en Foundry eso es Crisol).
+  specs:
+    - Cada requirement empieza con su ID estable (por ejemplo `HOY-02 Libre hasta el próximo ingreso`); el ID no cambia aunque cambie el texto.
+    - Los escenarios usan montos en bolivianos con números concretos.
+  tasks:
+    - Toda regla que calcule dinero tiene su prueba en pruebas/verificar.mjs, nombrada con el ID del requirement, en la misma tarea que la implementa.
+    - Toda tarea visual dice qué pantalla de los mockups sigue y se verifica a 375 px en claro y oscuro.
+    - La última tarea de cada cambio es publicar el artifact con el sí de Joaquín y verificar la versión publicada.
+
+operations:
+  apply:
+    guidance:
+      - Correr `npm run verificar` antes de marcar una tarea como hecha.
+      - No publicar el artifact sin el sí explícito de Joaquín en el chat.

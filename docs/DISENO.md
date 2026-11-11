@@ -21,7 +21,8 @@ siempre significa lo mismo.
 | **Ámbar · pendiente y avisos** | `#A86410` (bloque), `#F8E7D0` (suave) | Por confirmar, avisos, topes desde el 80 %, tipo de cambio viejo |
 | **Verde · metas y ahorro** | `#1E7A55` (bloque), `#D7EFE3` (suave), `#0F7A56` (texto de ingresos) | Metas, «te quedas tú», resultado de «¿Y si…?», lo que entra en un cambio |
 | **Rojo · te pasaste** | `#B03A22` | Solo una categoría que pasó su tope |
-| **Oscuro · lo que debes** | `#13201A` | Bloque de un préstamo, confirmación de reemplazar respaldo, botón + |
+| **Tinta · solo acciones** | `#13201A` | Botones principales y botón +. Ningún otro elemento grande usa este color: lo oscuro se toca |
+| **Ladrillo · lo que debes** | `#6B2E21` | Bloque de un préstamo |
 | Azul suave | `#DDE3FF` | Baldosa de colchón, etiqueta «Fijo», «Día a día» |
 
 Categorías: Comida fuera `#E0703A`, Súper `#3E9B5C`, Casa `#5A6CD8`, Transporte `#2F93B5`, Salud `#D04F78`, Ocio
@@ -40,8 +41,21 @@ Ingresos en verdes.
   una franja blanca; los botones son uno blanco sólido y otro con borde blanco.
 - **Baldosa:** radio 16 px, tono suave del color con su texto oscuro. Para los indicadores.
 - **Fila:** blanca, radio 14 px, alto mínimo 56 px, sin borde, con un cuadrito de 40 px (radio 12) del color de su
-  categoría a la izquierda. Transferencia: cuadrito oscuro con ⇄. Ajuste: gris con =.
+  categoría a la izquierda y un ícono blanco adentro.
+- **Íconos:** SVG de trazo, 20 px, grosor 2, puntas redondeadas, en blanco sobre el cuadrito. Nunca letras ni emojis.
+  Cada categoría, cuenta y tipo tiene el suyo: comida fuera (tenedor y cuchillo), transporte (auto), súper (carrito),
+  casa (casa), negocio (maletín), transferencia (dos flechas, cuadrito gris pizarra `#4F5D66`), ajuste (balanza, cuadrito gris),
+  efectivo (billete), banco (edificio), dólares (signo $), sueldo (bandeja con flecha), luz (rayo), suscripciones
+  (pantalla con play), internet (wifi), préstamo y cuotas (porcentaje), deuda con una persona (persona), te deben
+  (persona con flecha). En los fijos, el día va en el texto («día 25»), no en el cuadrito.
 - **Botón +:** oscuro, 58 px, radio 20, sobre la barra de pestañas.
+- **Botones:** estilo propio, igual en toda la app y sobre cualquier fondo, también dentro de los bloques de color.
+  - Principal: tinta `#13201A` sólida, texto blanco en negrita, esquinas de 12 px (no pastilla), alto 48–52 px y sombra
+    inferior marcada (`0 4px 0 rgba(0,0,0,.28)`) que lo hace ver presionable. Uno por grupo.
+  - Secundario: solo texto subrayado, sin caja (blanco sobre un bloque, tinta sobre fondo claro).
+  - Agregar: borde tinta punteado de 1,5 px, esquinas de 12 px, con «+».
+  - Las opciones que se eligen (cuentas, categorías, filtros, horizonte) son pastillas redondas con borde fino que se
+    vuelven azules al elegirse: nunca se ven como un botón.
 - **Formulario:** el monto va en un bloque azul grande; las entradas son blancas sin borde y las opciones son pastillas
   blancas que se vuelven azules al elegirlas.
 - **Toques:** nada menor a 44 px.
