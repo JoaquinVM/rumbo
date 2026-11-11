@@ -17,7 +17,8 @@ Las reglas de este archivo mandan sobre las de Foundry dentro de este repo.
   requirement tiene un ID estable (`HOY-02`) al que apuntan el código y las pruebas.
 - Lo nuevo entra como cambio de OpenSpec (`/opsx:propose`) y se aprueba antes de construirse (`/opsx:apply`). Al
   terminarlo y publicarlo, se archiva (`openspec archive <cambio>`) en el mismo PR, así las specs quedan al día.
-- La v1 se construye en el orden de `openspec/config.yaml`, un cambio a la vez.
+- La v1 ya está construida y archivada. Antes de decidir algo, revisar `docs/DECISIONES.md` y anotar ahí lo nuevo.
+- Ensayo opcional en navegador real: `PLAYWRIGHT=<ruta a playwright-core> node pruebas/ensayo.cjs`.
 - `openspec validate --all --strict` debe pasar antes de cada commit.
 
 ## Código

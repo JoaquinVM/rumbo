@@ -20,9 +20,8 @@ context: |
   - Diseño: `docs/DISENO.md` (estilo Bloques sólidos). Dominio y entidades: `docs/DOMINIO.md`.
   - Repo `JoaquinVM/rumbo`; es un sistema de Foundry y sus reglas están en `CLAUDE.md`.
 
-  Orden de construcción de la v1 (cada cambio depende de los anteriores; se aplica y archiva uno a la vez):
-  1. estilo-bloques-solidos  2. base-bolivianos-y-cuentas  3. metas  4. fijos-por-confirmar-y-hoy
-  5. proyeccion-v1  6. deudas  7. categorias-y-topes
+  La v1 (7 cambios) está construida y archivada en openspec/changes/archive (10/11/2026). Lo nuevo entra como
+  cambio nuevo; las decisiones tomadas están en docs/DECISIONES.md.
 
   Reglas de negocio que no se negocian:
   - Moneda base boliviano; formato «Bs 1.234,50».

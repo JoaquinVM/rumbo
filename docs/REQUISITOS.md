@@ -2,11 +2,10 @@
 
 Desde el 10/11/2026 los requisitos viven en **OpenSpec**:
 
-- `openspec/specs/`: lo que Rumbo hace hoy, una spec por capability (formato, movimientos, fijos, hoy, proyeccion,
-  indicadores, desglose, ajustes, categorias, pantallas, datos).
-- `openspec/changes/`: lo aprobado por construir, como cambios con propuesta, deltas de requisitos, diseño y tareas.
-  Orden de la v1: `estilo-bloques-solidos`, `base-bolivianos-y-cuentas`, `metas`, `fijos-por-confirmar-y-hoy`,
-  `proyeccion-v1`, `deudas`, `categorias-y-topes`.
+- `openspec/specs/`: lo que Rumbo hace hoy (v1), una spec por capability: formato, cuentas, movimientos, fijos, hoy,
+  proyeccion, indicadores, deudas, metas, categorias, desglose, ajustes, pantallas y datos.
+- `openspec/changes/`: lo aprobado por construir. Los 7 cambios de v1 ya están en `openspec/changes/archive/` (10/11/2026),
+  cada uno con su propuesta, deltas, diseño y tareas.
 - Al terminar un cambio, `openspec archive <cambio>` lo pasa a las specs.
 
 Cada requirement conserva su ID (por ejemplo `HOY-02`); el código y las pruebas apuntan a él.
