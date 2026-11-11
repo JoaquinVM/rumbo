@@ -14,5 +14,8 @@ Lo que no entra en la v1 de `REQUISITOS.md`. Nada de esto está aprobado; si se 
 
 ## Por comprobar
 
-1. El guardado en la base del artifact con la sesión de Joaquín iniciada en la app publicada (no se pudo probar al
-   crearla).
+1. Comprobado el 10/11/2026 en la app publicada con la sesión de Joaquín: empezar, anotar y editar un gasto, transferir,
+   confirmar un fijo, crear una meta y apartar, crear un préstamo, recargar (todo sigue ahí) y borrar todo.
+2. Falta verlo en el teléfono, pagar una cuota de préstamo, poner un tope y tocar «Nominal» en la versión publicada.
+3. Detalle menor: la marca de una meta en la gráfica va al pie del eje; si el patrimonio es negativo, el pie queda bajo
+   cero y parece que la meta estuviera en −35 k.

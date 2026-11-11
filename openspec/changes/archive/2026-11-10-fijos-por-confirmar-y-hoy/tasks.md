@@ -22,4 +22,4 @@
 
 ## 5. Publicar
 
-- [ ] 5.1 Publicar el artifact con el sí de Joaquín y verificar en la versión publicada que confirmar un fijo cambia el saldo de su cuenta
+- [x] 5.1 Publicar el artifact con el sí de Joaquín y verificar en la versión publicada que confirmar un fijo cambia el saldo de su cuenta

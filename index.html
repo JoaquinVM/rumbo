@@ -601,8 +601,9 @@ async function iniciarStore() {
     const mainRef = db.doc(`data/users/${id}/rumbo`);
     const refs = {}; COLS.forEach(c => { refs[c] = mainRef.collection(c); });
     const remote = {main: undefined}; const got = new Set();
+    let ocupado = false; // mientras se reemplaza o se borra todo, S ya tiene el estado final: no lo pisan las fotos a medias
     const sync = () => {
-      if (got.size < COLS.length + 1) return;
+      if (ocupado || got.size < COLS.length + 1) return;
       clearTimeout(timer);
       loaded = true;
       if (remote.main && remote.main.aj && remote.main.aj.empezado) {
@@ -620,8 +621,14 @@ async function iniciarStore() {
       put: (c, o) => refs[c].doc(o.id).set(limpio(o)).catch(fallo),
       del: (c, i) => refs[c].doc(i).delete().catch(fallo),
       setAj: () => { if (pend) return; pend = true; chain = chain.then(async () => { pend = false; try { await mainRef.set({aj: limpio(S.aj)}); } catch (e) { fallo(); } }); },
-      clear: async () => { for (const c of COLS) for (const o of (remote[c] || [])) { try { await refs[c].doc(o.id).delete(); } catch (e) {} } try { await mainRef.delete(); } catch (e) {} },
-      reemplazar: async S2 => { await store.clear(); for (const c of COLS) for (const o of S2[c]) { try { await refs[c].doc(o.id).set(limpio(o)); } catch (e) { fallo(); } } await mainRef.set({aj: limpio(S2.aj)}); }
+      // Borrar: primero el documento principal (la base queda «sin empezar») y luego el resto
+      clear: async () => { ocupado = true; try { try { await mainRef.delete(); } catch (e) {} for (const c of COLS) for (const o of [...(remote[c] || [])]) { try { await refs[c].doc(o.id).delete(); } catch (e) {} } } finally { ocupado = false; sync(); } },
+      // Reemplazar sin pasar por «vacío»: borra solo lo que sobra, escribe lo nuevo y al final el principal
+      reemplazar: async S2 => { ocupado = true; try {
+        for (const c of COLS) { const quedan = new Set(S2[c].map(o => o.id)); for (const o of [...(remote[c] || [])]) if (!quedan.has(o.id)) { try { await refs[c].doc(o.id).delete(); } catch (e) {} } }
+        for (const c of COLS) for (const o of S2[c]) { try { await refs[c].doc(o.id).set(limpio(o)); } catch (e) { fallo(); } }
+        try { await mainRef.set({aj: limpio(S2.aj)}); } catch (e) { fallo(); }
+      } finally { ocupado = false; sync(); } }
     };
   } else {
     clearTimeout(timer);
