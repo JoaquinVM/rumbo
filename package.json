@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "verificar": "node pruebas/verificar.mjs"
+    "verificar": "node pruebas/verificar.mjs && node pruebas/nube.mjs"
   }
 }

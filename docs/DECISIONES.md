@@ -47,3 +47,7 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     igual, porque el código ya cumple sus specs en la rama.
 29. (C) Trabajo en la rama `v1`, un commit por cambio; publicar el artifact y mergear a main quedan para el sí de
     Joaquín al final, como piden `CLAUDE.md` y Foundry.
+30. (C) 10/11/2026, prueba en pantalla con la sesión de Joaquín: al empezar, la app volvía unos segundos al ejemplo porque
+    reemplazar los datos borraba primero el documento principal. Ahora reemplazar borra solo lo que sobra y escribe el
+    principal al final, «Borrar todo» borra primero el principal, y mientras dura cualquiera de los dos la app no toma
+    las fotos a medias de la base. Lo cubre `pruebas/nube.mjs`, con una base falsa.

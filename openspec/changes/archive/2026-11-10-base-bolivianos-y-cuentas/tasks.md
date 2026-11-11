@@ -33,4 +33,4 @@
 
 ## 6. Publicar
 
-- [ ] 6.1 Publicar el artifact con el sí de Joaquín y verificar en la versión publicada que una cuenta creada sobrevive a recargar
+- [x] 6.1 Publicar el artifact con el sí de Joaquín y verificar en la versión publicada que una cuenta creada sobrevive a recargar

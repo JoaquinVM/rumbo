@@ -14,4 +14,4 @@
 
 ## 3. Publicar
 
-- [ ] 3.1 Publicar el artifact con el sí de Joaquín y verificar en la versión publicada que un apartado sobrevive a recargar
+- [x] 3.1 Publicar el artifact con el sí de Joaquín y verificar en la versión publicada que un apartado sobrevive a recargar
