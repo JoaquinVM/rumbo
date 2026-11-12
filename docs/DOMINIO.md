@@ -36,6 +36,12 @@ Algo que pasó con tu dinero: una fecha, una cuenta y un monto. Es el único reg
   - **Pago de deuda**: se divide en interés (gasto en Intereses) y capital (baja la deuda).
   - **Cobro**: te pagan lo que te deben.
   - **Préstamo dado**: prestas dinero; nace o sube un «te deben».
+  - **Dinero que te prestan**: sube la cuenta y la deuda. No es ingreso.
+  - **Interés sin pagar**: el interés de una cuota saltada; sube la deuda y es gasto en Intereses. No tiene cuenta.
+  - **Cierre**: el saldo de una deuda que se archiva sin pagar o cobrar; cambia el patrimonio y se ve en el Desglose.
+- Un movimiento en dólares guarda el tipo de cambio del día. Un pago, cobro o préstamo siempre usa una cuenta de la
+  moneda de la deuda.
+- Cuentas y deudas guardan su fecha de apertura: lo anterior ya está en el saldo inicial y no lo vuelve a cambiar.
 
 ### 5. Fijo
 Una promesa de dinero que se repite cada mes el mismo día.

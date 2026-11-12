@@ -12,7 +12,7 @@ assert.ok(m[1].includes(FIN), 'el script termina con iniciarStore()');
 const expuestas = ['money','usd','fmtN','parseAmt','fechaFijo','saldoCuenta','apartadoCuenta','saldoDeuda','patrimonio','tcDias','ultimoCambio',
   'ritmo','promedioIrregular','amortizar','infoPrestamo','proyectar','pendientes','proximoIngreso','calcHoy','infoMeta','estadoMetas',
   'gastoMesCat','avanceTopes','nivelTope','resumenMes','indicadores','catsPorUso','notasSugeridas','respaldo','leerRespaldo','vacio',
-  'makeDemo','confirmarFijo','saltarFijo','vRumbo','vMovimientos','vDesglose','vPlan','vDeuda','vMeta','vCategorias','vAjustes','CATS_BASE','ui'];
+  'makeDemo','put','confirmarFijo','saltarFijo','vRumbo','vMovimientos','vDesglose','vPlan','vDeuda','vMeta','vCategorias','vAjustes','CATS_BASE','ui'];
 const code = m[1].replace(FIN, `globalThis.__t = {${expuestas.join(',')},
   setHoy: d => { HOY = d; }, get S() { return S; }, set S(v) { S = v; }, get demo() { return demo; }, set demo(v) { demo = v; }};
 iniciarStore();
@@ -268,6 +268,72 @@ test('MOV-05 aviso de tope al anotar', () => {
 test('DES-02 de cada 100 y horas de trabajo', () => {
   const S = base(); S.movs = [{id: 'i', tipo: 'ingreso', cuentaId: 'bn', categoriaId: 'sueldo', monto: 9800, fecha: '2026-10-25'}, {id: 'g', tipo: 'gasto', cuentaId: 'bn', categoriaId: 'casa', monto: 2880, fecha: '2026-10-05'}];
   const r = t.resumenMes(S, '2026-10'); assert.equal(Math.round(r.cats.casa / r.entro * 100), 29); assert.equal(Math.round(r.cats.casa / (r.entro / 160)), 47);
+});
+
+
+// ---------- correcciones contables (12/11/2026) ----------
+test('DEU-02 un pago menor que el interés sube la deuda', () => {
+  const S = conFijos(base(), [{nombre: 'Cuota', tipo: 'gasto', monto: 150, categoriaId: 'intereses', dia: 5, deudaId: 'pr'}]);
+  S.deudas = [prestamo({saldoInicial: 10000, interes: 24, cuota: 150, dia: 5})]; t.S = S; t.demo = false;
+  t.confirmarFijo('f0_2026-11', 150);
+  const m = t.S.movs[0]; cerca(m.interes, 200); cerca(m.capital, -50); cerca(t.saldoDeuda(t.S, t.S.deudas[0]), 10050);
+  cerca(t.resumenMes(t.S, '2026-11').cats.intereses, 200);
+});
+test('DEU-07 dinero que te prestan no es ingreso', () => {
+  const S = base(), p0 = t.patrimonio(S).total; S.deudas = [prestamo({saldoInicial: 0})];
+  S.movs = [{id: 'r', tipo: 'recibido', deudaId: 'pr', cuentaId: 'bn', monto: 5000, fecha: '2026-11-10'}];
+  assert.equal(t.saldoCuenta(S, S.cuentas[1]), 8550); assert.equal(t.saldoDeuda(S, S.deudas[0]), 5000);
+  cerca(t.patrimonio(S).total, p0); assert.equal(t.resumenMes(S, '2026-11').entro, 0);
+});
+test('DEU-08 saltar la cuota suma su interés a la deuda', () => {
+  const S = conFijos(base(), [{nombre: 'Cuota', tipo: 'gasto', monto: 500, categoriaId: 'intereses', dia: 5, deudaId: 'pr'}]);
+  S.deudas = [prestamo({saldoInicial: 10000, interes: 24, cuota: 500, dia: 5})]; t.S = S; t.demo = false;
+  t.saltarFijo('f0_2026-11');
+  cerca(t.saldoDeuda(t.S, t.S.deudas[0]), 10200); cerca(t.resumenMes(t.S, '2026-11').cats.intereses, 200);
+  assert.equal(t.pendientes(t.S, h).length, 0);
+  assert.ok(t.vMovimientos().includes('Interés sin pagar'));
+});
+test('DEU-09 cerrar una deuda con saldo queda en el Desglose', () => {
+  const S = base(); S.deudas = [{id: 'ana', tipo: 'teDeben', nombre: 'Ana', moneda: 'BOB', saldoInicial: 400}];
+  S.movs = [{id: 'c', tipo: 'cierre', deudaId: 'ana', monto: 400, fecha: '2026-11-10'}];
+  assert.equal(t.saldoDeuda(S, S.deudas[0]), 0); assert.equal(t.resumenMes(S, '2026-11').cierres, -400);
+});
+test('CTA-07 lo anterior a la apertura no cambia el saldo pero sí el Desglose', () => {
+  const S = base(); S.cuentas[0].desde = '2026-11-10';
+  S.movs = [{id: 'g', tipo: 'gasto', cuentaId: 'ef', categoriaId: 'comida', monto: 35, fecha: '2026-11-09'},
+    {id: 'g2', tipo: 'gasto', cuentaId: 'ef', categoriaId: 'comida', monto: 20, fecha: '2026-11-10'}];
+  assert.equal(t.saldoCuenta(S, S.cuentas[0]), 630); assert.equal(t.resumenMes(S, '2026-11').salio, 55);
+});
+test('MOV-06 un gasto en dólares guarda su tipo de cambio', () => {
+  const S = base(); t.S = S; t.demo = false;
+  t.put('movs', {id: 'u', tipo: 'gasto', cuentaId: 'us', categoriaId: 'compras', monto: 20, fecha: '2026-10-15'});
+  assert.equal(t.S.movs[0].tc, 12.5); t.S.aj.tc = 14; assert.equal(t.resumenMes(t.S, '2026-10').salio, 250);
+});
+test('HOY-02 un fijo de una cuenta que no es del día a día no resta del libre', () => {
+  const S = conFijos(base(), [{nombre: 'Curso', tipo: 'gasto', monto: 50, categoriaId: 'educacion', dia: 20, cuentaId: 'us'}]);
+  assert.equal(t.calcHoy(S, h).compBs, 0);
+});
+test('DES-03 cuadres y cambio de moneda a la vista', () => {
+  const S = base(); S.movs = [{id: 't', tipo: 'transferencia', cuentaId: 'ef', cuentaDestinoId: 'us', monto: 650, montoDestino: 50, tc: 12.5, fecha: '2026-11-10'},
+    {id: 'a', tipo: 'ajuste', cuentaId: 'bn', monto: 200, sentido: -1, fecha: '2026-11-10'}];
+  const r = t.resumenMes(S, '2026-11'); assert.equal(r.cambio, -25); assert.equal(r.ajustes, -200);
+  t.S = S; t.ui.mes = '2026-11'; assert.ok(t.vDesglose().includes('por cambio de moneda'));
+});
+test('DES-04 e IND-01 la cuota cuenta su interés como gasto y su capital como ahorro', () => {
+  const S = conFijos(base(), [{nombre: 'Sueldo', tipo: 'ingreso', monto: 8000, categoriaId: 'sueldo', dia: 25},
+    {nombre: 'Cuota', tipo: 'gasto', monto: 2000, categoriaId: 'intereses', dia: 20, deudaId: 'pr'}]);
+  S.deudas = [prestamo({saldoInicial: 20000, interes: 12, cuota: 2000})];
+  const R = t.ritmo(S, h); cerca(R.fijCat.intereses, 200); cerca(R.capital, 1800);
+  cerca(t.indicadores(S, h).tasa, 0.975, 0.001);
+});
+test('PRO-05 ingresos y gastos siguen a la inflación; las cuotas no', () => {
+  const S = conFijos(base(), [{nombre: 'S', tipo: 'ingreso', monto: 1000, categoriaId: 'sueldo', dia: 25}]);
+  S.cuentas = [{id: 'bn', nombre: 'Banco', moneda: 'BOB', saldoInicial: 0, rendimiento: 0, diaADia: true}]; S.aj.inflacion = 8;
+  const P = t.proyectar(S, h, 120, {}); assert.ok(Math.abs(P.pts[120] - 83432) < 50, P.pts[120]);
+  const S2 = conFijos(base(), [{nombre: 'S', tipo: 'ingreso', monto: 3000, categoriaId: 'sueldo', dia: 25}, {nombre: 'Cuota', tipo: 'gasto', monto: 1000, categoriaId: 'intereses', dia: 20, deudaId: 'pr'}]);
+  S2.cuentas = [{id: 'bn', nombre: 'Banco', moneda: 'BOB', saldoInicial: 0, rendimiento: 0, diaADia: true}]; S2.aj.inflacion = 8;
+  S2.deudas = [prestamo({saldoInicial: 12000, interes: 12, cuota: 1000})];
+  cerca(t.proyectar(S2, h, 1, {nominal: true}).nom[1], -12000 + 3000 - 120, 0.5);
 });
 
 // ---------- respaldo ----------
