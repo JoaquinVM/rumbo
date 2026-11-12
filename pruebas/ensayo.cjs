@@ -101,6 +101,47 @@ const log = (...a) => console.log(...a);
     await page.click('[data-act="volver"]');
   });
 
+  const datos = () => page.evaluate(() => JSON.parse(localStorage.getItem('rumbo-v2')));
+  await paso('FIJ-06 pagar la cuota a mano la confirma', async () => {
+    const D = await datos(); const pago = D.movs.find(m => m.tipo === 'pago');
+    expect(pago && pago.fijoId, 'el pago no quedó como cuota');
+    expect(D.ocurrencias.some(o => o.movId === pago.id && o.estado === 'confirmado'), 'la cuota sigue por confirmar');
+  });
+
+  await paso('FIJ-07 préstamo nuevo con el día pasado empieza el mes siguiente', async () => {
+    await page.goto(FILE + '#plan'); await page.waitForTimeout(250);
+    await page.click('[data-act="nuevaDeuda"]'); await page.fill('#d-n', 'Moto'); await page.fill('#d-s', '3000');
+    await page.fill('#d-i', '10'); await page.fill('#d-dia', '1'); await page.fill('#d-c', '300');
+    expect((await page.locator('#d-body').innerText()).includes('La primera cuota que te pregunta es la de'), 'sin aviso de primera cuota');
+    await page.click('#fD button[type="submit"]'); await page.waitForTimeout(250);
+    const D = await datos(); const f = D.fijos.find(x => x.nombre === 'Cuota · Moto'); const h = new Date();
+    const sig = new Date(h.getFullYear(), h.getMonth() + 1, 1); const ym = `${sig.getFullYear()}-${String(sig.getMonth() + 1).padStart(2, '0')}`;
+    expect(f && (h.getDate() > 1 ? f.desde === ym : true), 'desde mal: ' + (f && f.desde));
+  });
+
+  await paso('DEU-06/07/10 deuda en dólares: solo cuentas en dólares, entra el dinero y no se paga de más', async () => {
+    await page.click('[data-act="nuevaDeuda"]'); await page.click('[data-dt="persona"]'); await page.fill('#d-n', 'Ana'); await page.click('[data-dm="USD"]');
+    const chips = await page.locator('#d-body [data-dpc]:not([data-dpc=""])').allInnerTexts();
+    expect(chips.length === 1 && chips[0].includes('Dólares'), 'ofrece cuentas de otra moneda: ' + chips.join('|'));
+    await page.click('#d-body [data-dpc]:not([data-dpc=""])'); await page.fill('#d-s', '100');
+    await page.click('#fD button[type="submit"]'); await page.waitForTimeout(250);
+    const D = await datos(); const ana = D.deudas.find(d => d.nombre === 'Ana'); const us = D.cuentas.find(c => c.moneda === 'USD');
+    const r = D.movs.find(m => m.tipo === 'recibido' && m.deudaId === ana.id); expect(r && r.cuentaId === us.id && r.monto === 100, 'no entró a Dólares');
+    await page.click(`[data-act="verDeuda"][data-id="${ana.id}"]`); await page.waitForTimeout(200);
+    await page.click('[data-act="pagoDeuda"][data-tipo="pago"]'); await page.waitForTimeout(150);
+    const cs = await page.locator('#p-cs [data-pc]').allInnerTexts(); expect(cs.length === 1 && cs[0].includes('Dólares'), 'paga desde otra moneda');
+    await page.fill('#p-m', '150'); await page.click('#fP button[type="submit"]'); await page.waitForTimeout(200);
+    expect((await page.locator('.toast').last().innerText()).includes('El máximo es'), 'dejó pagar de más');
+    await page.click('[data-close]'); await page.click('[data-act="volver"]');
+  });
+
+  await paso('CTA-08 no archiva una cuenta con saldo', async () => {
+    await page.goto(FILE + '#plan'); await page.waitForTimeout(250);
+    await page.click('[data-act="editCuenta"]:has-text("Efectivo")'); await page.click('#c-arch'); await page.waitForTimeout(200);
+    expect((await page.locator('.toast').last().innerText()).includes('antes de archivarla'), 'archivó con saldo');
+    const D = await datos(); expect(!D.cuentas.find(c => c.nombre === 'Efectivo').archivada, 'quedó archivada'); await page.click('[data-close]');
+  });
+
   await paso('MET-01/02 crear meta y apartar con tope del saldo', async () => {
     await page.click('[data-act="nuevaMeta"]'); await page.fill('#mt-n', 'Fondo de emergencia'); await page.fill('#mt-m', '15.000');
     await page.click('#fM button[type="submit"]'); await page.waitForTimeout(250);

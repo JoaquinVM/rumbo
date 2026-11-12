@@ -283,18 +283,25 @@ const monedaDe = (S, id) => (cuentaDe(S, id) || {}).moneda || 'BOB';
 const aBs = (S, monto, mon) => mon === 'USD' ? monto * (S.aj.tc || 0) : monto;
 const catDe = (S, id) => S.categorias.find(c => c.id === id) || {id, nombre:'Sin categoría', color:'#808A84', icono:'puntos', tipo:'gasto'};
 const activos = a => a.filter(x => !x.archivada);
+// MOV-06: moneda y valor en Bs de un movimiento, con el tipo de cambio guardado en él
+const deudaDe = (S, id) => S.deudas.find(d => d.id === id);
+const monMov = (S, m) => m.cuentaId ? monedaDe(S, m.cuentaId) : ((deudaDe(S, m.deudaId) || {}).moneda || 'BOB');
+const bsMov = (S, m, v = m.monto) => monMov(S, m) === 'USD' ? v * (m.tc || S.aj.tc || 0) : v;
+// CTA-07: lo anterior a la apertura ya está en el saldo inicial
+const antes = (o, m) => o.desde && m.fecha < o.desde;
 
 // CTA-02: saldo = inicial + movimientos
 function saldoCuenta(S, c) {
   let s = c.saldoInicial || 0;
   for (const m of S.movs) {
+    if (antes(c, m)) continue;
     if (m.tipo === 'transferencia') {
       if (m.cuentaId === c.id) s -= m.monto;
       if (m.cuentaDestinoId === c.id) s += (m.montoDestino ?? m.monto);
       continue;
     }
     if (m.cuentaId !== c.id) continue;
-    if (m.tipo === 'ingreso' || m.tipo === 'cobro') s += m.monto;
+    if (m.tipo === 'ingreso' || m.tipo === 'cobro' || m.tipo === 'recibido') s += m.monto;
     else if (m.tipo === 'gasto' || m.tipo === 'pago' || m.tipo === 'prestamo') s -= m.monto;
     else if (m.tipo === 'ajuste') s += (m.sentido || 1) * m.monto;
   }
@@ -306,10 +313,10 @@ const totalCuentasBs = S => sum(S.cuentas, c => aBs(S, saldoCuenta(S, c), c.mone
 function saldoDeuda(S, d) {
   let s = d.saldoInicial || 0;
   for (const m of S.movs) {
-    if (m.deudaId !== d.id) continue;
+    if (m.deudaId !== d.id || antes(d, m)) continue;
     if (m.tipo === 'pago') s -= (m.capital ?? m.monto);
-    else if (m.tipo === 'cobro') s -= m.monto;
-    else if (m.tipo === 'prestamo') s += m.monto;
+    else if (m.tipo === 'cobro' || m.tipo === 'cierre') s -= m.monto;
+    else if (m.tipo === 'prestamo' || m.tipo === 'recibido' || m.tipo === 'interes') s += m.monto;
   }
   return r2(s);
 }
@@ -343,17 +350,22 @@ function ritmo(S, h) {
     months = Math.min(3, Math.max(1, ((h - first) / D + 1) / 30.44));
   }
   const varCat = {};
-  win.forEach(m => { varCat[m.categoriaId] = (varCat[m.categoriaId] || 0) + aBs(S, m.monto, monedaDe(S, m.cuentaId)) / months; });
-  const fijCat = {};
-  act.filter(f => f.tipo === 'gasto').forEach(f => { fijCat[f.categoriaId] = (fijCat[f.categoriaId] || 0) + bsF(f); });
+  win.forEach(m => { varCat[m.categoriaId] = (varCat[m.categoriaId] || 0) + bsMov(S, m) / months; });
+  // DES-04 e IND-01: de la cuota de un préstamo, solo el interés es gasto; el capital es ahorro
+  const fijCat = {}; let capital = 0;
+  act.filter(f => f.tipo === 'gasto').forEach(f => {
+    const d = f.deudaId && deudaDe(S, f.deudaId);
+    let v = bsF(f);
+    if (d && d.tipo === 'prestamo' && !d.archivada) { const sd = aBs(S, saldoDeuda(S, d), d.moneda), it = Math.min(v, r2(sd * (d.interes || 0) / 100 / 12)); capital += Math.max(0, Math.min(v - it, sd)); v = it; }
+    fijCat[f.categoriaId] = (fijCat[f.categoriaId] || 0) + v; });
   const irr = S.aj.irregular || 0, varGas = sum(Object.values(varCat));
   const ingreso = fijIng + irr, gasto = fijGas + varGas;
-  return {fijIng, fijGas, irr, varCat, fijCat, varGas, ingreso, gasto, neto: ingreso - gasto, months};
+  return {fijIng, fijGas, irr, varCat, fijCat, varGas, ingreso, gasto, neto: ingreso - gasto, capital, months};
 }
 // AJU-01: promedio real de ingresos variables (90 días ÷ 3)
 function promedioIrregular(S, h) {
   const desde = new Date(h); desde.setDate(desde.getDate() - 90);
-  return sum(S.movs.filter(m => m.tipo === 'ingreso' && !m.fijoId && pISO(m.fecha) >= desde && pISO(m.fecha) <= h), m => aBs(S, m.monto, monedaDe(S, m.cuentaId))) / 3;
+  return sum(S.movs.filter(m => m.tipo === 'ingreso' && !m.fijoId && pISO(m.fecha) >= desde && pISO(m.fecha) <= h), m => bsMov(S, m)) / 3;
 }
 
 // DEU-02/04/05: amortización con interés a centavos
@@ -381,6 +393,8 @@ function infoPrestamo(S, d, h, extra = 0) {
 function proyectar(S, h, meses, o = {}) {
   const R = ritmo(S, h);
   let neto = R.neto + (o.extra || 0);
+  // PRO-05: el neto sin cuotas sube con la inflación; las cuotas son fijas y se restan aparte
+  const cuotasFijas = sum(fijosActivos(S).filter(f => f.tipo === 'gasto' && f.deudaId && (deudaDe(S, f.deudaId) || {}).tipo === 'prestamo' && !(deudaDe(S, f.deudaId) || {}).archivada), f => aBs(S, f.monto, monedaDe(S, f.cuentaId)));
   for (const [cat, p] of Object.entries(o.recortes || {})) neto += (R.varCat[cat] || 0) * p / 100;
   const cs = S.cuentas.map(c => ({bs: aBs(S, saldoCuenta(S, c), c.moneda), r: c.rendimiento || 0}));
   let act = sum(cs, c => c.bs);
@@ -395,12 +409,12 @@ function proyectar(S, h, meses, o = {}) {
   const pat = () => act + teDeben - personas - sum(prest, p => Math.max(0, p.s));
   const pts = [pat()]; const nom = [pts[0]];
   for (let k = 1; k <= meses; k++) {
-    let flujo = neto;
+    let flujo = (neto + cuotasFijas) * Math.pow(1 + inf, (k - 1) / 12);
     for (const p of prest) {
-      if (p.s <= 0.005) { if (p.conFijo) flujo += p.cuota; continue; }
+      if (p.s <= 0.005) continue;
       const it = p.s * p.i, quiere = p.cuota + p.extra, pago = Math.min(quiere, p.s + it);
       p.s -= (pago - it);
-      flujo -= p.conFijo ? (p.extra - (quiere - pago)) : pago;
+      flujo -= pago;
       if (p.s <= 0.005 && p.fin == null) p.fin = k;
     }
     act += (act > 0 ? act * rw / 100 / 12 : 0) + flujo;
@@ -460,7 +474,7 @@ function calcHoy(S, h) {
   const disp = sum(S.cuentas.filter(c => c.diaADia && !c.archivada), c => aBs(S, saldoCuenta(S, c) - apartadoCuenta(S, c.id), c.moneda));
   const prox = proximoIngreso(S, h);
   const limite = prox ? prox.fecha : iso(new Date(h.getFullYear(), h.getMonth() + 1, 1));
-  const comp = [...pendientes(S, h), ...proximosFijos(S, h, limite)].filter(p => p.fijo.tipo === 'gasto');
+  const comp = [...pendientes(S, h), ...proximosFijos(S, h, limite)].filter(p => p.fijo.tipo === 'gasto' && (cuentaDe(S, p.fijo.cuentaId) || {}).diaADia);
   const compBs = sum(comp, p => aBs(S, p.fijo.monto, monedaDe(S, p.fijo.cuentaId)));
   const metas = sum(activos(S.metas), m => infoMeta(S, m, h).falta);
   const libre = disp - compBs - metas, dias = Math.max(1, diasEntre(iso(h), limite));
@@ -472,8 +486,9 @@ function gastoMesCat(S, ym) {
   const r = {};
   for (const m of S.movs) {
     if (m.fecha.slice(0, 7) !== ym) continue;
-    if (m.tipo === 'gasto') r[m.categoriaId] = (r[m.categoriaId] || 0) + aBs(S, m.monto, monedaDe(S, m.cuentaId));
-    if (m.tipo === 'pago' && m.interes) r.intereses = (r.intereses || 0) + aBs(S, m.interes, monedaDe(S, m.cuentaId));
+    if (m.tipo === 'gasto') r[m.categoriaId] = (r[m.categoriaId] || 0) + bsMov(S, m);
+    if (m.tipo === 'pago' && m.interes) r.intereses = (r.intereses || 0) + bsMov(S, m, m.interes);
+    if (m.tipo === 'interes') r.intereses = (r.intereses || 0) + bsMov(S, m);
   }
   return r;
 }
@@ -486,18 +501,23 @@ function avanceTopes(S, ym, extra = null) {
 // DES-01
 function resumenMes(S, ym) {
   const ms = S.movs.filter(m => m.fecha.slice(0, 7) === ym);
-  const bs = m => aBs(S, m.monto, monedaDe(S, m.cuentaId));
+  const bs = m => bsMov(S, m);
   const entro = sum(ms.filter(m => m.tipo === 'ingreso'), bs);
   const cats = gastoMesCat(S, ym), salio = sum(Object.values(cats));
-  const capital = sum(ms.filter(m => m.tipo === 'pago'), m => aBs(S, m.capital ?? m.monto, monedaDe(S, m.cuentaId)));
-  return {entro, salio, quedo: entro - salio, cats, capital};
+  const capital = sum(ms.filter(m => m.tipo === 'pago'), m => bsMov(S, m, m.capital ?? m.monto));
+  // DES-03: lo que cambia el patrimonio sin ser ingreso ni gasto
+  const ajustes = r2(sum(ms.filter(m => m.tipo === 'ajuste'), m => (m.sentido || 1) * bs(m)));
+  const cambio = r2(sum(ms.filter(m => m.tipo === 'transferencia' && m.montoDestino != null && monedaDe(S, m.cuentaId) !== monedaDe(S, m.cuentaDestinoId)), m => {
+    const tc = m.tc || S.aj.tc || 0; return monedaDe(S, m.cuentaId) === 'BOB' ? m.montoDestino * tc - m.monto : m.montoDestino - m.monto * tc; }));
+  const cierres = r2(sum(ms.filter(m => m.tipo === 'cierre'), m => ((deudaDe(S, m.deudaId) || {}).tipo === 'teDeben' ? -1 : 1) * bs(m)));
+  return {entro, salio, quedo: entro - salio, cats, capital, ajustes, cambio, cierres};
 }
 // IND
 function indicadores(S, h) {
   const R = ritmo(S, h), cuentas = totalCuentasBs(S);
   const prest = activos(S.deudas).filter(d => d.tipo === 'prestamo').map(d => infoPrestamo(S, d, h));
   const fines = prest.map(p => p.fin).filter(Boolean).sort();
-  return {R, tasa: R.ingreso > 0 ? R.neto / R.ingreso : 0, colchon: R.gasto > 0 ? cuentas / R.gasto : 0,
+  return {R, tasa: R.ingreso > 0 ? (R.neto + R.capital) / R.ingreso : 0, colchon: R.gasto > 0 ? cuentas / R.gasto : 0,
     deudaTotal: deudasBs(S, ['prestamo', 'persona']), libreDePrestamos: prest.length ? (fines.length === prest.length ? fines[fines.length - 1] : null) : null, hayPrestamos: prest.length > 0};
 }
 // MOV-02: categorías más usadas y notas sugeridas
@@ -641,7 +661,9 @@ async function iniciarStore() {
   }
 }
 // Escrituras: cambian el estado local y, si no es el ejemplo, la base
-function put(col, o) { const a = S[col], i = a.findIndex(x => x.id === o.id); if (i >= 0) a[i] = o; else a.push(o); if (!demo) store.put(col, o); }
+function put(col, o) {
+  if (col === 'movs' && o.tc == null && [o.cuentaId, o.cuentaDestinoId].some(id => id && monedaDe(S, id) === 'USD')) o.tc = S.aj.tc || null;
+  const a = S[col], i = a.findIndex(x => x.id === o.id); if (i >= 0) a[i] = o; else a.push(o); if (!demo) store.put(col, o); }
 function del(col, id) { S[col] = S[col].filter(x => x.id !== id); if (!demo) store.del(col, id); }
 function guardarAj() { if (!demo) store.setAj(); }
 
@@ -806,10 +828,16 @@ function rowMov(m) {
     return `<button class="row" data-act="verMov" data-id="${m.id}">${dt('flechas', 'var(--pizarra)')}<span class="grow"><span class="t">${esc(m.nota || 'Transferencia')}</span><span class="xs m">${esc(c ? c.nombre : '?')} → ${esc(d ? d.nombre : '?')}${tcTxt}</span></span><span class="amt" style="display:flex;flex-direction:column;text-align:right"><span>−${enMoneda(m.monto, mon, 2)}</span><span class="xs in">+${enMoneda(m.montoDestino ?? m.monto, d ? d.moneda : mon, 2)}</span></span></button>`;
   }
   if (m.tipo === 'ajuste') return `<button class="row" data-act="verMov" data-id="${m.id}">${dt('balanza', 'var(--gris)')}<span class="grow"><span class="t">${esc(m.nota || 'Cuadre de cuenta')}<span class="tag g">Ajuste</span></span><span class="xs m">${esc(c ? c.nombre : '')}</span></span><span class="amt">${m.sentido < 0 ? '−' : '+'}${enMoneda(m.monto, mon, 2)}</span></button>`;
-  if (m.tipo === 'pago' || m.tipo === 'cobro' || m.tipo === 'prestamo') {
-    const d = S.deudas.find(x => x.id === m.deudaId); const ent = m.tipo === 'cobro';
-    const t = m.tipo === 'pago' ? `Pago · ${d ? d.nombre : 'deuda'}` : m.tipo === 'cobro' ? `Cobro · ${d ? d.nombre : ''}` : `Préstamo dado · ${d ? d.nombre : ''}`;
-    return `<button class="row" data-act="verMov" data-id="${m.id}">${dt(m.tipo === 'pago' ? 'porcentaje' : 'personaIn', m.tipo === 'pago' ? '#B5482E' : '#1E7A55')}<span class="grow"><span class="t">${esc(t)}${m.fijoId ? '<span class="tag">Fijo</span>' : ''}</span><span class="xs m">${esc(c ? c.nombre : '')}${m.interes ? ` · interés ${money(m.interes, 2)}, capital ${money(m.capital, 2)}` : ''}</span></span><span class="amt ${ent ? 'in' : ''}">${ent ? '+' : '−'}${enMoneda(m.monto, mon, 2)}</span></button>`;
+  if (m.tipo === 'interes' || m.tipo === 'cierre') {
+    const d = deudaDe(S, m.deudaId), mon2 = d ? d.moneda : 'BOB';
+    const t = m.tipo === 'interes' ? `Interés sin pagar · ${d ? d.nombre : ''}` : `Cierre · ${d ? d.nombre : ''}`;
+    const sub = m.tipo === 'interes' ? 'Se suma a la deuda · gasto en Intereses' : d && d.tipo === 'teDeben' ? 'Ya no lo cobras: baja tu patrimonio' : 'Ya no lo debes: sube tu patrimonio';
+    return `<button class="row" data-act="verMov" data-id="${m.id}">${dt(m.tipo === 'interes' ? 'porcentaje' : 'balanza', m.tipo === 'interes' ? '#B5482E' : 'var(--gris)')}<span class="grow"><span class="t">${esc(t)}</span><span class="xs m">${sub}</span></span><span class="amt">${enMoneda(m.monto, mon2, 2)}</span></button>`;
+  }
+  if (m.tipo === 'pago' || m.tipo === 'cobro' || m.tipo === 'prestamo' || m.tipo === 'recibido') {
+    const d = S.deudas.find(x => x.id === m.deudaId); const ent = m.tipo === 'cobro' || m.tipo === 'recibido';
+    const t = m.tipo === 'pago' ? `Pago · ${d ? d.nombre : 'deuda'}` : m.tipo === 'cobro' ? `Cobro · ${d ? d.nombre : ''}` : m.tipo === 'recibido' ? `Te prestó · ${d ? d.nombre : ''}` : `Préstamo dado · ${d ? d.nombre : ''}`;
+    return `<button class="row" data-act="verMov" data-id="${m.id}">${dt(m.tipo === 'pago' ? 'porcentaje' : 'personaIn', m.tipo === 'pago' ? '#B5482E' : '#1E7A55')}<span class="grow"><span class="t">${esc(t)}${m.fijoId ? '<span class="tag">Fijo</span>' : ''}</span><span class="xs m">${esc(c ? c.nombre : '')}${m.interes ? ` · interés ${enMoneda(m.interes, mon, 2)}, capital ${enMoneda(m.capital, mon, 2)}` : ''}</span></span><span class="amt ${ent ? 'in' : ''}">${ent ? '+' : '−'}${enMoneda(m.monto, mon, 2)}</span></button>`;
   }
   const k = catDe(S, m.categoriaId), ing = m.tipo === 'ingreso';
   return `<button class="row" data-act="verMov" data-id="${m.id}">${dt(k.icono, k.color)}<span class="grow"><span class="t">${esc(m.nota || k.nombre)}${m.fijoId ? '<span class="tag">Fijo</span>' : ''}</span><span class="xs m">${esc(k.nombre)} · ${esc(c ? c.nombre : '')}</span></span><span class="amt ${ing ? 'in' : ''}">${ing ? '+' : '−'}${enMoneda(m.monto, mon, 2)}</span></button>`;
@@ -846,7 +874,8 @@ function vDesglose() {
       <div style="display:flex;flex-direction:column"><span class="xs" style="opacity:.88">Salió</span><span style="font:800 21px var(--display)">${money(R0.salio)}</span></div>
       <div style="display:flex;flex-direction:column"><span class="xs" style="opacity:.88">Quedó</span><span style="font:800 21px var(--display)">${money(R0.quedo)}</span></div></div>
     <div style="display:flex;height:14px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.2)" aria-hidden="true">${lista.map(l => `<span style="width:${l.v / Math.max(ing, R0.salio) * 100}%;background:${l.cat.color}"></span>`).join('')}${R0.quedo > 0 ? `<span style="width:${R0.quedo / ing * 100}%;background:#fff"></span>` : ''}</div>
-    ${R0.capital ? `<span class="xs" style="opacity:.92">Además, ${money(R0.capital)} bajaron tus deudas: el capital de una cuota no es gasto.</span>` : ''}
+    ${R0.capital ? `<span class="xs" style="opacity:.92">Además, ${money(R0.capital)} ${R0.capital >= 0 ? 'bajaron' : 'subieron'} tus deudas: el capital de una cuota no es gasto.</span>` : ''}
+    ${R0.ajustes || R0.cambio || R0.cierres ? `<span class="xs" style="opacity:.92">Fuera de tus gastos, tu patrimonio cambió ${[R0.ajustes ? `${money(R0.ajustes, 0, true)} por cuadres` : '', R0.cambio ? `${money(R0.cambio, 0, true)} por cambio de moneda` : '', R0.cierres ? `${money(R0.cierres, 0, true)} por deudas cerradas` : ''].filter(Boolean).join(', ')}.</span>` : ''}
   </section>
   ${lista.length ? lista.map(l => { const c = l.cat;
     if (c.tope > 0) { const p = l.v / c.tope, n = nivelTope(p);
@@ -907,10 +936,10 @@ function vDeuda(d) {
     <div><div class="ey">${te ? 'Te deben' : 'Deuda con una persona'}</div><h1 class="h1" style="margin-top:4px">${esc(d.nombre)}</h1></div>
     <section class="blk ${te ? 'v' : 'l'}"><span class="k">${te ? 'Te debe' : 'Por pagar'}</span><span class="big">${enMoneda(s, d.moneda)}</span><span class="xs" style="opacity:.9">Sin interés${d.fechaEsperada ? ` · ${te ? 'esperas el pago' : 'pagar'} en ${ymCorto(d.fechaEsperada)}` : ''}</span></section>
     ${movs.length ? `<div class="rows">${movs.map(rowMov).join('')}</div>` : ''}
-    <div class="actions"><button class="btn sec" data-act="editDeuda" data-id="${d.id}">Editar</button>${te ? `<button class="btn sec" data-act="pagoDeuda" data-id="${d.id}" data-tipo="prestamo">Prestar más</button><button class="btn" data-act="pagoDeuda" data-id="${d.id}" data-tipo="cobro">Registrar un cobro</button>` : `<button class="btn" data-act="pagoDeuda" data-id="${d.id}" data-tipo="pago">Registrar un pago</button>`}</div>`;
+    <div class="actions"><button class="btn sec" data-act="editDeuda" data-id="${d.id}">Editar</button>${te ? `<button class="btn sec" data-act="pagoDeuda" data-id="${d.id}" data-tipo="prestamo">Prestar más</button><button class="btn" data-act="pagoDeuda" data-id="${d.id}" data-tipo="cobro">Registrar un cobro</button>` : `<button class="btn sec" data-act="pagoDeuda" data-id="${d.id}" data-tipo="recibido">Recibir más</button><button class="btn" data-act="pagoDeuda" data-id="${d.id}" data-tipo="pago">Registrar un pago</button>`}</div>`;
   }
   const P = infoPrestamo(S, d, h), A = ui.adel ? infoPrestamo(S, d, h, ui.adel) : null, HH = calcHoy(S, h);
-  const inicial = d.saldoInicial || 0, pagado = Math.max(0, inicial - s);
+  const inicial = (d.saldoInicial || 0) + sum(S.movs.filter(m => m.deudaId === d.id && (m.tipo === 'recibido' || m.tipo === 'interes') && !antes(d, m)), m => m.monto), pagado = Math.max(0, inicial - s);
   return `<div class="top"><button class="ib" data-act="volver" aria-label="Volver">‹</button></div>
   <div><div class="ey">Préstamo</div><h1 class="h1" style="margin-top:4px">${esc(d.nombre)}</h1></div>
   <section class="blk l"><span class="k">Por pagar</span><span class="big">${enMoneda(s, d.moneda)}</span>
@@ -928,7 +957,7 @@ function vDeuda(d) {
   <section class="card"><h2 class="h2">¿Y si adelantas?</h2>
     <div class="wi"><div class="ln"><label for="adel">Pago extra al mes</label><output class="m sm" id="adelOut">${money(ui.adel, 0, true)}</output></div><input type="range" id="adel" data-adel="1" min="0" max="2000" step="100" value="${ui.adel}"></div>
     <div id="adelRes">${A && A.fin && P.fin ? `<div class="blk v" style="padding:14px;border-radius:14px;gap:4px;font-size:14px"><span>Terminarías en <b>${ymCorto(A.fin)}</b>, ${P.cuotas - A.cuotas} meses antes, y pagarías <b>${money(P.interes - A.interes)} menos</b> de interés.</span><span style="opacity:.9">Tu libre al día bajaría a ${money((HH.libre - ui.adel) / HH.dias)}.</span></div>` : ''}</div></section>
-  <div class="actions"><button class="btn sec" data-act="editDeuda" data-id="${d.id}">Editar</button><button class="btn" data-act="pagoDeuda" data-id="${d.id}" data-tipo="pago">Registrar un pago</button></div>`;
+  <div class="actions"><button class="btn sec" data-act="editDeuda" data-id="${d.id}">Editar</button><button class="btn sec" data-act="pagoDeuda" data-id="${d.id}" data-tipo="recibido">Recibir más</button><button class="btn" data-act="pagoDeuda" data-id="${d.id}" data-tipo="pago">Registrar un pago</button></div>`;
 }
 
 function vMeta(m) {
@@ -1024,7 +1053,7 @@ function openSheet(html, mount) {
 }
 function closeSheet() { $('#sheetRoot').innerHTML = ''; }
 function toast(msg) { const d = document.createElement('div'); d.className = 'toast'; d.setAttribute('role', 'status'); d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
-const chipsCuentas = (sel, act, excluir) => activos(S.cuentas).filter(c => c.id !== excluir).map(c => `<button type="button" class="chip" data-${act}="${c.id}" aria-pressed="${c.id === sel}">${esc(c.nombre)} · ${enMoneda(saldoCuenta(S, c), c.moneda)}</button>`).join('');
+const chipsCuentas = (sel, act, excluir, moneda) => activos(S.cuentas).filter(c => c.id !== excluir && (!moneda || c.moneda === moneda)).map(c => `<button type="button" class="chip" data-${act}="${c.id}" aria-pressed="${c.id === sel}">${esc(c.nombre)} · ${enMoneda(saldoCuenta(S, c), c.moneda)}</button>`).join('');
 const chipsCats = (lista, sel) => lista.map(c => `<button type="button" class="chip" data-cat="${c.id}" aria-pressed="${c.id === sel}"><span class="sq" style="background:${c.id === sel ? '#fff' : c.color}"></span>${esc(c.nombre)}</button>`).join('');
 const armarBorrar = (b, fn, txt = 'Toca otra vez para borrar') => b && b.addEventListener('click', () => { if (b.dataset.armed) fn(); else { b.dataset.armed = '1'; b.textContent = txt; } });
 let ultimaCuenta = null; try { ultimaCuenta = localStorage.getItem('rumbo-ultima'); } catch (e) {}
@@ -1097,6 +1126,7 @@ function abrirAnotar(mov) {
       if (!st.monto || st.monto <= 0) { toast('Escribe un monto'); return; }
       const m = {id: st.id, tipo: st.tipo, cuentaId: st.cuentaId, monto: r2(st.monto), nota: st.nota, fecha: st.fecha};
       if (mov && mov.fijoId) { m.fijoId = mov.fijoId; m.mes = mov.mes; }
+      if (mov && mov.tc != null) m.tc = mov.tc;
       if (st.tipo === 'transferencia') {
         if (!st.cuentaDestinoId || st.cuentaDestinoId === st.cuentaId) { toast('La cuenta de origen y la de destino deben ser distintas'); return; }
         m.cuentaDestinoId = st.cuentaDestinoId;
@@ -1105,7 +1135,8 @@ function abrirAnotar(mov) {
           if (usarTc) { S.aj.tc = r2(c.moneda === 'BOB' ? m.monto / m.montoDestino : m.montoDestino / m.monto); S.aj.tcFecha = iso(h); guardarAj(); } }
       } else m.categoriaId = st.categoriaId;
       put('movs', m); recordarCuenta(st.cuentaId); closeSheet(); render();
-      toast(mov ? 'Guardado' : st.tipo === 'gasto' ? 'Gasto anotado' : st.tipo === 'ingreso' ? 'Ingreso anotado' : 'Transferencia anotada');
+      const previa = [m.cuentaId, m.cuentaDestinoId].map(id => cuentaDe(S, id)).find(c => c && antes(c, m)); // CTA-07
+      toast(previa ? `Es de antes de abrir ${previa.nombre}: cuenta en el Desglose, pero no cambia su saldo` : mov ? 'Guardado' : st.tipo === 'gasto' ? 'Gasto anotado' : st.tipo === 'ingreso' ? 'Ingreso anotado' : 'Transferencia anotada');
     });
   });
 }
@@ -1115,9 +1146,10 @@ function borrarMov(id) {
 }
 function verMovimiento(m) {
   if (['gasto', 'ingreso', 'transferencia'].includes(m.tipo)) return abrirAnotar(m);
-  const c = cuentaDe(S, m.cuentaId);
-  openSheet(`<h2 class="h2" style="font-size:20px">${m.tipo === 'ajuste' ? 'Ajuste de saldo' : m.tipo === 'pago' ? 'Pago de deuda' : m.tipo === 'cobro' ? 'Cobro' : 'Préstamo dado'}</h2>
-    <div class="card"><div class="sp"><span>${esc(c ? c.nombre : '')} · ${hoyCorto(m.fecha)}</span><span class="amt">${enMoneda(m.monto, c ? c.moneda : 'BOB', 2)}</span></div>${m.interes ? `<span class="xs m">Interés ${money(m.interes, 2)} · capital ${money(m.capital, 2)}</span>` : ''}</div>
+  const c = cuentaDe(S, m.cuentaId), d = deudaDe(S, m.deudaId), mon = monMov(S, m);
+  const tit = {ajuste: 'Ajuste de saldo', pago: 'Pago de deuda', cobro: 'Cobro', prestamo: 'Préstamo dado', recibido: 'Dinero que te prestaron', interes: 'Interés sin pagar', cierre: 'Cierre de deuda'}[m.tipo] || 'Movimiento';
+  openSheet(`<h2 class="h2" style="font-size:20px">${tit}</h2>
+    <div class="card"><div class="sp"><span>${esc(c ? c.nombre : d ? d.nombre : '')} · ${hoyCorto(m.fecha)}</span><span class="amt">${enMoneda(m.monto, mon, 2)}</span></div>${m.interes ? `<span class="xs m">Interés ${enMoneda(m.interes, mon, 2)} · capital ${enMoneda(m.capital, mon, 2)}</span>` : ''}${m.tipo === 'interes' ? '<span class="xs m">Si lo borras, la cuota vuelve a «por confirmar».</span>' : ''}</div>
     <div class="actions"><button type="button" class="btn del izq" id="v-del">Borrar</button><button class="btn" data-close>Listo</button></div>`, sh => {
     armarBorrar(sh.querySelector('#v-del'), () => { borrarMov(m.id); closeSheet(); render(); toast('Movimiento borrado'); });
   });
@@ -1125,7 +1157,7 @@ function verMovimiento(m) {
 
 // CTA-01
 function abrirCuenta(c) {
-  const st = c ? {...c} : {id: uid(), nombre: '', moneda: 'BOB', saldoInicial: 0, rendimiento: 0, diaADia: true, archivada: false};
+  const st = c ? {...c} : {id: uid(), nombre: '', moneda: 'BOB', saldoInicial: 0, rendimiento: 0, diaADia: true, archivada: false, desde: iso(hoy())};
   const tieneMovs = c && S.movs.some(m => m.cuentaId === c.id || m.cuentaDestinoId === c.id);
   openSheet(`<h2 class="h2" style="font-size:20px">${c ? 'Editar cuenta' : 'Nueva cuenta'}</h2>
     <form id="fC" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
@@ -1137,7 +1169,9 @@ function abrirCuenta(c) {
       <div class="actions">${c ? `<button type="button" class="btn del izq" id="c-arch">${c.archivada ? 'Desarchivar' : 'Archivar'}</button>` : ''}<button type="button" class="btn sec" data-close>Cancelar</button><button class="btn" type="submit">Guardar</button></div>
     </form>`, sh => {
     sh.querySelectorAll('[data-mon]').forEach(b => b.addEventListener('click', () => { st.moneda = b.dataset.mon; sh.querySelectorAll('[data-mon]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mon === st.moneda)); const d = sh.querySelector('#c-d'); if (!c) d.checked = st.moneda === 'BOB'; }));
-    const a = sh.querySelector('#c-arch'); if (a) a.addEventListener('click', () => { put('cuentas', {...c, archivada: !c.archivada}); closeSheet(); render(); toast(c.archivada ? 'Cuenta desarchivada' : 'Cuenta archivada: sus movimientos se conservan'); });
+    const a = sh.querySelector('#c-arch'); if (a) a.addEventListener('click', () => {
+      if (!c.archivada && Math.abs(saldoCuenta(S, c)) >= 0.005) { toast(`Deja ${c.nombre} en 0 antes de archivarla: transfiere lo que tiene o usa «Cuadrar»`); return; } // CTA-08
+      put('cuentas', {...c, archivada: !c.archivada}); closeSheet(); render(); toast(c.archivada ? 'Cuenta desarchivada' : 'Cuenta archivada: sus movimientos se conservan'); });
     sh.querySelector('#fC').addEventListener('submit', e => {
       e.preventDefault(); const n = sh.querySelector('#c-n').value.trim(); if (!n) { toast('Ponle un nombre'); return; }
       const o = {...st, nombre: n, rendimiento: parseAmt(sh.querySelector('#c-r').value), diaADia: sh.querySelector('#c-d').checked};
@@ -1171,7 +1205,7 @@ function abrirFijo(f) {
   const cuerpo = () => `<div class="seg" role="group" style="align-self:flex-start"><button type="button" data-ft="gasto" aria-pressed="${st.tipo === 'gasto'}">Gasto</button><button type="button" data-ft="ingreso" aria-pressed="${st.tipo === 'ingreso'}">Ingreso</button></div>
     <div class="f"><label class="lab" for="fj-n">Nombre</label><input class="inp" id="fj-n" value="${esc(st.nombre)}" maxlength="40" placeholder="Renta, sueldo, internet…"></div>
     <div class="g2"><div class="f"><label class="lab" for="fj-m">Monto al mes</label><input class="inp" id="fj-m" inputmode="decimal" value="${st.monto ? fmtN(st.monto, st.monto % 1 ? 2 : 0) : ''}"></div><div class="f"><label class="lab" for="fj-d">Día del mes (1 a 31)</label><input class="inp" id="fj-d" inputmode="numeric" value="${st.dia}"></div></div>
-    <div class="f"><span class="lab">Cuenta</span><div class="chips">${chipsCuentas(st.cuentaId, 'cuenta')}</div></div>
+    <div class="f"><span class="lab">Cuenta</span><div class="chips">${chipsCuentas(st.cuentaId, 'cuenta', null, st.deudaId ? (deudaDe(S, st.deudaId) || {}).moneda : null)}</div></div>
     <div class="f"><span class="lab">Categoría</span><div class="chips">${chipsCats(activos(S.categorias).filter(c => c.tipo === st.tipo), st.categoriaId)}</div></div>
     ${st.tipo === 'gasto' && pres.length ? `<div class="f"><label class="lab" for="fj-deu">¿Es la cuota de un préstamo?</label><select class="inp" id="fj-deu"><option value="">No</option>${pres.map(d => `<option value="${d.id}" ${st.deudaId === d.id ? 'selected' : ''}>${esc(d.nombre)}</option>`).join('')}</select></div>` : ''}
     <span class="xs m">Si el mes no tiene ese día, cae el último día del mes. Desde su día aparece en «Por confirmar».</span>`;
@@ -1197,26 +1231,41 @@ function confirmarFijo(k, monto) {
   const fecha = fechaFijo(f.dia, mes), id = `m_${k}`; // id fijo: dos pestañas que confirman escriben el mismo movimiento
   let m;
   const d = f.deudaId && S.deudas.find(x => x.id === f.deudaId);
-  if (d && d.tipo === 'prestamo') { const s = saldoDeuda(S, d), it = Math.min(r2(s * (d.interes || 0) / 100 / 12), monto); m = {id, tipo: 'pago', deudaId: d.id, cuentaId: f.cuentaId, monto, interes: it, capital: r2(monto - it), fecha, nota: f.nombre}; }
+  if (d && d.tipo === 'prestamo') { const s = saldoDeuda(S, d), it = r2(s * (d.interes || 0) / 100 / 12); m = {id, tipo: 'pago', deudaId: d.id, cuentaId: f.cuentaId, monto, interes: it, capital: r2(monto - it), fecha, nota: f.nombre}; }
   else m = {id, tipo: f.tipo, cuentaId: f.cuentaId, categoriaId: f.categoriaId, monto, fecha, nota: f.nombre};
   m.fijoId = f.id; m.mes = mes;
   put('movs', m); put('ocurrencias', {id: k, fijoId, mes, estado: 'confirmado', movId: id});
 }
-function saltarFijo(k) { const i = k.lastIndexOf('_'); put('ocurrencias', {id: k, fijoId: k.slice(0, i), mes: k.slice(i + 1), estado: 'saltado', movId: null}); }
+function saltarFijo(k) {
+  const i = k.lastIndexOf('_'), fijoId = k.slice(0, i), mes = k.slice(i + 1), f = S.fijos.find(x => x.id === fijoId);
+  const d = f && f.deudaId && deudaDe(S, f.deudaId); let movId = null;
+  if (d && d.tipo === 'prestamo') { // DEU-08: el interés que no se paga se suma a la deuda
+    const it = r2(saldoDeuda(S, d) * (d.interes || 0) / 100 / 12);
+    if (it > 0) { movId = `i_${k}`; put('movs', {id: movId, tipo: 'interes', deudaId: d.id, monto: it, fecha: fechaFijo(f.dia, mes), nota: `Interés sin pagar · ${d.nombre}`, fijoId, mes}); }
+  }
+  put('ocurrencias', {id: k, fijoId, mes, estado: 'saltado', movId});
+}
 
 // DEU-01
+const simMon = m => m === 'USD' ? 'US$' : 'Bs';
+const cuentasEn = (mon) => activos(S.cuentas).filter(c => c.moneda === mon);
 function abrirDeuda(d) {
-  const h = hoy(), cs = activos(S.cuentas);
-  const st = d ? {...d} : {id: uid(), tipo: 'prestamo', nombre: '', moneda: 'BOB', saldoInicial: 0, interes: 0, cuota: 0, dia: 1, archivada: false};
-  let crearFijo = !d, cuentaPres = null, cuentaFijo = (cs.find(c => c.diaADia) || cs[0] || {}).id;
+  const h = hoy();
+  const st = d ? {...d} : {id: uid(), tipo: 'prestamo', nombre: '', moneda: 'BOB', saldoInicial: 0, interes: 0, cuota: 0, dia: 1, desde: iso(h), archivada: false};
+  const porDefecto = () => { const cs = cuentasEn(st.moneda); return (cs.find(c => c.diaADia) || cs[0] || {}).id || null; };
+  let crearFijo = !d, cuentaMov = null, cuentaFijo = porDefecto();
+  const primerMes = () => (st.dia || 1) < h.getDate() ? ymAdd(ymOf(h), 1) : ymOf(h); // FIJ-07
+  const chipsMov = lab => `<div class="f"><span class="lab">${lab}</span><div class="chips"><button type="button" class="chip" data-dpc="" aria-pressed="${!cuentaMov}">No</button>${chipsCuentas(cuentaMov, 'dpc', null, st.moneda)}</div></div>`;
   const cuerpo = () => `<div class="seg full" role="group">${[['prestamo', 'Préstamo'], ['persona', 'Con una persona'], ['teDeben', 'Te deben']].map(([t, n]) => `<button type="button" data-dt="${t}" aria-pressed="${st.tipo === t}" ${d ? 'disabled' : ''}>${n}</button>`).join('')}</div>
     <div class="f"><label class="lab" for="d-n">${st.tipo === 'teDeben' ? '¿Quién te debe?' : st.tipo === 'persona' ? '¿A quién le debes?' : 'Nombre'}</label><input class="inp" id="d-n" value="${esc(st.nombre)}" maxlength="40"></div>
-    <div class="g2"><div class="f"><label class="lab" for="d-s">${d ? 'Saldo al registrarla' : 'Saldo de hoy'}</label><input class="inp" id="d-s" inputmode="decimal" value="${st.saldoInicial ? fmtN(st.saldoInicial, st.saldoInicial % 1 ? 2 : 0) : ''}"></div>
-    <div class="f"><span class="lab">Moneda</span><div class="seg"><button type="button" data-dm="BOB" aria-pressed="${st.moneda === 'BOB'}">Bs</button><button type="button" data-dm="USD" aria-pressed="${st.moneda === 'USD'}">US$</button></div></div></div>
+    <div class="g2"><div class="f"><label class="lab" for="d-s">${d ? 'Saldo al registrarla' : cuentaMov ? (st.tipo === 'teDeben' ? 'Cuánto prestas' : 'Cuánto recibes') : 'Saldo de hoy'}</label><input class="inp" id="d-s" inputmode="decimal" value="${st.saldoInicial ? fmtN(st.saldoInicial, st.saldoInicial % 1 ? 2 : 0) : ''}"></div>
+    <div class="f"><span class="lab">Moneda</span><div class="seg"><button type="button" data-dm="BOB" aria-pressed="${st.moneda === 'BOB'}" ${d ? 'disabled' : ''}>Bs</button><button type="button" data-dm="USD" aria-pressed="${st.moneda === 'USD'}" ${d ? 'disabled' : ''}>US$</button></div></div></div>
     ${st.tipo === 'prestamo' ? `<div class="g3"><div class="f"><label class="lab" for="d-i">Interés anual %</label><input class="inp" id="d-i" inputmode="decimal" value="${st.interes ? fmtN(st.interes, 1).replace(',0', '') : ''}"></div><div class="f"><label class="lab" for="d-dia">Día</label><input class="inp" id="d-dia" inputmode="numeric" value="${st.dia || 1}"></div><div class="f"><label class="lab" for="d-c">Cuota al mes</label><input class="inp" id="d-c" inputmode="decimal" value="${st.cuota ? fmtN(st.cuota, st.cuota % 1 ? 2 : 0) : ''}"></div></div>
-      ${d ? '' : `<label class="sm" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="d-fijo" ${crearFijo ? 'checked' : ''}> Crear el fijo de la cuota, para confirmarla cada mes</label>${crearFijo && cs.length ? `<div class="chips">${chipsCuentas(cuentaFijo, 'dfc')}</div>` : ''}`}`
+      ${d ? '' : `${chipsMov('¿Entra ahora a una cuenta? (opcional)')}
+      <label class="sm" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="d-fijo" ${crearFijo ? 'checked' : ''}> Crear el fijo de la cuota, para confirmarla cada mes</label>
+      ${crearFijo ? (cuentasEn(st.moneda).length ? `<div class="chips">${chipsCuentas(cuentaFijo, 'dfc', null, st.moneda)}</div><span class="xs m" id="d-primera">La primera cuota que te pregunta es la de ${ymCorto(primerMes())}.</span>` : `<span class="xs m">Para el fijo necesitas una cuenta en ${simMon(st.moneda)}.</span>`) : ''}`}`
     : `<div class="f"><label class="lab" for="d-f">${st.tipo === 'teDeben' ? 'Esperas el pago en (opcional)' : 'Piensas pagar en (opcional)'}</label><input class="inp" id="d-f" type="month" value="${st.fechaEsperada || ''}"></div>
-      ${st.tipo === 'teDeben' && !d && cs.length ? `<div class="f"><span class="lab">¿Sale ahora de una cuenta? (opcional)</span><div class="chips"><button type="button" class="chip" data-dpc="" aria-pressed="${!cuentaPres}">No</button>${chipsCuentas(cuentaPres, 'dpc')}</div></div>` : ''}`}`;
+      ${!d ? chipsMov(st.tipo === 'teDeben' ? '¿Sale ahora de una cuenta? (opcional)' : '¿Entra ahora a una cuenta? (opcional)') : ''}`}`;
   const leer = sh => { const q = id => sh.querySelector('#' + id); st.nombre = q('d-n').value.trim(); st.saldoInicial = r2(parseAmt(q('d-s').value));
     if (q('d-i')) st.interes = parseAmt(q('d-i').value); if (q('d-c')) st.cuota = r2(parseAmt(q('d-c').value)); if (q('d-dia')) st.dia = Math.min(31, Math.max(1, parseInt(q('d-dia').value, 10) || 1));
     if (q('d-f')) st.fechaEsperada = q('d-f').value || null; if (q('d-fijo')) crearFijo = q('d-fijo').checked; };
@@ -1224,43 +1273,66 @@ function abrirDeuda(d) {
     <div class="actions">${d ? `<button type="button" class="btn del izq" id="d-arch">Archivar</button>` : ''}<button type="button" class="btn sec" data-close>Cancelar</button><button class="btn" type="submit">Guardar</button></div></form>`, sh => {
     const pintar = () => { sh.querySelector('#d-body').innerHTML = cuerpo(); }; pintar();
     sh.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
-      if (b.dataset.dt) { leer(sh); st.tipo = b.dataset.dt; pintar(); }
-      else if (b.dataset.dm) { leer(sh); st.moneda = b.dataset.dm; pintar(); }
+      if (b.dataset.dt) { leer(sh); st.tipo = b.dataset.dt; cuentaMov = null; pintar(); }
+      else if (b.dataset.dm) { leer(sh); st.moneda = b.dataset.dm; cuentaMov = null; cuentaFijo = porDefecto(); pintar(); }
       else if (b.dataset.dfc) { leer(sh); cuentaFijo = b.dataset.dfc; pintar(); }
-      else if (b.dataset.dpc !== undefined) { leer(sh); cuentaPres = b.dataset.dpc || null; pintar(); } });
+      else if (b.dataset.dpc !== undefined) { leer(sh); cuentaMov = b.dataset.dpc || null; pintar(); } });
     sh.addEventListener('change', e => { if (e.target.id === 'd-fijo') { leer(sh); pintar(); } });
-    armarBorrar(sh.querySelector('#d-arch'), () => { put('deudas', {...d, archivada: true}); S.fijos.filter(f => f.deudaId === d.id && f.activo !== false).forEach(f => put('fijos', {...f, activo: false})); ui.det = null; closeSheet(); render(); toast('Deuda archivada'); }, 'Toca otra vez para archivar');
+    sh.addEventListener('input', e => { const n = sh.querySelector('#d-primera'); if (e.target.id === 'd-dia' && n) { leer(sh); n.textContent = `La primera cuota que te pregunta es la de ${ymCorto(primerMes())}.`; } });
+    armarBorrar(sh.querySelector('#d-arch'), () => {
+      const sd = saldoDeuda(S, d); // DEU-09: el saldo que se deja de deber o de cobrar queda a la vista
+      if (Math.abs(sd) >= 0.005) put('movs', {id: uid(), tipo: 'cierre', deudaId: d.id, monto: sd, fecha: iso(h), nota: `Cierre · ${d.nombre}`});
+      put('deudas', {...d, archivada: true}); S.fijos.filter(f => f.deudaId === d.id && f.activo !== false).forEach(f => put('fijos', {...f, activo: false}));
+      ui.det = null; closeSheet(); render(); toast(Math.abs(sd) >= 0.005 ? `Deuda cerrada con ${enMoneda(sd, d.moneda)} pendientes: lo verás en el Desglose` : 'Deuda archivada'); }, 'Toca otra vez para archivar');
     sh.querySelector('#fD').addEventListener('submit', e => { e.preventDefault(); leer(sh);
-      if (!st.nombre || !st.saldoInicial) { toast('Falta el nombre o el saldo'); return; }
+      if (!st.nombre || (!st.saldoInicial && !(d && !d.saldoInicial))) { toast('Falta el nombre o el saldo'); return; }
       if (st.tipo === 'prestamo' && !st.cuota) { toast('Falta la cuota'); return; }
+      if (st.tipo === 'prestamo' && crearFijo && !d && !cuentaFijo) { toast(`Para el fijo de la cuota necesitas una cuenta en ${simMon(st.moneda)}`); return; }
       const o = {...st};
-      if (st.tipo === 'teDeben' && cuentaPres && !d) { o.saldoInicial = 0; put('deudas', o); put('movs', {id: uid(), tipo: 'prestamo', deudaId: o.id, cuentaId: cuentaPres, monto: st.saldoInicial, fecha: iso(h), nota: `Préstamo a ${o.nombre}`}); }
+      if (cuentaMov && !d) { // DEU-07: el dinero se mueve hoy; la deuda arranca en 0 y la sube el movimiento
+        o.saldoInicial = 0; put('deudas', o);
+        put('movs', st.tipo === 'teDeben' ? {id: uid(), tipo: 'prestamo', deudaId: o.id, cuentaId: cuentaMov, monto: st.saldoInicial, fecha: iso(h), nota: `Préstamo a ${o.nombre}`}
+          : {id: uid(), tipo: 'recibido', deudaId: o.id, cuentaId: cuentaMov, monto: st.saldoInicial, fecha: iso(h), nota: `Te prestó ${o.nombre}`}); }
       else put('deudas', o);
-      if (st.tipo === 'prestamo' && crearFijo && !d && cuentaFijo) put('fijos', {id: uid(), nombre: `Cuota · ${o.nombre}`, tipo: 'gasto', monto: o.cuota, cuentaId: cuentaFijo, categoriaId: 'intereses', dia: o.dia, deudaId: o.id, desde: ymOf(h), activo: true});
+      if (st.tipo === 'prestamo' && crearFijo && !d && cuentaFijo) put('fijos', {id: uid(), nombre: `Cuota · ${o.nombre}`, tipo: 'gasto', monto: o.cuota, cuentaId: cuentaFijo, categoriaId: 'intereses', dia: o.dia, deudaId: o.id, desde: primerMes(), activo: true});
       closeSheet(); render(); toast('Deuda guardada'); });
   });
 }
-// DEU-02/03: pagar, cobrar o prestar
+// DEU-02/03/06/07/10 y FIJ-06: pagar, cobrar, prestar o recibir
 function abrirPago(d, tipo) {
-  const h = hoy(), cs = activos(S.cuentas); if (!cs.length) { toast('Primero crea una cuenta.'); return; }
+  const h = hoy(), cs = cuentasEn(d.moneda);
+  if (!cs.length) { toast(`Necesitas una cuenta en ${simMon(d.moneda)} para esta deuda`); return; }
   const fijoCuota = S.fijos.find(f => f.deudaId === d.id && f.activo !== false && cuentaDe(S, f.cuentaId));
-  let cuentaId = fijoCuota ? fijoCuota.cuentaId : (cs.find(c => c.id === ultimaCuenta && c.moneda === d.moneda) || cs.find(c => c.moneda === d.moneda && c.diaADia) || cs[0]).id;
-  const s = saldoDeuda(S, d), def = tipo === 'pago' && d.tipo === 'prestamo' ? d.cuota : tipo === 'prestamo' ? 0 : s;
-  const it = tipo === 'pago' && d.tipo === 'prestamo' ? r2(s * (d.interes || 0) / 100 / 12) : 0;
-  const titulo = tipo === 'pago' ? `Pagar ${d.nombre}` : tipo === 'cobro' ? `Cobrar a ${d.nombre}` : `Prestar más a ${d.nombre}`;
+  let cuentaId = (cs.find(c => fijoCuota && c.id === fijoCuota.cuentaId) || cs.find(c => c.id === ultimaCuenta) || cs.find(c => c.diaADia) || cs[0]).id;
+  const s = saldoDeuda(S, d), presta = d.tipo === 'prestamo' && tipo === 'pago';
+  const def = presta ? Math.min(d.cuota, r2(s * (1 + (d.interes || 0) / 1200))) : tipo === 'prestamo' || tipo === 'recibido' ? 0 : s;
+  const it = presta ? r2(s * (d.interes || 0) / 100 / 12) : 0;
+  const max = tipo === 'pago' ? r2(s + it) : tipo === 'cobro' ? s : Infinity;
+  const pend = presta && fijoCuota ? pendientes(S, h).find(p => p.fijo.id === fijoCuota.id) : null;
+  const mesCuota = pend ? pend.mes : ymOf(h);
+  const cuota = presta && fijoCuota && !ocurr(S, fijoCuota.id, mesCuota) && (!fijoCuota.desde || mesCuota >= fijoCuota.desde) ? mesCuota : null;
+  const titulo = {pago: `Pagar ${d.nombre}`, cobro: `Cobrar a ${d.nombre}`, prestamo: `Prestar más a ${d.nombre}`, recibido: `Recibir más de ${d.nombre}`}[tipo];
+  const entra = tipo === 'cobro' || tipo === 'recibido';
   openSheet(`<h2 class="h2" style="font-size:20px">${esc(titulo)}</h2><form id="fP" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
-    <div class="montoblk ${tipo === 'cobro' ? 'v' : ''}"><label for="p-m">${tipo === 'cobro' ? 'Entra' : 'Sale'}</label><div class="r"><span>${d.moneda === 'USD' ? 'US$' : 'Bs'}</span><input id="p-m" inputmode="decimal" value="${def ? fmtN(def, def % 1 ? 2 : 0) : ''}"></div>${it ? `<span class="xs" id="p-split" style="opacity:.92"></span>` : ''}</div>
-    <div class="f"><span class="lab">${tipo === 'cobro' ? 'Entra a' : 'Sale de'}</span><div class="chips" id="p-cs">${chipsCuentas(cuentaId, 'pc')}</div></div>
+    <div class="montoblk ${entra ? 'v' : ''}"><label for="p-m">${entra ? 'Entra' : 'Sale'}</label><div class="r"><span>${simMon(d.moneda)}</span><input id="p-m" inputmode="decimal" value="${def ? fmtN(def, def % 1 ? 2 : 0) : ''}"></div>${it ? `<span class="xs" id="p-split" style="opacity:.92"></span>` : ''}</div>
+    <div class="f"><span class="lab">${entra ? 'Entra a' : 'Sale de'}</span><div class="chips" id="p-cs">${chipsCuentas(cuentaId, 'pc', null, d.moneda)}</div></div>
     <div class="f"><label class="lab" for="p-f">Fecha</label><input class="inp" id="p-f" type="date" value="${iso(h)}"></div>
+    ${cuota ? `<label class="sm" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="p-cuota" checked> Es la cuota de ${ymCorto(cuota)}: ya no te la pregunto</label>` : ''}
     <div class="actions"><button type="button" class="btn sec" data-close>Cancelar</button><button class="btn" type="submit">Guardar</button></div></form>`, sh => {
-    const split = () => { const el = sh.querySelector('#p-split'); if (!el) return; const m = parseAmt(sh.querySelector('#p-m').value); const i2 = Math.min(it, m); el.textContent = m ? `Interés ${money(i2, 2)} (gasto) · capital ${money(Math.max(0, m - i2), 2)} (baja la deuda)` : ''; };
+    const split = () => { const el = sh.querySelector('#p-split'); if (!el) return; const m = parseAmt(sh.querySelector('#p-m').value);
+      el.textContent = !m ? '' : m >= it ? `Interés ${enMoneda(it, d.moneda, 2)} (gasto) · capital ${enMoneda(m - it, d.moneda, 2)} (baja la deuda)` : `Interés ${enMoneda(it, d.moneda, 2)} (gasto) · faltan ${enMoneda(it - m, d.moneda, 2)} de interés, que se suman a la deuda`; };
     split(); sh.querySelector('#p-m').addEventListener('input', split);
-    sh.addEventListener('click', e => { const b = e.target.closest('[data-pc]'); if (!b) return; cuentaId = b.dataset.pc; sh.querySelector('#p-cs').innerHTML = chipsCuentas(cuentaId, 'pc'); });
+    sh.addEventListener('click', e => { const b = e.target.closest('[data-pc]'); if (!b) return; cuentaId = b.dataset.pc; sh.querySelector('#p-cs').innerHTML = chipsCuentas(cuentaId, 'pc', null, d.moneda); });
     sh.querySelector('#fP').addEventListener('submit', e => { e.preventDefault();
       const monto = r2(parseAmt(sh.querySelector('#p-m').value)); if (!monto) { toast('Escribe un monto'); return; }
+      if (monto > max + 0.005) { toast(`El máximo es ${enMoneda(max, d.moneda, 2)}`); return; }
       const m = {id: uid(), tipo, deudaId: d.id, cuentaId, monto, fecha: sh.querySelector('#p-f').value || iso(h), nota: titulo};
-      if (tipo === 'pago') { const i2 = Math.min(it, monto); m.interes = i2; m.capital = r2(monto - i2); }
-      put('movs', m); closeSheet(); render(); toast('Guardado'); });
+      if (tipo === 'pago') { m.interes = it; m.capital = r2(monto - it); }
+      const q = sh.querySelector('#p-cuota');
+      if (cuota && q && q.checked) { m.fijoId = fijoCuota.id; m.mes = cuota; }
+      put('movs', m);
+      if (m.fijoId) put('ocurrencias', {id: `${fijoCuota.id}_${cuota}`, fijoId: fijoCuota.id, mes: cuota, estado: 'confirmado', movId: m.id});
+      closeSheet(); render(); toast('Guardado'); });
   });
 }
 // MET-01
@@ -1329,7 +1401,7 @@ function abrirEmpezar() {
     sh.querySelector('#fE').addEventListener('submit', async e => { e.preventDefault(); leer(sh);
       const N = vacio(); N.aj = {...AJ_BASE, empezado: true, irregular: parseAmt(sh.querySelector('#e-irr').value)};
       N.categorias = CATS_BASE.map(c => ({...c}));
-      cuentas.filter(c => c.n.trim()).forEach(c => N.cuentas.push({id: uid(), nombre: c.n.trim(), moneda: c.mon, saldoInicial: r2(parseSigned(c.s)), rendimiento: 0, diaADia: c.mon === 'BOB', archivada: false}));
+      cuentas.filter(c => c.n.trim()).forEach(c => N.cuentas.push({id: uid(), nombre: c.n.trim(), moneda: c.mon, saldoInicial: r2(parseSigned(c.s)), rendimiento: 0, diaADia: c.mon === 'BOB', archivada: false, desde: iso(h)}));
       if (!N.cuentas.length) { toast('Agrega al menos una cuenta'); return; }
       if (N.cuentas.some(c => c.moneda === 'USD')) N.aj.tcFecha = null;
       const banco = N.cuentas[1] || N.cuentas[0];

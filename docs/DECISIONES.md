@@ -51,3 +51,15 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     reemplazar los datos borraba primero el documento principal. Ahora reemplazar borra solo lo que sobra y escribe el
     principal al final, «Borrar todo» borra primero el principal, y mientras dura cualquiera de los dos la app no toma
     las fotos a medias de la base. Lo cubre `pruebas/nube.mjs`, con una base falsa.
+31. (C) 12/11/2026, análisis contable (cambio `correcciones-contables`): una deuda solo se mueve con cuentas de su
+    moneda, en vez de convertir montos; así un pago nunca crea ni destruye dinero.
+32. (C) El interés que no se paga (cuota saltada o pago corto) se suma a la deuda y es gasto, como en un banco. Borrar
+    ese interés devuelve la cuota a «por confirmar».
+33. (C) Un movimiento anterior a la apertura de su cuenta cuenta en el Desglose pero no en el saldo: el saldo inicial ya
+    lo incluía. Las cuentas y deudas anteriores a este cambio no tienen fecha de apertura y se comportan como antes.
+34. (C) La tasa de ahorro cuenta el capital de las cuotas como ahorro; «Neto al mes» sigue siendo lo que queda en caja.
+35. (C) «Plata de hoy» supone que ingresos y gastos suben con la inflación y las cuotas no. Cambia la spec PRO-05 que
+    había aprobado Joaquín: con el sueldo congelado, 1.000 al mes por 10 años al 8 % mostraban Bs 55.600; ahora Bs 83.400.
+    No llega a 120.000 porque lo que se ahorra sin rendimiento igual pierde valor.
+36. (C) El Desglose no mete cuadres, cambio de moneda ni cierres en «Salió»: los muestra en una línea aparte, para que
+    se vea todo lo que movió el patrimonio sin mezclarlo con los gastos.
