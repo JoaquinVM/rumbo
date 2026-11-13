@@ -11,7 +11,7 @@ y avance de topes nunca se guardan, así nunca hay dos números que se contradig
 ### 1. Ajustes
 Tus supuestos para que Rumbo calcule. Uno por persona.
 - Tipo de cambio (valor y fecha), inflación anual, ingreso irregular esperado al mes, horas de trabajo al mes,
-  empezado (sí o no). La moneda base es siempre Bs.
+  empezado (sí o no), color principal (Azul, Cielo, Morado o Rosa pastel; si falta, Azul). La moneda base es siempre Bs.
 - Ejemplo: Bs 12,50 (1 nov), 8 %, Bs 1.500, 160 h.
 
 ### 2. Cuenta

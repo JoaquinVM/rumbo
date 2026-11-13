@@ -17,13 +17,19 @@ siempre significa lo mismo.
 | --- | --- | --- |
 | Fondo | `#EDF0EA` | Toda la app |
 | Texto | `#13201A` (principal), `#5D6B63` (secundario) | |
-| **Azul · tu dinero y lo de hoy** | `#2B47E0` | Bloque Hoy, patrimonio, resumen del mes, monto en formularios, opción elegida, pestaña activa, botón principal |
+| **Azul · tu dinero y lo de hoy** (se elige en Ajustes) | `#2B47E0` | Bloque Hoy, patrimonio, resumen del mes, monto en formularios, opción elegida, pestaña activa, botón principal |
 | **Ámbar · pendiente y avisos** | `#A86410` (bloque), `#F8E7D0` (suave) | Por confirmar, avisos, topes desde el 80 %, tipo de cambio viejo |
 | **Verde · metas y ahorro** | `#1E7A55` (bloque), `#D7EFE3` (suave), `#0F7A56` (texto de ingresos) | Metas, «te quedas tú», resultado de «¿Y si…?», lo que entra en un cambio |
 | **Rojo · te pasaste** | `#B03A22` | Solo una categoría que pasó su tope |
 | **Tinta · solo acciones** | `#13201A` | Botones principales y botón +. Ningún otro elemento grande usa este color: lo oscuro se toca |
 | **Ladrillo · lo que debes** | `#6B2E21` | Bloque de un préstamo |
 | Azul suave | `#DDE3FF` | Baldosa de colchón, etiqueta «Fijo», «Día a día» |
+
+**Color principal.** El azul se puede cambiar en Ajustes por Cielo `#1A6FB8`, Morado `#6A3FCF` o Rosa pastel `#F4A6C8`;
+cada uno trae su suave y su versión oscura (tabla completa en `index.html`, `PALETA`). El Rosa pastel es el único con
+texto vino (`#5C1239`) sobre sus bloques y un rosa fuerte (`#A3366B`) para textos y trazos sobre el fondo claro. Nunca
+se ofrece un verde, ámbar ni rojo como color principal: esos tienen su propio significado. Sobre el color principal el
+texto usa `--azul-on` y, sobre el fondo, `--azul-l`; nunca `#fff` fijo.
 
 Categorías: Comida fuera `#E0703A`, Súper `#3E9B5C`, Casa `#5A6CD8`, Transporte `#2F93B5`, Salud `#D04F78`, Ocio
 `#9A5BD0`, Compras `#C08A1F`, Suscripciones `#6B7F8C`, Educación `#2E8F86`, Intereses `#B5482E`, Otros `#808A84`.
