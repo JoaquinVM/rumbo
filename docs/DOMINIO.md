@@ -36,6 +36,8 @@ Algo que pasó con tu dinero: una fecha, una cuenta y un monto. Es el único reg
   - **Pago de deuda**: se divide en interés (gasto en Intereses) y capital (baja la deuda).
   - **Cobro**: te pagan lo que te deben.
   - **Préstamo dado**: prestas dinero; nace o sube un «te deben».
+    También sale de un gasto que pagaste por otra persona: todo el gasto o una parte pasa a ser préstamo dado, con la
+    misma cuenta y fecha, y guarda de qué gasto salió (`deGastoId`) y su categoría, para poder devolverlo al gasto.
   - **Dinero que te prestan**: sube la cuenta y la deuda. No es ingreso.
   - **Interés sin pagar**: el interés de una cuota saltada; sube la deuda y es gasto en Intereses. No tiene cuenta.
   - **Cierre**: el saldo de una deuda que se archiva sin pagar o cobrar; cambia el patrimonio y se ve en el Desglose.

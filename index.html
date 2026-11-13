@@ -326,6 +326,40 @@ function patrimonio(S) {
   const cuentas = totalCuentasBs(S), teDeben = deudasBs(S, ['teDeben']), deudas = deudasBs(S, ['prestamo', 'persona']);
   return {cuentas, teDeben, deudas, total: cuentas + teDeben - deudas};
 }
+// DEU-11: «te deben» a los que puede ir un gasto: misma moneda y abiertos el día del gasto o antes (CTA-07)
+const teDebenPara = (S, g) => S.deudas.filter(d => d.tipo === 'teDeben' && !d.archivada && d.moneda === monedaDe(S, g.cuentaId) && !(d.desde && d.desde > g.fecha));
+// DEU-11: todo o una parte de un gasto pasa a un «te deben». deuda: id de uno existente o {nombre} de uno nuevo.
+// Devuelve lo que hay que escribir, en orden: la deuda nueva y los movimientos (primero el gasto, después el préstamo).
+function separarGasto(S, g, monto, deuda) {
+  monto = r2(monto);
+  if (!g || g.tipo !== 'gasto') return {error: 'Solo un gasto se puede volver deuda'};
+  const mon = monedaDe(S, g.cuentaId);
+  if (!(monto > 0)) return {error: 'Escribe cuánto te deben'};
+  if (monto > g.monto + 0.005) return {error: `El máximo es ${enMoneda(g.monto, mon, 2)}`};
+  let d, nueva = null;
+  if (typeof deuda === 'string') { d = teDebenPara(S, g).find(x => x.id === deuda); if (!d) return {error: 'Elige quién te debe'}; }
+  else {
+    const nombre = ((deuda && deuda.nombre) || '').trim(); if (!nombre) return {error: 'Escribe quién te debe'};
+    nueva = d = {id: uid(), tipo: 'teDeben', nombre, moneda: mon, saldoInicial: 0, interes: 0, cuota: 0, dia: 1, fechaEsperada: null, desde: g.fecha, archivada: false};
+  }
+  const movs = [];
+  if (monto >= g.monto - 0.005) movs.push({...g, tipo: 'prestamo', deudaId: d.id, deGastoId: g.id});
+  else {
+    movs.push({...g, monto: r2(g.monto - monto)});
+    const p = {id: uid(), tipo: 'prestamo', deudaId: d.id, cuentaId: g.cuentaId, monto, fecha: g.fecha, nota: g.nota || '', categoriaId: g.categoriaId, deGastoId: g.id};
+    if (g.tc != null) p.tc = g.tc;
+    movs.push(p);
+  }
+  return {deuda: nueva, movs, nombre: d.nombre, queda: r2(g.monto - monto), mon};
+}
+// DEU-12: un préstamo que salió de un gasto vuelve a él. Devuelve qué borrar (primero) y qué escribir, sin mover la cuenta.
+function devolverAlGasto(S, p) {
+  if (!p || p.tipo !== 'prestamo' || !p.deGastoId) return null;
+  const g = p.deGastoId !== p.id && S.movs.find(m => m.id === p.deGastoId && m.tipo === 'gasto' && m.cuentaId === p.cuentaId);
+  if (g) return {del: [p.id], put: [{...g, monto: r2(g.monto + p.monto)}]};
+  const {deudaId, deGastoId, ...resto} = p;
+  return {del: [], put: [{...resto, tipo: 'gasto', categoriaId: p.categoriaId || 'otros_g'}]};
+}
 const tcDias = (S, h) => S.aj.tcFecha ? diasEntre(S.aj.tcFecha, iso(h)) : null;
 // CTA-06: último cambio real entre monedas
 function ultimoCambio(S) {
@@ -1105,6 +1139,7 @@ function abrirAnotar(mov) {
     <form id="fMov" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
       <div class="seg full" role="group" aria-label="Tipo">${['gasto', 'ingreso', 'transferencia'].map(t => `<button type="button" data-tipo="${t}" aria-pressed="${st.tipo === t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div>
       <div id="m-body" style="display:flex;flex-direction:column;gap:14px"></div>
+      ${mov && mov.tipo === 'gasto' ? '<button type="button" class="btn sec" id="m-sep" style="align-self:flex-start;padding:0">Me deben una parte</button>' : ''}
       <div class="actions">${mov ? '<button type="button" class="btn del izq" id="m-del">Borrar</button>' : ''}<button type="button" class="btn sec" data-close>Cancelar</button><button class="btn" type="submit">Guardar</button></div>
     </form>`, sh => {
     pintar(sh); setTimeout(() => { const i = sh.querySelector('#m-monto'); if (i && !mov) i.focus(); }, 60);
@@ -1121,6 +1156,7 @@ function abrirAnotar(mov) {
       if (e.target.id === 'm-monto' || e.target.id === 'm-dest') { if (st.tipo === 'transferencia') { leer(sh); const tcBox = sh.querySelector('#m-tc'); const c = cuentaDe(S, st.cuentaId), d = cuentaDe(S, st.cuentaDestinoId); if (tcBox && d && c && d.moneda !== c.moneda && st.monto && st.montoDestino) { const tc = c.moneda === 'BOB' ? st.monto / st.montoDestino : st.montoDestino / st.monto; tcBox.innerHTML = `<span>Este cambio fue a <b>Bs ${fmtN(tc, 2)} por dólar</b>.</span><label class="xs m" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m-usartc" ${usarTc ? 'checked' : ''}> Usar Bs ${fmtN(tc, 2)} como mi tipo de cambio</label><span class="xs m">No cuenta como gasto ni ingreso: tu dinero solo cambia de lugar.</span>`; } } else avisoTope(sh); }
     });
     armarBorrar(sh.querySelector('#m-del'), () => { borrarMov(mov.id); closeSheet(); render(); toast('Movimiento borrado'); });
+    const sep = sh.querySelector('#m-sep'); if (sep) sep.addEventListener('click', () => abrirSeparar(S.movs.find(x => x.id === mov.id) || mov));
     sh.querySelector('#fMov').addEventListener('submit', e => {
       e.preventDefault(); leer(sh);
       if (!st.monto || st.monto <= 0) { toast('Escribe un monto'); return; }
@@ -1140,6 +1176,36 @@ function abrirAnotar(mov) {
     });
   });
 }
+// DEU-11: «Me deben una parte» de un gasto ya anotado
+function abrirSeparar(g) {
+  const mon = monedaDe(S, g.cuentaId), elegibles = teDebenPara(S, g);
+  let deudaId = elegibles[0] ? elegibles[0].id : '';
+  const ocultas = S.deudas.some(d => d.tipo === 'teDeben' && !d.archivada && d.moneda === mon && d.desde && d.desde > g.fecha);
+  const leer = sh => ({monto: parseAmt(sh.querySelector('#s-m').value), nombre: (sh.querySelector('#s-n') || {}).value || ''});
+  const quien = () => `<div class="chips">${elegibles.map(d => `<button type="button" class="chip" data-sd="${d.id}" aria-pressed="${d.id === deudaId}">${esc(d.nombre)} · ${enMoneda(saldoDeuda(S, d), d.moneda)}</button>`).join('')}<button type="button" class="chip" data-sd="" aria-pressed="${!deudaId}">Otra persona</button></div>
+    ${deudaId ? '' : '<input class="inp" id="s-n" maxlength="40" placeholder="¿Quién te debe?">'}
+    ${ocultas ? '<span class="xs m">No aparecen las personas que anotaste después de este gasto.</span>' : ''}`;
+  const explica = sh => { const el = sh.querySelector('#s-x'); if (!el) return; const {monto} = leer(sh), d = elegibles.find(x => x.id === deudaId);
+    const n = d ? d.nombre : (leer(sh).nombre.trim() || 'esa persona');
+    el.textContent = !monto ? '' : monto > g.monto + 0.005 ? `El máximo es ${enMoneda(g.monto, mon, 2)}` : monto >= g.monto - 0.005 ? `Ya no es tu gasto: ${n} te debe ${enMoneda(monto, mon, 2)} más. Tu cuenta no cambia.` : `Tu gasto queda en ${enMoneda(r2(g.monto - monto), mon, 2)} y ${n} te debe ${enMoneda(monto, mon, 2)} más. Tu cuenta no cambia.`; };
+  openSheet(`<div class="sp"><h2 class="h2" style="font-size:20px">Me deben una parte</h2>${demo ? '<span class="ex">Ejemplo: no se guarda</span>' : ''}</div>
+    <p class="note" style="margin:0">${esc(g.nota || catDe(S, g.categoriaId).nombre)} · ${hoyCorto(g.fecha)} · ${enMoneda(g.monto, mon, 2)}</p>
+    <form id="fS" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
+      <div class="montoblk"><label for="s-m">Cuánto te deben</label><div class="r"><span>${simMon(mon)}</span><input id="s-m" inputmode="decimal" value="${fmtN(g.monto, g.monto % 1 ? 2 : 0)}"></div><span class="xs" id="s-x" style="opacity:.92"></span></div>
+      <div class="f"><span class="lab">¿Quién te debe?</span><div id="s-q" style="display:flex;flex-direction:column;gap:10px">${quien()}</div></div>
+      <div class="actions"><button type="button" class="btn sec" data-close>Cancelar</button><button class="btn" type="submit">Guardar</button></div>
+    </form>`, sh => {
+    explica(sh);
+    sh.addEventListener('input', () => explica(sh));
+    sh.addEventListener('click', e => { const b = e.target.closest('[data-sd]'); if (!b) return; deudaId = b.dataset.sd; sh.querySelector('#s-q').innerHTML = quien(); explica(sh); if (!deudaId) sh.querySelector('#s-n').focus(); });
+    sh.querySelector('#fS').addEventListener('submit', e => { e.preventDefault();
+      const {monto, nombre} = leer(sh), r = separarGasto(S, g, monto, deudaId || {nombre});
+      if (r.error) { toast(r.error); return; }
+      if (r.deuda) put('deudas', r.deuda);
+      r.movs.forEach(m => put('movs', m));
+      closeSheet(); render(); toast(r.queda > 0 ? `Listo: ${r.nombre} te debe ${enMoneda(r2(monto), r.mon, 2)} más` : `Listo: todo el gasto te lo debe ${r.nombre}`); });
+  });
+}
 function borrarMov(id) {
   del('movs', id);
   const o = S.ocurrencias.find(x => x.movId === id); if (o) del('ocurrencias', o.id);
@@ -1147,11 +1213,13 @@ function borrarMov(id) {
 function verMovimiento(m) {
   if (['gasto', 'ingreso', 'transferencia'].includes(m.tipo)) return abrirAnotar(m);
   const c = cuentaDe(S, m.cuentaId), d = deudaDe(S, m.deudaId), mon = monMov(S, m);
+  const dg = m.tipo === 'prestamo' && m.deGastoId ? (S.movs.find(x => x.id === m.deGastoId && x.id !== m.id) || m) : null;
   const tit = {ajuste: 'Ajuste de saldo', pago: 'Pago de deuda', cobro: 'Cobro', prestamo: 'Préstamo dado', recibido: 'Dinero que te prestaron', interes: 'Interés sin pagar', cierre: 'Cierre de deuda'}[m.tipo] || 'Movimiento';
   openSheet(`<h2 class="h2" style="font-size:20px">${tit}</h2>
-    <div class="card"><div class="sp"><span>${esc(c ? c.nombre : d ? d.nombre : '')} · ${hoyCorto(m.fecha)}</span><span class="amt">${enMoneda(m.monto, mon, 2)}</span></div>${m.interes ? `<span class="xs m">Interés ${enMoneda(m.interes, mon, 2)} · capital ${enMoneda(m.capital, mon, 2)}</span>` : ''}${m.tipo === 'interes' ? '<span class="xs m">Si lo borras, la cuota vuelve a «por confirmar».</span>' : ''}</div>
-    <div class="actions"><button type="button" class="btn del izq" id="v-del">Borrar</button><button class="btn" data-close>Listo</button></div>`, sh => {
+    <div class="card"><div class="sp"><span>${esc(c ? c.nombre : d ? d.nombre : '')} · ${hoyCorto(m.fecha)}</span><span class="amt">${enMoneda(m.monto, mon, 2)}</span></div>${m.interes ? `<span class="xs m">Interés ${enMoneda(m.interes, mon, 2)} · capital ${enMoneda(m.capital, mon, 2)}</span>` : ''}${m.tipo === 'interes' ? '<span class="xs m">Si lo borras, la cuota vuelve a «por confirmar».</span>' : ''}${dg ? `<span class="xs m">Salió del gasto «${esc(dg.nota || catDe(S, dg.categoriaId).nombre)}» del ${hoyCorto(dg.fecha)}.</span>` : ''}</div>
+    <div class="actions">${dg ? '<button type="button" class="btn del izq" id="v-dev">Devolver al gasto</button>' : '<button type="button" class="btn del izq" id="v-del">Borrar</button>'}<button class="btn" data-close>Listo</button></div>`, sh => {
     armarBorrar(sh.querySelector('#v-del'), () => { borrarMov(m.id); closeSheet(); render(); toast('Movimiento borrado'); });
+    armarBorrar(sh.querySelector('#v-dev'), () => { const r = devolverAlGasto(S, m); if (!r) return; r.del.forEach(id => del('movs', id)); r.put.forEach(x => put('movs', x)); closeSheet(); render(); toast('Volvió al gasto'); }, 'Toca otra vez para devolverlo'); // DEU-12
   });
 }
 
