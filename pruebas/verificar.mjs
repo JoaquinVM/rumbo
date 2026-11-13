@@ -12,7 +12,7 @@ assert.ok(m[1].includes(FIN), 'el script termina con iniciarStore()');
 const expuestas = ['money','usd','fmtN','parseAmt','fechaFijo','saldoCuenta','apartadoCuenta','saldoDeuda','patrimonio','tcDias','ultimoCambio',
   'ritmo','promedioIrregular','amortizar','infoPrestamo','proyectar','pendientes','proximoIngreso','calcHoy','infoMeta','estadoMetas',
   'gastoMesCat','avanceTopes','nivelTope','resumenMes','indicadores','catsPorUso','notasSugeridas','respaldo','leerRespaldo','vacio',
-  'makeDemo','put','confirmarFijo','saltarFijo','vRumbo','vMovimientos','vDesglose','vPlan','vDeuda','vMeta','vCategorias','vAjustes','CATS_BASE','ui'];
+  'makeDemo','put','separarGasto','devolverAlGasto','teDebenPara','abrirSeparar','verMovimiento','confirmarFijo','saltarFijo','vRumbo','vMovimientos','vDesglose','vPlan','vDeuda','vMeta','vCategorias','vAjustes','CATS_BASE','ui'];
 const code = m[1].replace(FIN, `globalThis.__t = {${expuestas.join(',')},
   setHoy: d => { HOY = d; }, get S() { return S; }, set S(v) { S = v; }, get demo() { return demo; }, set demo(v) { demo = v; }};
 iniciarStore();
@@ -334,6 +334,98 @@ test('PRO-05 ingresos y gastos siguen a la inflación; las cuotas no', () => {
   S2.cuentas = [{id: 'bn', nombre: 'Banco', moneda: 'BOB', saldoInicial: 0, rendimiento: 0, diaADia: true}]; S2.aj.inflacion = 8;
   S2.deudas = [prestamo({saldoInicial: 12000, interes: 12, cuota: 1000})];
   cerca(t.proyectar(S2, h, 1, {nominal: true}).nom[1], -12000 + 3000 - 120, 0.5);
+});
+
+// ---------- gasto que te deben (063) ----------
+const amigo = (extra = {}) => ({id: 'am', tipo: 'teDeben', nombre: 'Amigo', moneda: 'BOB', saldoInicial: 400, ...extra});
+const cena = (extra = {}) => ({id: 'g', tipo: 'gasto', cuentaId: 'ef', categoriaId: 'comida', monto: 300, fecha: '2026-11-05', nota: 'Cena', ...extra});
+const aplicar = (S, r) => { if (r.deuda) S.deudas.push(r.deuda); r.movs.forEach(m => { const i = S.movs.findIndex(x => x.id === m.id); if (i >= 0) S.movs[i] = m; else S.movs.push(m); }); return S; };
+const devolver = (S, r) => { S.movs = S.movs.filter(m => !r.del.includes(m.id)); r.put.forEach(m => { const i = S.movs.findIndex(x => x.id === m.id); if (i >= 0) S.movs[i] = m; else S.movs.push(m); }); return S; };
+test('DEU-11 la mitad de la cena', () => {
+  const S = base(); S.deudas = [amigo()]; S.movs = [cena()];
+  const ef0 = t.saldoCuenta(S, S.cuentas[0]), p0 = t.patrimonio(S).total, c0 = t.gastoMesCat(S, '2026-11').comida;
+  aplicar(S, t.separarGasto(S, S.movs[0], 150, 'am'));
+  const g = S.movs.find(m => m.id === 'g'), p = S.movs.find(m => m.tipo === 'prestamo');
+  assert.equal(g.tipo, 'gasto'); assert.equal(g.monto, 150);
+  assert.equal(p.monto, 150); assert.equal(p.fecha, '2026-11-05'); assert.equal(p.cuentaId, 'ef'); assert.equal(p.deGastoId, 'g'); assert.equal(p.categoriaId, 'comida'); assert.equal(p.nota, 'Cena');
+  assert.equal(t.saldoDeuda(S, S.deudas[0]), 550); assert.equal(t.saldoCuenta(S, S.cuentas[0]), ef0);
+  cerca(t.patrimonio(S).total, p0 + 150); cerca(t.gastoMesCat(S, '2026-11').comida, c0 - 150);
+});
+test('DEU-11 todo el gasto', () => {
+  const S = base(); S.deudas = [amigo()]; S.movs = [cena()]; const ef0 = t.saldoCuenta(S, S.cuentas[0]);
+  aplicar(S, t.separarGasto(S, S.movs[0], 300, 'am'));
+  assert.equal(S.movs.length, 1); assert.equal(S.movs[0].id, 'g'); assert.equal(S.movs[0].tipo, 'prestamo');
+  assert.equal(t.saldoDeuda(S, S.deudas[0]), 700); assert.equal(t.saldoCuenta(S, S.cuentas[0]), ef0);
+  assert.equal(t.gastoMesCat(S, '2026-11').comida || 0, 0); assert.equal(t.resumenMes(S, '2026-11').salio, 0);
+});
+test('DEU-11 gasto de un fijo sigue confirmado', () => {
+  const S = conFijos(base(), [{nombre: 'Renta', tipo: 'gasto', monto: 2500, categoriaId: 'casa', dia: 5}]); t.S = S; t.demo = false;
+  t.confirmarFijo('f0_2026-11', 2500);
+  const g = t.S.movs[0]; t.S.deudas = [{id: 'co', tipo: 'teDeben', nombre: 'Compañero', moneda: 'BOB', saldoInicial: 0}];
+  aplicar(t.S, t.separarGasto(t.S, g, 2500, 'co'));
+  assert.equal(t.S.movs[0].tipo, 'prestamo'); assert.equal(t.S.movs[0].fijoId, 'f0');
+  assert.equal(t.S.ocurrencias[0].movId, g.id); assert.equal(t.pendientes(t.S, h).length, 0);
+  assert.equal(t.saldoDeuda(t.S, t.S.deudas[0]), 2500);
+});
+test('DEU-11 persona nueva con apertura el día del gasto', () => {
+  const S = base(); S.movs = [cena()];
+  const r = t.separarGasto(S, S.movs[0], 150, {nombre: ' Prima '}); aplicar(S, r);
+  assert.equal(r.deuda.nombre, 'Prima'); assert.equal(r.deuda.tipo, 'teDeben'); assert.equal(r.deuda.moneda, 'BOB');
+  assert.equal(r.deuda.saldoInicial, 0); assert.equal(r.deuda.desde, '2026-11-05'); assert.equal(t.saldoDeuda(S, r.deuda), 150);
+  assert.ok(t.separarGasto(S, S.movs[0], 50, {nombre: ''}).error);
+});
+test('DEU-11 no pasa del gasto ni acepta cero', () => {
+  const S = base(); S.deudas = [amigo()]; S.movs = [cena()];
+  assert.equal(t.separarGasto(S, S.movs[0], 350, 'am').error, 'El máximo es Bs 300,00');
+  assert.ok(t.separarGasto(S, S.movs[0], 0, 'am').error);
+  assert.ok(t.separarGasto(S, {...cena(), tipo: 'ingreso'}, 100, 'am').error);
+});
+test('DEU-11 gasto en dólares', () => {
+  const S = base(); S.deudas = [amigo(), {id: 'au', tipo: 'teDeben', nombre: 'Amigo US$', moneda: 'USD', saldoInicial: 0}];
+  S.movs = [{id: 'u', tipo: 'gasto', cuentaId: 'us', categoriaId: 'compras', monto: 20, fecha: '2026-11-05', tc: 12.5}]; S.aj.tc = 14;
+  assert.deepEqual(t.teDebenPara(S, S.movs[0]).map(d => d.id), ['au']);
+  assert.ok(t.separarGasto(S, S.movs[0], 20, 'am').error);
+  const antes = t.resumenMes(S, '2026-11').salio;
+  aplicar(S, t.separarGasto(S, S.movs[0], 20, 'au'));
+  assert.equal(t.saldoDeuda(S, S.deudas[1]), 20); assert.equal(S.movs[0].tc, 12.5); cerca(antes - t.resumenMes(S, '2026-11').salio, 250);
+  const S2 = base(); S2.deudas = [{id: 'au', tipo: 'teDeben', nombre: 'Amigo US$', moneda: 'USD', saldoInicial: 0}];
+  S2.movs = [{id: 'u', tipo: 'gasto', cuentaId: 'us', categoriaId: 'compras', monto: 20, fecha: '2026-11-05', tc: 12.5}];
+  aplicar(S2, t.separarGasto(S2, S2.movs[0], 5, 'au')); assert.equal(S2.movs[1].tc, 12.5);
+});
+test('DEU-11 deuda abierta después del gasto no se ofrece', () => {
+  const S = base(); S.deudas = [amigo({desde: '2026-11-10'}), amigo({id: 'a2', nombre: 'Ana', desde: '2026-11-05'}), amigo({id: 'a3', nombre: 'Viejo', archivada: true})]; S.movs = [cena()];
+  assert.deepEqual(t.teDebenPara(S, S.movs[0]).map(d => d.id), ['a2']);
+  assert.ok(t.separarGasto(S, S.movs[0], 100, 'am').error);
+});
+test('DEU-12 devolver la mitad', () => {
+  const S = base(); S.deudas = [amigo()]; S.movs = [cena()]; const ef0 = t.saldoCuenta(S, S.cuentas[0]);
+  aplicar(S, t.separarGasto(S, S.movs[0], 150, 'am'));
+  devolver(S, t.devolverAlGasto(S, S.movs.find(m => m.tipo === 'prestamo')));
+  assert.equal(S.movs.length, 1); assert.equal(S.movs[0].monto, 300); assert.equal(S.movs[0].tipo, 'gasto');
+  assert.equal(t.saldoDeuda(S, S.deudas[0]), 400); assert.equal(t.saldoCuenta(S, S.cuentas[0]), ef0);
+});
+test('DEU-12 devolver un gasto entero', () => {
+  const S = base(); S.deudas = [amigo()]; S.movs = [cena()]; const ef0 = t.saldoCuenta(S, S.cuentas[0]);
+  aplicar(S, t.separarGasto(S, S.movs[0], 300, 'am'));
+  devolver(S, t.devolverAlGasto(S, S.movs[0]));
+  const g = S.movs[0]; assert.equal(g.tipo, 'gasto'); assert.equal(g.monto, 300); assert.equal(g.categoriaId, 'comida');
+  assert.equal(g.deudaId, undefined); assert.equal(g.deGastoId, undefined);
+  assert.equal(t.saldoDeuda(S, S.deudas[0]), 400); assert.equal(t.saldoCuenta(S, S.cuentas[0]), ef0);
+  assert.equal(t.devolverAlGasto(S, g), null);
+});
+test('DEU-12 devolver una parte cuando el resto ya se volvió deuda', () => {
+  const S = base(); S.deudas = [amigo(), amigo({id: 'a2', nombre: 'Ana', saldoInicial: 0})]; S.movs = [cena()]; const ef0 = t.saldoCuenta(S, S.cuentas[0]);
+  aplicar(S, t.separarGasto(S, S.movs[0], 100, 'am'));
+  aplicar(S, t.separarGasto(S, S.movs.find(m => m.id === 'g'), 200, 'a2'));
+  devolver(S, t.devolverAlGasto(S, S.movs.find(m => m.deudaId === 'am')));
+  assert.equal(t.saldoCuenta(S, S.cuentas[0]), ef0); assert.equal(t.saldoDeuda(S, S.deudas[0]), 400); assert.equal(t.saldoDeuda(S, S.deudas[1]), 200);
+  cerca(t.gastoMesCat(S, '2026-11').comida, 100);
+});
+test('DEU-11 y DEU-12 las hojas se dibujan', () => {
+  const S = base(); S.deudas = [amigo()]; S.movs = [cena()]; t.S = S; t.demo = true;
+  t.abrirSeparar(S.movs[0]); aplicar(S, t.separarGasto(S, S.movs[0], 150, 'am'));
+  t.verMovimiento(S.movs.find(m => m.tipo === 'prestamo'));
+  t.ui.mes = '2026-11'; assert.ok(t.vMovimientos().includes('Préstamo dado · Amigo'));
 });
 
 // ---------- respaldo ----------

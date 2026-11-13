@@ -63,3 +63,14 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     No llega a 120.000 porque lo que se ahorra sin rendimiento igual pierde valor.
 36. (C) El Desglose no mete cuadres, cambio de moneda ni cierres en «Salió»: los muestra en una línea aparte, para que
     se vea todo lo que movió el patrimonio sin mezclarlo con los gastos.
+37. (J) 12/11/2026, trabajo 063: un gasto que pagaste por otra persona se vuelve «te deben», todo o una parte, hacia un
+    «te deben» existente o uno nuevo. El caso contrario («otro pagó por mí») no se pidió.
+38. (C) Una parte parte el gasto en dos movimientos (gasto menor + préstamo dado); todo cambia el tipo del mismo
+    movimiento, para que un fijo confirmado siga confirmado. Así ningún cálculo cambia: todos cuentan por tipo.
+39. (C) El préstamo guarda `deGastoId` y `categoriaId` (campos nuevos, opcionales, sin migración). «Devolver al gasto»
+    reemplaza a «Borrar» en ese préstamo: suma al gasto original si sigue siendo gasto de la misma cuenta; si no, el
+    préstamo vuelve a ser gasto con su categoría. La cuenta nunca cambia.
+40. (C) Solo se ofrecen «te deben» de la moneda de la cuenta y abiertos el día del gasto o antes; la persona nueva se
+    abre el día del gasto. Una deuda abierta después ya incluye lo anterior en su saldo inicial.
+41. (C) Se escribe primero lo que baja la salida de la cuenta y después lo que la sube (gasto reducido, luego préstamo;
+    al devolver, borrar el préstamo y luego sumar al gasto): si se corta a la mitad, nada se cuenta dos veces.
