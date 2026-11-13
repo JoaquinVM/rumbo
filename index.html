@@ -30,6 +30,8 @@
   --accion:#E6EDE8; --accion-t:#0E1411; --sombra:rgba(0,0,0,.6); color-scheme:dark;}
 *{box-sizing:border-box}
 html,body{min-height:100%}
+/* Sin zoom: ni con los dedos ni con doble toque (DECISIONES 42) */
+html{touch-action:pan-x pan-y}
 body{background:var(--bg);color:var(--ink);font:15px/1.4 var(--body);-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button,input,select{font:inherit;color:inherit}
@@ -172,6 +174,8 @@ nav.tabs a[aria-current="page"]{color:var(--azul)}
 <script>
 (() => {
 'use strict';
+// Safari ignores touch-action for pinch in some cases: block its gesture events too (DECISIONES 42)
+for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, e => e.preventDefault(), {passive: false});
 /* ========== 1. Catálogo ========== */
 const ICON = {
   comida:'<path d="M5 3v5a2 2 0 0 0 4 0V3M7 10v11M17 3c-2 0-3 2-3 5s1 4 3 4v9"/>',

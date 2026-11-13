@@ -74,3 +74,5 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     abre el día del gasto. Una deuda abierta después ya incluye lo anterior en su saldo inicial.
 41. (C) Se escribe primero lo que baja la salida de la cuenta y después lo que la sube (gasto reducido, luego préstamo;
     al devolver, borrar el préstamo y luego sumar al gasto): si se corta a la mitad, nada se cuenta dos veces.
+42. (J) 12/11/2026, trabajo 064: Rumbo no se acerca con zoom. Los campos de texto usan 16px para que el iPhone no
+    acerque al tocarlos, y tampoco se puede hacer zoom con los dedos ni con doble toque.
