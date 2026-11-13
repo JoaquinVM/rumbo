@@ -6,7 +6,7 @@
 /* Estilo Bloques sólidos (docs/DISENO.md): un color por significado; lo que contrasta se toca. */
 :root{
   --bg:#EDF0EA; --sup:#FFFFFF; --sunk:#E3E8E1; --ink:#13201A; --mut:#5D6B63; --line:#D3DBD4;
-  --azul:#2B47E0; --azul-s:#DDE3FF; --azul-t:#1C2E95;
+  --azul:#2B47E0; --azul-s:#DDE3FF; --azul-t:#1C2E95; --azul-on:#FFFFFF; --azul-l:#2B47E0;
   --ambar:#A86410; --ambar-s:#F8E7D0; --ambar-t:#5A3406;
   --verde:#1E7A55; --verde-s:#D7EFE3; --verde-t:#0B5C40; --in:#0F7A56;
   --rojo:#B03A22; --ladrillo:#6B2E21; --pizarra:#4F5D66; --gris:#8A958E;
@@ -16,14 +16,14 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0E1411; --sup:#17201B; --sunk:#111915; --ink:#E6EDE8; --mut:#94A39A; --line:#29352F;
-  --azul:#3F5BEA; --azul-s:#232C55; --azul-t:#C9D1FF;
+  --azul:#3F5BEA; --azul-s:#232C55; --azul-t:#C9D1FF; --azul-on:#FFFFFF; --azul-l:#3F5BEA;
   --ambar:#A8670F; --ambar-s:#3A2A12; --ambar-t:#F5D7A8;
   --verde:#22805A; --verde-s:#173528; --verde-t:#A9E3C6; --in:#4CC79A;
   --rojo:#C0442B; --ladrillo:#7A3627; --pizarra:#5B6A73; --gris:#6F7A73;
   --accion:#E6EDE8; --accion-t:#0E1411; --sombra:rgba(0,0,0,.6); color-scheme:dark;}}
 :root[data-theme="dark"]{
   --bg:#0E1411; --sup:#17201B; --sunk:#111915; --ink:#E6EDE8; --mut:#94A39A; --line:#29352F;
-  --azul:#3F5BEA; --azul-s:#232C55; --azul-t:#C9D1FF;
+  --azul:#3F5BEA; --azul-s:#232C55; --azul-t:#C9D1FF; --azul-on:#FFFFFF; --azul-l:#3F5BEA;
   --ambar:#A8670F; --ambar-s:#3A2A12; --ambar-t:#F5D7A8;
   --verde:#22805A; --verde-s:#173528; --verde-t:#A9E3C6; --in:#4CC79A;
   --rojo:#C0442B; --ladrillo:#7A3627; --pizarra:#5B6A73; --gris:#6F7A73;
@@ -36,7 +36,7 @@ body{background:var(--bg);color:var(--ink);font:15px/1.4 var(--body);-webkit-fon
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button,input,select{font:inherit;color:inherit}
 button,a{cursor:pointer}
-:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+:focus-visible{outline:2px solid var(--azul-l);outline-offset:2px}
 .app{max-width:600px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px calc(104px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
 .num{font-variant-numeric:tabular-nums}
 .m{color:var(--mut)}.xs{font-size:12px}.sm{font-size:13px}
@@ -61,17 +61,17 @@ h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.
 .btn[disabled]{opacity:.45;pointer-events:none}
 .add{border:1.5px dashed var(--ink);background:transparent;border-radius:12px;min-height:48px;color:var(--ink);font:700 14px var(--body);text-align:left;padding:0 14px;width:100%}
 .chip{border:1px solid var(--line);background:var(--sup);border-radius:999px;padding:0 14px;height:40px;font:500 14px var(--body);color:var(--ink);display:inline-flex;align-items:center;gap:7px}
-.chip[aria-pressed="true"]{background:var(--azul);color:#fff;border-color:var(--azul)}
+.chip[aria-pressed="true"]{background:var(--azul);color:var(--azul-on);border-color:var(--azul)}
 .chip .sq{width:10px;height:10px;border-radius:3px;display:inline-block}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .seg{display:inline-flex;background:var(--sunk);border-radius:999px;padding:3px;gap:2px;flex-wrap:wrap}
 .seg button{border:0;background:transparent;border-radius:999px;height:36px;padding:0 12px;font:600 13px var(--body);color:var(--mut)}
-.seg button[aria-pressed="true"]{background:var(--azul);color:#fff}
+.seg button[aria-pressed="true"]{background:var(--azul);color:var(--azul-on)}
 .seg.full{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:14px}
 .seg.full button{border-radius:12px;height:42px;font-size:14px}
 /* Bloques y piezas */
 .blk{border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;color:#fff;text-decoration:none}
-.blk.b{background:var(--azul)}.blk.a{background:var(--ambar)}.blk.v{background:var(--verde)}.blk.r{background:var(--rojo)}.blk.l{background:var(--ladrillo)}
+.blk.b{background:var(--azul);color:var(--azul-on)}.blk.b .btn.sec{color:var(--azul-on)}.blk.a{background:var(--ambar)}.blk.v{background:var(--verde)}.blk.r{background:var(--rojo)}.blk.l{background:var(--ladrillo)}
 .blk .k{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.88}
 .blk .ln{display:flex;justify-content:space-between;gap:10px;font-size:14px}
 .blk .bar{height:8px;border-radius:99px;background:rgba(255,255,255,.25);overflow:hidden}
@@ -114,7 +114,7 @@ button.row:active{transform:scale(.99)}
 .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
 .wi{display:flex;flex-direction:column;gap:2px}
 .wi .ln{display:flex;justify-content:space-between;gap:10px;font-size:14px}
-.wi input{width:100%;accent-color:var(--azul);margin:0}
+.wi input{width:100%;accent-color:var(--azul-l);margin:0}
 table.t{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
 table.t th{font-size:12px;color:var(--mut);font-weight:600;text-align:right;padding:6px 0;border-bottom:1px solid var(--line)}
 table.t td{text-align:right;padding:9px 0;border-bottom:1px solid var(--line)}
@@ -127,13 +127,16 @@ table.t th:first-child,table.t td:first-child{text-align:left}
 select.inp{appearance:auto}
 .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .g3{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr) minmax(0,1fr);gap:8px}
-.montoblk{background:var(--azul);color:#fff;border-radius:18px;padding:12px 18px;display:flex;flex-direction:column;gap:2px}
-.montoblk.v{background:var(--verde)}
+.colorop{display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:transparent;font:600 13px var(--body);color:var(--ink);padding:4px 2px;min-width:68px}
+.colorop span{width:44px;height:44px;border-radius:14px;outline-offset:3px}
+.colorop[aria-pressed="true"] span{outline:3px solid var(--ink)}
+.montoblk{background:var(--azul);color:var(--azul-on);border-radius:18px;padding:12px 18px;display:flex;flex-direction:column;gap:2px}
+.montoblk.v{background:var(--verde);--azul-on:#FFFFFF}
 .montoblk label{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.88}
 .montoblk .r{display:flex;align-items:baseline;gap:8px}
 .montoblk .r span{font:700 22px var(--display);opacity:.8}
-.montoblk input{border:0;background:transparent;font:800 44px var(--display);width:100%;color:#fff;outline:none;padding:0;min-width:0}
-.montoblk input::placeholder{color:rgba(255,255,255,.55)}
+.montoblk input{border:0;background:transparent;font:800 44px var(--display);width:100%;color:var(--azul-on);outline:none;padding:0;min-width:0}
+.montoblk input::placeholder{color:var(--azul-on);opacity:.55}
 .actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
 .actions .izq{margin-right:auto}
 /* Navegación */
@@ -141,7 +144,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--sup)
 nav.tabs .in2{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 10px;font-size:11px;font-weight:600;color:var(--mut);text-decoration:none}
 nav.tabs a svg{width:22px;height:22px}
-nav.tabs a[aria-current="page"]{color:var(--azul)}
+nav.tabs a[aria-current="page"]{color:var(--azul-l)}
 .fab{position:fixed;z-index:21;right:max(18px,calc(50% - 282px));bottom:calc(80px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:18px;border:0;background:var(--accion);color:var(--accion-t);box-shadow:0 5px 0 var(--sombra);display:grid;place-items:center}
 .fab svg{width:26px;height:26px}
 .scrim{position:fixed;inset:0;z-index:40;background:rgba(8,14,11,.45);display:flex;align-items:flex-end;justify-content:center;animation:fade .18s ease}
@@ -156,7 +159,7 @@ nav.tabs a[aria-current="page"]{color:var(--azul)}
 
 <div class="app" id="app">
   <header class="top">
-    <div class="brand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z" fill="var(--azul)"></path></svg>Rumbo</div>
+    <div class="brand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z" fill="var(--azul-l)"></path></svg>Rumbo</div>
     <div style="display:flex;gap:8px;align-items:center"><span id="exTag"></span><button class="ib" data-act="ajustes" aria-label="Ajustes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button></div>
   </header>
   <div id="banner"></div>
@@ -228,6 +231,26 @@ const CATS_BASE = [
 ].map(c => ({...c, base:true, tope:0, archivada:false}));
 const COLS = ['cuentas','categorias','movs','fijos','ocurrencias','deudas','metas','apartados'];
 const AJ_BASE = {tc:12.5, tcFecha:null, inflacion:8, irregular:0, horas:160, empezado:false};
+// AJU-05: color principal. Por modo: bloque, suave, texto sobre suave, texto sobre el bloque y línea sobre el fondo
+const PALETA = {
+  azul:   {nombre:'Azul',        claro:['#2B47E0','#DDE3FF','#1C2E95','#FFFFFF','#2B47E0'], oscuro:['#3F5BEA','#232C55','#C9D1FF','#FFFFFF','#3F5BEA']},
+  cielo:  {nombre:'Cielo',       claro:['#1A6FB8','#D6E8F7','#0E3F6B','#FFFFFF','#1A6FB8'], oscuro:['#2474B8','#1B3550','#C4E0F7','#FFFFFF','#2474B8']},
+  morado: {nombre:'Morado',      claro:['#6A3FCF','#E6DDFB','#3B1F86','#FFFFFF','#6A3FCF'], oscuro:['#7550DA','#2E2550','#DCCFFF','#FFFFFF','#7550DA']},
+  rosa:   {nombre:'Rosa pastel', claro:['#F4A6C8','#FBDDEB','#7D1655','#5C1239','#A3366B'], oscuro:['#F4A6C8','#4C1F3D','#FFCCEB','#5C1239','#F4A6C8']}
+};
+const colorDe = aj => aj && PALETA.hasOwnProperty(aj.color) ? aj.color : 'azul';
+const VARS_COLOR = ['--azul', '--azul-s', '--azul-t', '--azul-on', '--azul-l'];
+function cssTema(color) {
+  const p = PALETA[color] || PALETA.azul, decl = vals => VARS_COLOR.map((v, i) => `${v}:${vals[i]};`).join('');
+  return `:root{${decl(p.claro)}}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${decl(p.oscuro)}}}:root[data-theme="dark"]{${decl(p.oscuro)}}`;
+}
+let temaPuesto = null;
+function aplicarColor() {
+  const c = colorDe(S.aj); if (c === temaPuesto) return; temaPuesto = c;
+  let st = document.getElementById('tema');
+  if (!st) { st = document.createElement('style'); st.id = 'tema'; document.head.appendChild(st); }
+  st.textContent = c === 'azul' ? '' : cssTema(c);
+}
 
 /* ========== 2. Utilidades ========== */
 const D = 864e5;
@@ -766,9 +789,9 @@ function vRumbo() {
   const hz = ui.horizonte === 1 ? 'un año' : `${ui.horizonte} años`;
   let titular, sub;
   if (cero > 0) { titular = `A este ritmo, tus ahorros se acaban en <span style="color:var(--rojo);font-weight:800">${ymCorto(ymAdd(ymOf(h), cero))}</span>.`; sub = `Cada mes sale ${money(-R.neto)} más de lo que entra.`; }
-  else { titular = `A este ritmo, en ${hz} tendrás <span style="color:var(--azul);font-weight:800;white-space:nowrap">${money(fin)}</span>.`;
+  else { titular = `A este ritmo, en ${hz} tendrás <span style="color:var(--azul-l);font-weight:800;white-space:nowrap">${money(fin)}</span>.`;
     sub = `${ui.nominal ? 'En montos nominales' : `En plata de hoy, con ${fmtN(st.inflacion || 0, 1).replace(',0', '')} % de inflación`}. ${ui.nominal ? '' : `Son ${money(base.nom[meses])} nominales, `}unos ${usd(fin / (st.tc || 1))}. Hoy tienes ${money(pat.total)}: tus cuentas suman ${money(pat.cuentas)}${pat.deudas || pat.teDeben ? ` y tus deudas, ${money(pat.deudas - pat.teDeben)} netas` : ''}.`; }
-  const series = [{data: base.pts, color: R.neto >= 0 ? 'var(--azul)' : 'var(--rojo)', fill: true}];
+  const series = [{data: base.pts, color: R.neto >= 0 ? 'var(--azul-l)' : 'var(--rojo)', fill: true}];
   if (alt) series.push({data: alt.pts, color: 'var(--verde)', dash: true, w: 2.5});
   const marcas = [];
   prestamos.forEach(d => { const P = infoPrestamo(S, d, h); if (P.fin) marcas.push({i: ymDiff(ymOf(h), P.fin), tipo: 'linea', t: `${ymCorto(P.fin)} · terminas ${d.nombre.toLowerCase().startsWith('préstamo') ? 'el préstamo' : d.nombre}`}); });
@@ -1050,6 +1073,10 @@ function vAjustes() {
     <span class="xs m">El rendimiento se pone en cada cuenta, en Plan.</span>
     <div class="actions"><button class="btn" type="submit">Guardar</button></div>
   </form>
+  <section class="card" aria-label="Apariencia"><h2 class="h2">Apariencia</h2>
+    <div class="sm m">El color de tu dinero y de lo de hoy. Se ve igual en todos tus equipos.</div>
+    <div class="chips" role="group" aria-label="Color principal">${Object.entries(PALETA).map(([id, p]) => `<button type="button" class="colorop" data-act="color" data-id="${id}" aria-pressed="${colorDe(st) === id}"><span style="background:${p.claro[0]}"></span>${p.nombre}</button>`).join('')}</div>
+  </section>
   <section class="card"><h2 class="h2">Respaldo</h2>
     <div class="sm m">Un archivo con todas tus cuentas, movimientos, fijos, deudas y metas. Guárdalo donde quieras.</div>
     <div class="actions" style="justify-content:flex-start"><button class="btn" data-act="descargar"${demo ? ' disabled' : ''}>Descargar respaldo</button><label class="btn sec" for="cargarArchivo" style="cursor:pointer">Cargar respaldo</label><input type="file" id="cargarArchivo" accept=".json,application/json" hidden></div>
@@ -1063,6 +1090,7 @@ function vAjustes() {
 
 function render() {
   if (!loaded) return;
+  aplicarColor();
   const v = vistaActual();
   document.querySelectorAll('nav.tabs a').forEach(a => a.setAttribute('aria-current', a.dataset.v === v && !ui.det ? 'page' : 'false'));
   $('#exTag').innerHTML = demo ? '<span class="ex">Datos de ejemplo</span>' : '';
@@ -1092,7 +1120,7 @@ function openSheet(html, mount) {
 function closeSheet() { $('#sheetRoot').innerHTML = ''; }
 function toast(msg) { const d = document.createElement('div'); d.className = 'toast'; d.setAttribute('role', 'status'); d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
 const chipsCuentas = (sel, act, excluir, moneda) => activos(S.cuentas).filter(c => c.id !== excluir && (!moneda || c.moneda === moneda)).map(c => `<button type="button" class="chip" data-${act}="${c.id}" aria-pressed="${c.id === sel}">${esc(c.nombre)} · ${enMoneda(saldoCuenta(S, c), c.moneda)}</button>`).join('');
-const chipsCats = (lista, sel) => lista.map(c => `<button type="button" class="chip" data-cat="${c.id}" aria-pressed="${c.id === sel}"><span class="sq" style="background:${c.id === sel ? '#fff' : c.color}"></span>${esc(c.nombre)}</button>`).join('');
+const chipsCats = (lista, sel) => lista.map(c => `<button type="button" class="chip" data-cat="${c.id}" aria-pressed="${c.id === sel}"><span class="sq" style="background:${c.id === sel ? 'var(--azul-on)' : c.color}"></span>${esc(c.nombre)}</button>`).join('');
 const armarBorrar = (b, fn, txt = 'Toca otra vez para borrar') => b && b.addEventListener('click', () => { if (b.dataset.armed) fn(); else { b.dataset.armed = '1'; b.textContent = txt; } });
 let ultimaCuenta = null; try { ultimaCuenta = localStorage.getItem('rumbo-ultima'); } catch (e) {}
 const recordarCuenta = id => { ultimaCuenta = id; try { localStorage.setItem('rumbo-ultima', id); } catch (e) {} };
@@ -1519,6 +1547,8 @@ const acciones = {
   verCategorias: () => { ui.det = {tipo: 'categorias'}; render(); scrollTo(0, 0); },
   nuevaCat: () => abrirCategoria(null), editCat: b => abrirCategoria(S.categorias.find(c => c.id === b.dataset.id)),
   volver: () => { ui.det = null; render(); },
+  color: b => { if (!PALETA.hasOwnProperty(b.dataset.id)) return; S.aj.color = b.dataset.id; guardarAj(); aplicarColor();
+    document.querySelectorAll('[data-act="color"]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.id === b.dataset.id))); },
   descargar: () => descargar(),
   cancelarRespaldo: () => { ui.respaldo = null; render(); },
   aplicarRespaldo: async () => { const r = ui.respaldo; if (!r || !r.S) return; r.S.aj.empezado = true; demo = false; S = r.S; ui.respaldo = null; ui.det = null; render(); toast('Respaldo cargado'); await store.reemplazar(S); },

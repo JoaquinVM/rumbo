@@ -76,3 +76,7 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     al devolver, borrar el préstamo y luego sumar al gasto): si se corta a la mitad, nada se cuenta dos veces.
 42. (J) 12/11/2026, trabajo 064: Rumbo no se acerca con zoom. Los campos de texto usan 16px para que el iPhone no
     acerque al tocarlos, y tampoco se puede hacer zoom con los dedos ni con doble toque.
+43. (J) 13/11/2026, trabajo 066: el color principal (el azul) se elige en Ajustes entre Azul, Cielo, Morado y Rosa
+    pastel, y se guarda en los Ajustes de la base (`aj.color`; si falta, Azul). Se descartaron el verde y el turquesa
+    porque se confunden con el verde de metas. El Rosa pastel lleva texto vino en sus bloques y un rosa más fuerte
+    para textos y trazos sobre el fondo claro.

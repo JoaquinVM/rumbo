@@ -12,7 +12,7 @@ assert.ok(m[1].includes(FIN), 'el script termina con iniciarStore()');
 const expuestas = ['money','usd','fmtN','parseAmt','fechaFijo','saldoCuenta','apartadoCuenta','saldoDeuda','patrimonio','tcDias','ultimoCambio',
   'ritmo','promedioIrregular','amortizar','infoPrestamo','proyectar','pendientes','proximoIngreso','calcHoy','infoMeta','estadoMetas',
   'gastoMesCat','avanceTopes','nivelTope','resumenMes','indicadores','catsPorUso','notasSugeridas','respaldo','leerRespaldo','vacio',
-  'makeDemo','put','separarGasto','devolverAlGasto','teDebenPara','abrirSeparar','verMovimiento','confirmarFijo','saltarFijo','vRumbo','vMovimientos','vDesglose','vPlan','vDeuda','vMeta','vCategorias','vAjustes','CATS_BASE','ui'];
+  'makeDemo','put','separarGasto','devolverAlGasto','teDebenPara','abrirSeparar','verMovimiento','confirmarFijo','saltarFijo','vRumbo','vMovimientos','vDesglose','vPlan','vDeuda','vMeta','vCategorias','vAjustes','CATS_BASE','ui','PALETA','colorDe','cssTema','aplicarColor','acciones'];
 const code = m[1].replace(FIN, `globalThis.__t = {${expuestas.join(',')},
   setHoy: d => { HOY = d; }, get S() { return S; }, set S(v) { S = v; }, get demo() { return demo; }, set demo(v) { demo = v; }};
 iniciarStore();
@@ -23,10 +23,12 @@ function el() {
     setAttribute() {}, querySelector: () => el(), querySelectorAll: () => []};
 }
 const ls = {};
+const tema = {id: 'tema', textContent: ''};
 const ctx = {
   console, setTimeout, clearTimeout,
   location: {hash: ''},
-  document: {querySelector: () => el(), querySelectorAll: () => [], addEventListener() {}, createElement: () => el(), body: el(), getElementById: () => el()},
+  document: {querySelector: () => el(), querySelectorAll: () => [], addEventListener() {}, createElement: () => el(), body: el(), head: el(),
+    getElementById: id => id === 'tema' ? tema : el()},
   localStorage: {getItem: k => ls[k] ?? null, setItem: (k, v) => { ls[k] = String(v); }, removeItem: k => { delete ls[k]; }},
   scrollTo() {}, addEventListener() {}
 };
@@ -433,6 +435,44 @@ test('DAT-04 respaldo de ida y vuelta, y archivo ajeno', () => {
   const S = t.makeDemo(), r = t.leerRespaldo(JSON.stringify(t.respaldo(S)));
   assert.equal(r.conteo.cuentas, 3); assert.equal(r.conteo.movs, S.movs.length);
   assert.ok(t.leerRespaldo('hola').error); assert.ok(t.leerRespaldo('{"app":"otra"}').error);
+});
+
+// ---------- color principal ----------
+const html2 = html;
+test('AJU-05 color por defecto y desconocido', () => {
+  assert.equal(t.colorDe({}), 'azul'); assert.equal(t.colorDe(undefined), 'azul'); assert.equal(t.colorDe({color: 'verde'}), 'azul');
+  assert.equal(t.colorDe({color: 'toString'}), 'azul'); assert.equal(t.colorDe({color: 'rosa'}), 'rosa');
+  assert.deepEqual(Object.keys(t.PALETA), ['azul', 'cielo', 'morado', 'rosa']);
+  assert.ok(!('color' in t.vacio().aj), 'sin color guardado no se escribe el campo');
+});
+test('AJU-05 el tema solo cambia las variables del color principal', () => {
+  const css = t.cssTema('rosa'), vars = [...css.matchAll(/(--[a-z-]+):/g)].map(x => x[1]);
+  assert.deepEqual([...new Set(vars)].sort(), ['--azul', '--azul-l', '--azul-on', '--azul-s', '--azul-t']);
+  assert.ok(css.includes('--azul:#F4A6C8;') && css.includes('--azul-on:#5C1239;') && css.includes('--azul-l:#A3366B;'));
+  // Azul es exactamente el de hoy
+  const raiz = html2.match(/:root\{([^}]*)\}/)[1];
+  t.PALETA.azul.claro.forEach((v, i) => assert.ok(raiz.includes(`${['--azul', '--azul-s', '--azul-t', '--azul-on', '--azul-l'][i]}:${v};`), v));
+  // ámbar, verde, rojo, ladrillo y tinta no cambian
+  assert.ok(!/--(ambar|verde|rojo|ladrillo|accion|ink)/.test(css));
+  // al elegir, se pone el tema; con azul queda vacío
+  t.S = t.makeDemo(); t.demo = true; t.S.aj.color = 'morado'; t.aplicarColor(); assert.ok(tema.textContent.includes('#6A3FCF'));
+  t.S.aj.color = 'azul'; t.aplicarColor(); assert.equal(tema.textContent, '');
+});
+test('AJU-05 ningún blanco fijo sobre el color principal', () => {
+  const css = html2.match(/<style>([\s\S]*?)<\/style>/)[1];
+  for (const regla of css.split('}')) if (/background:var\(--azul\)/.test(regla)) assert.ok(!/color:#fff/i.test(regla), regla);
+  assert.ok(/\.blk\.b\{background:var\(--azul\);color:var\(--azul-on\)\}/.test(css));
+  assert.ok(!/(color|fill|stroke|outline)[^;\n"]*var\(--azul\)/.test(html2.replace(/border-color:var\(--azul\)/g, '')), 'textos y trazos usan --azul-l');
+});
+test('AJU-05 en el ejemplo se ve pero no se guarda; con datos se guarda', () => {
+  t.S = t.makeDemo(); t.demo = true; const antes = JSON.stringify(ls);
+  t.acciones.color({dataset: {id: 'cielo'}}); assert.equal(t.S.aj.color, 'cielo'); assert.equal(JSON.stringify(ls), antes);
+  t.acciones.color({dataset: {id: 'verde'}}); assert.equal(t.S.aj.color, 'cielo', 'un color fuera de la paleta no se guarda');
+  assert.ok(t.vAjustes().includes('Rosa pastel'));
+});
+test('AJU-05 el respaldo conserva el color', () => {
+  const S = t.makeDemo(); S.aj.color = 'rosa'; const r = t.leerRespaldo(JSON.stringify(t.respaldo(S)));
+  assert.equal(t.colorDe(r.S.aj), 'rosa');
 });
 
 // ---------- pantallas ----------
