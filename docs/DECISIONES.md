@@ -98,3 +98,6 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
 49. (J) 14/11/2026, trabajo 068: los respaldos de las apps van en un bucket propio de B2 (`jviscafe-apps-respaldos`),
     no en una carpeta del bucket de Akhana: así nunca aparecen en los listados de los scripts de Akhana. La clave
     `rumbo-vps` solo ve ese bucket y la carpeta `rumbo/`. Sigue siendo gratis: los 10 GB gratis de B2 son por cuenta.
+50. (J) 14/11/2026, trabajo 073: Rumbo se puede agregar a la pantalla de inicio del teléfono con el nombre «Rumbo», la
+    brújula blanca sobre azul como ícono (fija, no sigue el color de Ajustes) y el fondo de la app como color de tema y
+    de pantalla de inicio. No lleva service worker: se sigue usando con internet (decisión 48).

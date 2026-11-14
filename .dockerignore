@@ -1,6 +1,8 @@
-# Only the server and the page go into the image (deploy/Dockerfile)
+# Only the server, the page and its install files go into the image (deploy/Dockerfile)
 *
 !index.html
+!manifest.webmanifest
+!iconos/*.png
 !servidor/package.json
 !servidor/package-lock.json
 !servidor/*.mjs
