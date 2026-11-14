@@ -2,16 +2,16 @@
 
 Plan de la opción B de `design.md`. Nada se construye hasta que Joaquín apruebe este cambio y la opción. Cada grupo es
 un trabajo de Foundry con su rama, su PR y su nivel; ninguno empieza antes de que 072 y 073 estén mergeados o
-descartados. Las pruebas de dinero viven en Vitest, nombradas con el ID del requirement; las de la v1
-(`pruebas/verificar.mjs`) quedan como oráculo en `pruebas/v1/`.
+descartados, salvo el 075, que empezó antes por pedido de Joaquín (decisión 51). Las pruebas de dinero viven en Vitest,
+nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) quedan como oráculo en `pruebas/v1/`.
 
 ## 1. Trabajo 075 · Base del proyecto y CI (Chispa)
 
-- [ ] 1.1 Workspaces de npm (`paquetes/dominio`, `paquetes/contratos`, `app`, `servidor`, `migracion`, `e2e`) con React 18.3.1, TypeScript 5.9.3, Vite 7.3.8, Vitest 4.1.12, Zod 4 y dependency-cruiser 17.4.3 en versiones exactas; `npm ci && npm run tipos` pasa.
-- [ ] 1.2 Reglas de capas de dependency-cruiser como las de Strata, con una prueba que falla si la presentación importa el dominio; `npm run capas` en verde y en rojo con un import prohibido de prueba.
-- [ ] 1.3 Mover la v1 congelada a `pruebas/v1/` con sus pruebas y un ayudante que carga su motor en Node; `npm run verificar` sigue en verde y la v1 de producción no cambia.
-- [ ] 1.4 `verificar.yml` con los trabajos `tipos`, `unitarias`, `servidor`, `e2e` (Playwright en Chromium y WebKit a 375 px, claro y oscuro, contra un servidor con Postgres y Access de mentira) y `lighthouse` (mínimos de PUB-06), sobre una página vacía de la v2; `production` exige los cinco. Verificado con un PR en verde y otro, de prueba, en rojo por Lighthouse.
-- [ ] 1.5 Actualizar `CLAUDE.md`, `openspec/config.yaml` (stack y reglas de pruebas y de publicar) y `docs/DECISIONES.md` con lo que aprobó Joaquín.
+- [x] 1.1 Workspaces de npm (`paquetes/dominio`, `paquetes/contratos`, `app`, `servidor`, `migracion`, `e2e`) con React 18.3.1, TypeScript 5.9.3, Vite 7.3.8, Vitest 4.1.12, Zod 4 y dependency-cruiser 17.4.3 en versiones exactas; `npm ci && npm run tipos` pasa.
+- [x] 1.2 Reglas de capas de dependency-cruiser como las de Strata, con una prueba que falla si la presentación importa el dominio; `npm run capas` en verde y en rojo con un import prohibido de prueba.
+- [x] 1.3 Mover la v1 congelada a `pruebas/v1/` con sus pruebas y un ayudante que carga su motor en Node; `npm run verificar` sigue en verde y la v1 de producción no cambia.
+- [x] 1.4 `verificar.yml` con los trabajos `tipos`, `unitarias`, `servidor`, `e2e` (Playwright en Chromium y WebKit a 375 px, claro y oscuro, contra un servidor con Postgres y Access de mentira) y `lighthouse` (mínimos de PUB-06), sobre una página vacía de la v2; `production` exige los cinco. Verificado con un PR en verde y otro, de prueba, en rojo por Lighthouse.
+- [x] 1.5 Actualizar `CLAUDE.md`, `openspec/config.yaml` (stack y reglas de pruebas y de publicar) y `docs/DECISIONES.md` con lo que aprobó Joaquín.
 
 ## 2. Trabajo 076 · Dominio en centavos (Crisol)
 
