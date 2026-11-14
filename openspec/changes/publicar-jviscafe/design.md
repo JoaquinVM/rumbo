@@ -27,11 +27,12 @@ cambiar cálculos o la forma de los datos, tocar el artifact.
   `node:sqlite`, todavía experimental, y se eligió PostgreSQL 17, como en Akhana, porque su respaldo (`pg_dump` y
   `pg_restore --list`) ya está probado en este VPS.
 - **Documentos tal cual.** La tabla `docs(persona, col, id, datos jsonb)` guarda cada cuenta, movimiento, etc. Los
-  Ajustes van en `ajustes(persona, datos jsonb)`. El servidor solo acepta las colecciones de `COLS`, ids de 1 a 100
+  Ajustes van en `principal(persona, datos jsonb)`, con la forma `{aj}` del documento principal del artifact. El servidor solo acepta las colecciones de `COLS`, ids de 1 a 100
   caracteres seguros y cuerpos de hasta 1 MB (10 MB al reemplazar todo). No interpreta montos: la página sigue haciendo
   todas las cuentas. Reemplazar y borrar todo corren en una transacción.
 - **API:** `GET /api/datos` (todo), `PUT|DELETE /api/docs/<col>/<id>`, `PUT /api/ajustes`, `PUT /api/datos`
-  (reemplazar) y `DELETE /api/datos` (borrar todo). `GET /salud` solo responde a la revisión de salud de Docker.
+  (reemplazar) y `DELETE /api/datos` (borrar todo). `GET /salud`, sin token, dice si la base contesta:
+  lo usa la revisión de salud de Docker y, desde fuera, Access lo protege como al resto.
 - **Cola de escrituras en la página.** Las escrituras salen una por una, en orden. Si falla la red o el servidor
   responde 5xx, se reintenta con espera creciente (hasta 30 s) y al volver la conexión. Mientras quede algo, se
   muestra «Hay cambios sin guardar» y `beforeunload` advierte. Un 401, un 403 o una redirección de Access significan

@@ -42,12 +42,13 @@ for ip in "${addresses[@]}"; do
 done
 
 # One container runs every probe and prints RESOLVE/NORESOLVE <name> and OPEN/CLOSED <ip:port:label>.
-# curl over telnet:// exits 7 (refused) or 28 (timeout) when nothing answers.
+# The exit code of curl over telnet:// does not tell an open but silent port from a filtered one (both time out):
+# time_connect does, it stays 0 unless the TCP connection opened.
 script='curl -fsS -m 5 -o /dev/null http://rumbo:8080/salud && echo CONTROL-OK || echo CONTROL-FALLA
 for n in '"${names[*]}"'; do getent hosts "$n" > /dev/null && echo "RESOLVE $n" || echo "NORESOLVE $n"; done
 for t in '"${targets[*]}"'; do ip=${t%%:*}; rest=${t#*:}; port=${rest%%:*}
-  curl -s -o /dev/null --connect-timeout 3 -m 4 "telnet://$ip:$port" < /dev/null; c=$?
-  if [ $c -eq 7 ] || [ $c -eq 28 ]; then echo "CLOSED $t"; else echo "OPEN $t"; fi; done'
+  tc=$(curl -s -o /dev/null -w "%{time_connect}" --connect-timeout 3 -m 4 "telnet://$ip:$port" < /dev/null)
+  if [ -z "$tc" ] || [ "$tc" = "0.000000" ]; then echo "CLOSED $t"; else echo "OPEN $t"; fi; done'
 results=$(docker run --rm --network apps --user 65534:65534 --cap-drop ALL --security-opt no-new-privileges:true \
     --memory 64m --entrypoint sh "$CURL_IMAGE" -c "$script" 2>&1)
 
@@ -75,14 +76,16 @@ echo "3. Contenedores de Rumbo y del túnel"
 (( ${#ours[@]} )) || bad "no hay contenedores de Rumbo ni del túnel corriendo"
 total=0
 for name in "${ours[@]}"; do
-    read -r user mem cpus caps nnp ports < <(docker inspect --format \
-        '{{if .Config.User}}{{.Config.User}}{{else}}root{{end}} {{.HostConfig.Memory}} {{.HostConfig.NanoCpus}} {{join .HostConfig.CapDrop ","}}. {{join .HostConfig.SecurityOpt ","}}. {{len .HostConfig.PortBindings}}' "$name")
-    if [[ $user == root || $user == 0 || $user == 0:* ]]; then bad "$name corre como root"; else ok "$name corre como $user"; fi
-    if docker inspect --format '{{range .Mounts}}{{.Source}} {{end}}' "$name" | grep -q docker.sock; then bad "$name tiene docker.sock"; else ok "$name no tiene docker.sock"; fi
-    if [[ $caps == *ALL* ]]; then ok "$name sin capacidades de Linux"; else bad "$name conserva capacidades de Linux"; fi
-    if [[ $nnp == *no-new-privileges* ]]; then ok "$name con no-new-privileges"; else bad "$name sin no-new-privileges"; fi
-    if [[ $ports == 0 ]]; then ok "$name no publica puertos"; else bad "$name publica puertos"; fi
-    if (( mem > 0 && cpus > 0 )); then ok "$name con tope de $((mem / 1048576)) MiB y $((cpus / 10000000)) % de una CPU"
+    field() { docker inspect --format "$1" "$name" 2> /dev/null; }
+    user=$(field '{{.Config.User}}'); mem=$(field '{{.HostConfig.Memory}}'); cpus=$(field '{{.HostConfig.NanoCpus}}')
+    caps=$(field '{{json .HostConfig.CapDrop}}'); opts=$(field '{{json .HostConfig.SecurityOpt}}')
+    ports=$(field '{{json .HostConfig.PortBindings}}'); mounts=$(field '{{json .Mounts}}')
+    if [[ -z $user || $user == root || $user == 0 || $user == 0:* ]]; then bad "$name corre como root"; else ok "$name corre como $user"; fi
+    if [[ $mounts == *docker.sock* ]]; then bad "$name tiene docker.sock"; else ok "$name no tiene docker.sock"; fi
+    if [[ $caps == *'"ALL"'* ]]; then ok "$name sin capacidades de Linux"; else bad "$name conserva capacidades de Linux"; fi
+    if [[ $opts == *no-new-privileges* ]]; then ok "$name con no-new-privileges"; else bad "$name sin no-new-privileges"; fi
+    if [[ $ports == '{}' || $ports == null ]]; then ok "$name no publica puertos"; else bad "$name publica puertos: $ports"; fi
+    if (( ${mem:-0} > 0 && ${cpus:-0} > 0 )); then ok "$name con tope de $((mem / 1048576)) MiB y $((cpus / 10000000)) % de una CPU"
     else bad "$name sin tope de memoria o CPU"; fi
     total=$((total + mem))
 done

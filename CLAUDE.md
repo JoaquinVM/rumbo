@@ -23,22 +23,28 @@ Las reglas de este archivo mandan sobre las de Foundry dentro de este repo.
 
 ## Código
 
-- Una sola página, `index.html`, sin compilación. Se publica como artifact privado de claude.ai con las capacidades
-  `db` y `user`.
-- Pruebas: `npm run verificar` (modelo de dinero y que cada vista se dibuje). Toda regla de dinero nueva lleva su prueba.
+- Una sola página, `index.html`, sin compilación ni librerías. La sirve el servidor de `servidor/` (Node 24, PostgreSQL
+  17, `pg` como única dependencia) en `rumbo.jviscafe.com`, detrás de Cloudflare Access. Dentro de un artifact
+  seguiría usando su base; sin ninguna de las dos, el navegador.
+- Pruebas: `npm run verificar` (modelo de dinero, que cada vista se dibuje y el guardado) y `npm run probar-servidor`
+  (servidor contra un Postgres; variables `PG*`). Toda regla de dinero nueva lleva su prueba.
 
 ## Dinero y datos
 
 - Todo cambio que toque cálculos de dinero, cantidades o datos guardados es **Crisol**.
-- Los datos viven en la base del artifact, en `data/users/<id>/rumbo` y sus subcolecciones (`docs/DOMINIO.md`). Son privados: solo los
-  lee la persona.
+- Los datos viven en la base de Rumbo en el VPS de Akhana, por correo de Access (`docs/DOMINIO.md`). Son privados:
+  solo los lee la persona. El servidor guarda cada documento tal cual y no interpreta montos.
 - Ningún campo guardado se renombra, borra ni cambia de tipo sin plan de migración, respaldo previo y verificación.
 - No se inventan montos, categorías ni reglas: lo que no está escrito se pregunta.
 
 ## Publicar
 
-- Producción: https://claude.ai/artifact/Pa47kuqzy96qmKqbB6Bc5z
-- Se publica con el sí de Joaquín y con la herramienta Artifact, siempre a esa misma URL.
+- Producción: https://rumbo.jviscafe.com, en el VPS de Akhana, aislado de Akhana (`docs/DESPLIEGUE.md`).
+- Se publica con el sí de Joaquín creando un tag `vX.Y.Z` en `main`: el CI mueve `production` y el VPS la despliega
+  sola, con respaldo previo y vuelta atrás.
+- En el VPS los agentes no entran como root: lo que requiera root lo corre Joaquín, cada comando con su sí. Nada de
+  Rumbo toca `/opt/akhana` ni reinicia Docker.
+- El artifact https://claude.ai/artifact/Pa47kuqzy96qmKqbB6Bc5z se dejó de usar; no se publica ahí.
 
 ## Estilo
 

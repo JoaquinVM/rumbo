@@ -86,5 +86,10 @@ Dinero de una cuenta que reservas para una meta, sin moverlo.
 
 ## Dónde se guarda
 
-En la base del artifact, privado por persona: `data/users/<id>/rumbo` guarda los Ajustes y debajo hay una colección por
-entidad: `cuentas`, `categorias`, `movs`, `fijos`, `ocurrencias`, `deudas`, `metas` y `apartados`.
+En `rumbo.jviscafe.com`, en la base propia de Rumbo (PostgreSQL, `servidor/esquema.sql`), privado por correo de
+Cloudflare Access: la tabla `principal` guarda los Ajustes (`{aj}`) y la tabla `docs` cada documento de las colecciones
+`cuentas`, `categorias`, `movs`, `fijos`, `ocurrencias`, `deudas`, `metas` y `apartados`, tal como lo manda la página
+(JSON, con su `id`). El servidor no interpreta montos ni campos: todas las cuentas las hace la página.
+
+Dentro del artifact, que se dejó de usar, en su base, privado por persona: `data/users/<id>/rumbo` guarda los Ajustes
+y debajo hay una colección por entidad, con los mismos nombres. Sin ninguna de las dos, en el navegador.
