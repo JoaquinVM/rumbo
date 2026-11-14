@@ -12,12 +12,33 @@ const LIMITE_TODO = 25 * MB;
 const ID = /^[A-Za-z0-9_.:-]{1,100}$/;
 const RUTA_DOC = /^\/api\/docs\/([a-z]+)\/([^/]+)$/;
 
-// index.html has no document skeleton (the artifact adds its own): this one adds it, and the meta tells the page to
-// save through /api instead of the artifact or the browser
+// index.html has no document skeleton (the artifact adds its own): this one adds it, the meta that tells the page to
+// save through /api instead of the artifact or the browser, and what lets a phone install it (PAN-10). The manifest
+// goes with credentials so it carries the Cloudflare Access cookie.
+const INSTALAR = '<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">' +
+  '<link rel="icon" type="image/png" href="/iconos/icono-192.png">' +
+  '<link rel="apple-touch-icon" href="/iconos/icono-180.png">' +
+  '<meta name="theme-color" content="#EDF0EA" media="(prefers-color-scheme: light)">' +
+  '<meta name="theme-color" content="#0E1411" media="(prefers-color-scheme: dark)">' +
+  '<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">' +
+  '<meta name="apple-mobile-web-app-title" content="Rumbo">' +
+  '<meta name="apple-mobile-web-app-status-bar-style" content="default">';
+
 export function armarPagina(html) {
   return '<!doctype html><html lang="es"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">' +
-    '<meta name="rumbo-api" content="/api"><link rel="icon" href="data:,">\n' + html + '\n</html>\n';
+    '<meta name="rumbo-api" content="/api">' + INSTALAR + '\n' + html + '\n</html>\n';
+}
+
+// Fixed files for installing on a phone (PAN-10), read once at start: path → type, cache and body
+const RAIZ = new URL('../', import.meta.url);
+export function leerArchivos() {
+  const dia = 'public, max-age=86400';
+  const fijo = (ruta, tipo, cache) => [ruta, {tipo, cache, cuerpo: readFileSync(new URL(ruta.slice(1), RAIZ))}];
+  return new Map([
+    fijo('/manifest.webmanifest', 'application/manifest+json; charset=utf-8', 'no-cache'),
+    ...['180', '192', '512'].map(n => fijo(`/iconos/icono-${n}.png`, 'image/png', dia)),
+  ]);
 }
 
 const SEGURIDAD = {
@@ -83,7 +104,7 @@ function filasDe(cuerpo) {
   return filas;
 }
 
-export function crearServidor({base, verificar, correos, pagina}) {
+export function crearServidor({base, verificar, correos, pagina, archivos = leerArchivos()}) {
   const permitidos = new Set(correos.map(c => c.trim().toLowerCase()).filter(Boolean));
   if (!permitidos.size) throw new Error('CORREOS_PERMITIDOS está vacío');
 
@@ -140,6 +161,11 @@ export function crearServidor({base, verificar, correos, pagina}) {
       if (req.method === 'GET' && (ruta === '/' || ruta === '/index.html')) {
         res.writeHead(200, {...SEGURIDAD, 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache'});
         return res.end(pagina);
+      }
+      const fijo = req.method === 'GET' && archivos.get(ruta);
+      if (fijo) {
+        res.writeHead(200, {...SEGURIDAD, 'Content-Type': fijo.tipo, 'Cache-Control': fijo.cache});
+        return res.end(fijo.cuerpo);
       }
       if (req.method === 'GET' && ruta === '/salud') {
         await base.salud();

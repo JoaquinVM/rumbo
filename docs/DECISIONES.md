@@ -101,3 +101,6 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
 50. (J) 14/11/2026, trabajo 074: Rumbo 2 se construye por etapas (opción B del cambio `rumbo-2-reescritura`), en los
     trabajos 075 a 080: base y CI, dominio en centavos, servidor, pantallas en dos partes, y migración con corte. La
     v1 sigue en producción hasta el corte. Un monto con más de 2 decimales no se guarda (FMT-03).
+51. (J) 14/11/2026, trabajo 073: Rumbo se puede agregar a la pantalla de inicio del teléfono con el nombre «Rumbo», la
+    brújula blanca sobre azul como ícono (fija, no sigue el color de Ajustes) y el fondo de la app como color de tema y
+    de pantalla de inicio. No lleva service worker: se sigue usando con internet (decisión 48).
