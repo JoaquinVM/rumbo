@@ -22,7 +22,7 @@ Navegador ─► Cloudflare Access (correo + código) ─► túnel «apps» ─
 | `/opt/apps/rumbo/.env` | Secretos de Rumbo (`deploy/.env.example`), 600, root |
 | `/opt/apps/rumbo/state` | Versión desplegada y resultado del último despliegue |
 | `/opt/apps/tunel/.env` | Token del túnel de las apps (`deploy/tunel/.env.example`), 600, root |
-| `/opt/apps/rclone.conf` | rclone propio de las apps: remoto `apps-b2` y remoto cifrado `rumbo-crypt` |
+| `/opt/apps/rclone.conf` | rclone propio de las apps: remoto `apps-b2` (clave `rumbo-vps`, `hard_delete`) y remoto cifrado `rumbo-crypt` |
 | `/var/backups/apps/rumbo` | Respaldos locales (7 días) |
 | `rumbo-deploy.timer` | Cada 2 minutos: despliega si `production` cambió y avisa si algo no está sano |
 | `rumbo-backup.timer` | Todos los días a las 03:30 de La Paz, después de los de Akhana |
@@ -55,9 +55,10 @@ Para seguirlo, la persona que tenga acceso de root corre `journalctl -u rumbo-de
 ## Respaldo y avisos
 
 - `backup.sh` saca el respaldo con `pg_dump` y lo verifica con `pg_restore --list`. Después lo sube cifrado a
-  `rumbo-crypt:`, que en B2 es `apps/rumbo/`, y borra lo que tenga más de 60 días allá y más de 7 en el VPS.
-- La clave de B2 de las apps solo puede usar el prefijo `apps/` del bucket: no puede leer ni borrar los respaldos de
-  Akhana.
+  `rumbo-crypt:`, que en B2 es la carpeta `rumbo/` del bucket `jviscafe-apps-respaldos`, y borra lo que tenga más de 60 días allá y más de 7 en el VPS.
+- Las apps tienen **su propio bucket** (`jviscafe-apps-respaldos`, privado), aparte de `akhana-respaldos-jvm`: así sus
+  archivos nunca aparecen en los listados de los scripts de Akhana. La clave `rumbo-vps` solo puede usar ese bucket y la
+  carpeta `rumbo/`: no puede leer ni borrar los respaldos de Akhana ni los de otra app.
 - Hay 3 chequeos en healthchecks.io: `rumbo-backup` (diario, 2 h de gracia), `rumbo-restore` (semanal, 1 día de gracia)
   y `rumbo-deploy` (2 minutos, 10 de gracia). `rumbo-deploy` se pone en rojo si falló el último despliegue, si Rumbo
   no está sano o si el túnel no está conectado. Si el VPS deja de mandar señales, también avisa.
@@ -90,7 +91,8 @@ Cada comando de root lo corre Joaquín, uno por uno.
      una sesión de 1 mes. Su *AUD* va en `ACCESS_AUD`.
 2. **Cloudflare, túnel `apps`:** en Networks > Tunnels, crear el túnel `apps`, con el hostname público
    `rumbo.jviscafe.com` → `http://rumbo:8080`. Su token va en `/opt/apps/tunel/.env`.
-3. **B2:** crear una clave de aplicación limitada al bucket de respaldos y al prefijo `apps/`.
+3. **B2:** crear el bucket privado `jviscafe-apps-respaldos` y la clave `rumbo-vps`, limitada a ese bucket, con lectura y
+   escritura y el prefijo `rumbo/`. La clave secreta se muestra una sola vez: va directo al VPS en el paso 5.
 4. **healthchecks.io:** crear los 3 chequeos de arriba.
 5. **En el VPS:**
    1. Como el repo todavía no está en el VPS, copiar el script desde la Mac:
@@ -99,8 +101,10 @@ Cada comando de root lo corre Joaquín, uno por uno.
       escritura.
    3. `bash /root/rumbo-setup.sh base`.
    4. Completar los dos `.env`.
-   5. `rclone config --config /opt/apps/rclone.conf`: un remoto `apps-b2` con la clave nueva y un remoto `crypt`
-      llamado `rumbo-crypt` sobre `apps-b2:<bucket>/apps/rumbo`.
+   5. Configurar `/opt/apps/rclone.conf`: un remoto `apps-b2` (b2, la clave `rumbo-vps`, `hard_delete=true`) y un remoto
+      `crypt` llamado `rumbo-crypt` sobre `apps-b2:jviscafe-apps-respaldos/rumbo`, con dos claves generadas en el VPS
+      (`rclone config create … --obscure`). Las claves de crypt se guardan en el gestor de contraseñas y se borra
+      cualquier copia suelta del VPS.
 6. **Levantar el túnel:** `docker compose -p apps-tunel -f /opt/apps/rumbo/app/deploy/tunel/docker-compose.yml
    --env-file /opt/apps/tunel/.env up -d`.
 7. **Primer despliegue:** `/opt/apps/rumbo/app/deploy/deploy.sh --ref production`, o `--ref <tag>`.

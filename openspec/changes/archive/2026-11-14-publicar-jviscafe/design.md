@@ -54,8 +54,10 @@ cambiar cálculos o la forma de los datos, tocar el artifact.
   `/var/backups/apps/rumbo`. Los scripts siguen el patrón de Akhana sin compartir código con él. Las unidades de
   systemd se llaman `rumbo-*`. El despliegue revisa `production` cada 2 minutos y, en cada vuelta, avisa si Rumbo no
   está sano.
-- **Respaldo:** `rclone` con su propio archivo de configuración (`/opt/apps/rclone.conf`). Usa una clave de B2 nueva,
-  limitada al bucket y al prefijo `apps/`, y un remoto `crypt` propio sobre `apps/rumbo`. Así, aunque se filtre la
+- **Respaldo:** `rclone` con su propio archivo de configuración (`/opt/apps/rclone.conf`). Usa un bucket propio de las
+  apps (`jviscafe-apps-respaldos`, en la misma cuenta de B2), una clave nueva limitada a ese bucket y a `rumbo/`, y un
+  remoto `crypt` propio sobre esa carpeta. Al ponerlo en marcha se cambió el prefijo `apps/` dentro del bucket de Akhana
+  por un bucket aparte: la clave de Akhana ve todo su bucket y la carpeta habría aparecido en sus listados. Así, aunque se filtre la
   clave de Rumbo, no se pueden leer ni borrar los respaldos de Akhana. Corre a las 03:30 de La Paz, después de los de
   Akhana. Guarda 7 días en el VPS y 60 días en B2.
 - **Copia del artifact:** en el artifact se baja el respaldo (DAT-04) y en `rumbo.jviscafe.com` se carga, con la

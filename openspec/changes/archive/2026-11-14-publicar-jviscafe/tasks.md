@@ -18,20 +18,20 @@
 
 ## 4. En Cloudflare, B2, healthchecks.io y GitHub (lo hace Joaquín)
 
-- [ ] 4.1 Zero Trust: equipo, inicio con código por correo y la aplicación `rumbo.jviscafe.com` con su correo; anotar el AUD.
-- [ ] 4.2 Túnel `apps` y su hostname `rumbo.jviscafe.com` → `http://rumbo:8080`; anotar el token.
-- [ ] 4.3 B2: clave nueva limitada al bucket y al prefijo `apps/`.
-- [ ] 4.4 healthchecks.io: `rumbo-backup` (diario), `rumbo-restore` (semanal) y `rumbo-deploy` (2 min).
-- [ ] 4.5 GitHub: deploy key de solo lectura del VPS en `JoaquinVM/rumbo`.
+- [x] 4.1 Zero Trust: equipo, inicio con código por correo y la aplicación `rumbo.jviscafe.com` con su correo; anotar el AUD.
+- [x] 4.2 Túnel `apps` y su hostname `rumbo.jviscafe.com` → `http://rumbo:8080`; anotar el token.
+- [x] 4.3 B2: bucket propio `jviscafe-apps-respaldos` y clave `rumbo-vps` limitada a él y a `rumbo/` (DECISIONES 49).
+- [x] 4.4 healthchecks.io: `rumbo-backup` (diario), `rumbo-restore` (semanal) y `rumbo-deploy` (2 min).
+- [x] 4.5 GitHub: deploy key de solo lectura del VPS en `JoaquinVM/rumbo`.
 
 ## 5. En el VPS (comandos de root que corre Joaquín, uno a uno con su sí)
 
-- [ ] 5.1 `setup.sh`: carpetas, clon, red `apps`, unidades, rclone propio; `.env` completado por Joaquín.
-- [ ] 5.2 Túnel y primer despliegue; `aislamiento.sh`; Akhana igual antes y después.
-- [ ] 5.3 Primer respaldo, restauración de prueba y aviso de falla.
+- [x] 5.1 `setup.sh`: carpetas, clon, red `apps`, unidades, rclone propio; `.env` completado por Joaquín.
+- [x] 5.2 Túnel y primer despliegue; `aislamiento.sh`; Akhana igual antes y después.
+- [x] 5.3 Primer respaldo, restauración de prueba y aviso de falla.
 
 ## 6. Datos y cierre
 
-- [ ] 6.1 Respaldo del artifact → cargarlo en `rumbo.jviscafe.com` → comparar campo por campo.
+- [x] 6.1 Respaldo del artifact → cargarlo en `rumbo.jviscafe.com` → comparar campo por campo.
 - [x] 6.2 `CLAUDE.md`, `openspec/config.yaml`, `docs/DOMINIO.md`, `docs/DECISIONES.md`, `docs/DESPLIEGUE.md` y la ficha de Foundry.
 - [x] 6.3 `openspec validate --all --strict` pasa.

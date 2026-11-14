@@ -95,3 +95,6 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
 48. (J) 14/11/2026, trabajo 068: Rumbo se usa con internet («no que sea con internet nomas»). Si la señal se corta un
     momento, lo anotado se reintenta y se avisa mientras la pestaña siga abierta, pero no se guarda en el teléfono: si
     el teléfono cierra la pestaña antes de que vuelva la señal, eso se pierde.
+49. (J) 14/11/2026, trabajo 068: los respaldos de las apps van en un bucket propio de B2 (`jviscafe-apps-respaldos`),
+    no en una carpeta del bucket de Akhana: así nunca aparecen en los listados de los scripts de Akhana. La clave
+    `rumbo-vps` solo ve ese bucket y la carpeta `rumbo/`. Sigue siendo gratis: los 10 GB gratis de B2 son por cuenta.
