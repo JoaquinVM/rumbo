@@ -1,0 +1,10 @@
+{
+  "name": "@rumbo/migracion",
+  "private": true,
+  "type": "module",
+  "scripts": { "tipos": "tsc --noEmit -p ." },
+  "dependencies": {
+    "@rumbo/contratos": "*",
+    "@rumbo/dominio": "*"
+  }
+}
