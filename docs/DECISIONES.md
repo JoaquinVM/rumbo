@@ -92,3 +92,6 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
 47. (C) Se publica con un tag `vX.Y.Z`: el CI mueve `production` y el VPS la despliega con respaldo previo y vuelta
     atrás (`docs/DESPLIEGUE.md`). Respaldo diario cifrado en B2 con clave y ruta propias, prueba semanal de
     restauración y avisos en healthchecks.io.
+48. (J) 14/11/2026, trabajo 068: Rumbo se usa con internet («no que sea con internet nomas»). Si la señal se corta un
+    momento, lo anotado se reintenta y se avisa mientras la pestaña siga abierta, pero no se guarda en el teléfono: si
+    el teléfono cierra la pestaña antes de que vuelva la señal, eso se pierde.
