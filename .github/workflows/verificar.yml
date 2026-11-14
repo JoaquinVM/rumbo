@@ -1,14 +1,76 @@
+# Every pull request and every push to main runs the page tests and the server tests against PostgreSQL.
+# A tag v* on a commit of main that passes them moves the `production` branch to that commit; the VPS polls that
+# branch (deploy/deploy-watch.sh) and deploys it (PUB-05, docs/DESPLIEGUE.md). GitHub never reaches the VPS.
+# Going back: Actions > verificar > Run workflow > pick an earlier tag (it is tested again and then deployed).
 name: verificar
 on:
   pull_request:
   push:
     branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: verificar-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 jobs:
   verificar:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
       - run: npm run verificar
+
+  servidor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17.12-alpine3.24
+        env:
+          POSTGRES_DB: rumbo
+          POSTGRES_USER: rumbo
+          POSTGRES_PASSWORD: ci-only-db-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U rumbo -d rumbo" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: rumbo
+      PGPASSWORD: ci-only-db-password
+      PGDATABASE: rumbo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --omit=dev --no-audit --no-fund
+        working-directory: servidor
+      - run: npm run probar-servidor
+      - name: Image builds
+        run: docker build -f deploy/Dockerfile -t rumbo-app:ci .
+
+  production:
+    name: Move production
+    needs: [verificar, servidor]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: The tag is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Move production to the tag
+        run: git push --force origin "$GITHUB_SHA:refs/heads/production"

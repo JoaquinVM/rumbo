@@ -1,0 +1,9 @@
+[Unit]
+Description=Rumbo: daily encrypted backup off the VPS (PUB-03)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/apps/rumbo/app/deploy/backup.sh

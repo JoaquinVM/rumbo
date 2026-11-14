@@ -1,0 +1,10 @@
+[Unit]
+Description=Rumbo: deploy the production branch when CI moves it, and report its health (PUB-04, PUB-05)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/apps/rumbo/app/deploy/deploy-watch.sh
+TimeoutStartSec=20min
