@@ -98,3 +98,6 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
 49. (J) 14/11/2026, trabajo 068: los respaldos de las apps van en un bucket propio de B2 (`jviscafe-apps-respaldos`),
     no en una carpeta del bucket de Akhana: así nunca aparecen en los listados de los scripts de Akhana. La clave
     `rumbo-vps` solo ve ese bucket y la carpeta `rumbo/`. Sigue siendo gratis: los 10 GB gratis de B2 son por cuenta.
+50. (J) 14/11/2026, trabajo 072: se entra a Rumbo con Google, y el código por correo se queda por si Google falla. Entra
+    también la otra persona que usaba el artifact, con sus propios datos. Un correo nuevo va en la política de Access y
+    en `CORREOS_PERMITIDOS`; el servidor no cambia porque ya separa los datos por correo.
