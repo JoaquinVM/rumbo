@@ -8,18 +8,22 @@ context: |
   Rumbo es la app de finanzas personales de Joaquín (Bolivia, uso personal). Responde «a este ritmo, ¿a dónde llego?».
 
   Stack (no cambiarlo sin una propuesta aprobada):
-  - Una sola página `index.html`: HTML, CSS y JavaScript sin librerías, sin compilación y sin dependencias de npm.
-    La gráfica es SVG propio. Fuentes de Google Fonts (Bricolage Grotesque e Instrument Sans).
-  - Servidor propio en `servidor/` (Node 24, PostgreSQL 17, `pg` como única dependencia): entrega la página y la API
-    de guardado en https://rumbo.jviscafe.com, detrás de Cloudflare Access, en el VPS de Akhana aislado de Akhana
-    (`docs/DESPLIEGUE.md`). Se publica con un tag `vX.Y.Z` en `main`, con el sí de Joaquín.
-  - Datos privados por correo de Access en la base de Rumbo, cada documento tal cual. Dentro de un artifact la página
-    usaría su base; sin ninguna de las dos, localStorage, y lo dice. El artifact
+  - v1, en producción hasta el corte de Rumbo 2: una sola página `index.html` en la raíz, HTML, CSS y JavaScript sin
+    librerías ni compilación. La sirve `servidor/*.mjs` (Node 24, PostgreSQL 17, `pg`) en https://rumbo.jviscafe.com,
+    detrás de Cloudflare Access, en el VPS de Akhana aislado de Akhana (`docs/DESPLIEGUE.md`). Solo recibe arreglos.
+  - Rumbo 2, en construcción (cambio `rumbo-2-reescritura`, aprobado en la decisión 50): monorepo con workspaces de
+    npm (`paquetes/dominio`, `paquetes/contratos`, `app`, `servidor`, `migracion`, `e2e`), React 18.3.1, TypeScript
+    5.9.3, Vite 7.3.8, Zod 4, Vitest 4.1.12, Playwright, Lighthouse CI y dependency-cruiser 17.4.3, en versiones
+    exactas. Dinero en centavos enteros. Seis capas como Strata, comprobadas con `npm run capas`. La gráfica sigue
+    siendo SVG propio. `pruebas/v1/` guarda la v1.0.0 congelada como oráculo.
+  - Datos privados por correo de Access en la base de Rumbo, cada documento tal cual. El artifact
     https://claude.ai/artifact/Pa47kuqzy96qmKqbB6Bc5z se dejó de usar.
-  - Pruebas: `npm run verificar` (`pruebas/verificar.mjs`, `nube.mjs` y `servidor-pagina.mjs`) carga el script de
-    `index.html` en un contexto de Node y prueba los cálculos y el guardado; `npm run probar-servidor` prueba el
-    servidor contra un Postgres. Corren en GitHub Actions en cada PR (Node 24).
-  - Diseño: `docs/DISENO.md` (estilo Bloques sólidos). Dominio y entidades: `docs/DOMINIO.md`.
+  - Pruebas en GitHub Actions en cada PR (Node 24), cinco trabajos: `tipos` (TypeScript y capas), `unitarias`
+    (`npm run verificar` de la v1 y Vitest), `servidor` (contra Postgres y la imagen), `e2e` (Playwright en Chromium y
+    WebKit a 375 px, claro y oscuro, contra el servidor con Postgres y un Access de mentira) y `lighthouse` (modo
+    teléfono: rendimiento ≥ 90, accesibilidad y buenas prácticas ≥ 95).
+  - Se publica con un tag `vX.Y.Z` en `main`, con el sí de Joaquín: el CI mueve `production` solo si pasan los cinco.
+  - Diseño: `docs/DISENO.md` (estilo Bloques sólidos), fuentes Bricolage Grotesque e Instrument Sans. Dominio y entidades: `docs/DOMINIO.md`.
   - Repo `JoaquinVM/rumbo`; es un sistema de Foundry y sus reglas están en `CLAUDE.md`.
 
   La v1 (7 cambios) está construida y archivada en openspec/changes/archive (10/11/2026). Lo nuevo entra como
@@ -39,12 +43,12 @@ rules:
     - Cada requirement empieza con su ID estable (por ejemplo `HOY-02 Libre hasta el próximo ingreso`); el ID no cambia aunque cambie el texto.
     - Los escenarios usan montos en bolivianos con números concretos.
   tasks:
-    - Toda regla que calcule dinero tiene su prueba en pruebas/verificar.mjs, nombrada con el ID del requirement, en la misma tarea que la implementa.
+    - Toda regla que calcule dinero tiene su prueba en Vitest, nombrada con el ID del requirement, en la misma tarea que la implementa. Un arreglo de la v1 la lleva en pruebas/verificar.mjs.
     - Toda tarea visual dice qué pantalla de los mockups sigue y se verifica a 375 px en claro y oscuro.
-    - La última tarea de cada cambio es publicar el artifact con el sí de Joaquín y verificar la versión publicada.
+    - La última tarea de cada cambio es publicar con un tag vX.Y.Z en main, con el sí de Joaquín, y verificar la versión publicada en https://rumbo.jviscafe.com.
 
 operations:
   apply:
     guidance:
-      - Correr `npm run verificar` antes de marcar una tarea como hecha.
-      - No publicar el artifact sin el sí explícito de Joaquín en el chat.
+      - Correr `npm run verificar`, `npm run tipos`, `npm run capas` y `npm run unitarias` antes de marcar una tarea como hecha.
+      - No crear un tag ni publicar sin el sí explícito de Joaquín en el chat.
