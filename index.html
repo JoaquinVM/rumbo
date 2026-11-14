@@ -163,6 +163,7 @@ nav.tabs a[aria-current="page"]{color:var(--azul-l)}
     <div style="display:flex;gap:8px;align-items:center"><span id="exTag"></span><button class="ib" data-act="ajustes" aria-label="Ajustes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button></div>
   </header>
   <div id="banner"></div>
+  <div id="guardado" aria-live="polite"></div>
   <main id="view" style="display:flex;flex-direction:column;gap:14px"><div class="empty"><h3>Cargando tu rumbo…</h3>Abriendo tus datos guardados.</div></main>
 </div>
 <button class="fab" data-act="anotar" aria-label="Anotar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
@@ -673,11 +674,81 @@ function storeLocal() {
     clear: async () => { try { localStorage.removeItem(LS_KEY); } catch (e) {} },
     reemplazar: async () => persist()};
 }
+// En rumbo.jviscafe.com (DAT-03, DAT-07): guarda en el servidor de Rumbo, detrás de Cloudflare Access. Las escrituras
+// salen de a una y en orden; lo que no llega se reintenta y se avisa hasta que llegue. Nunca cae al ejemplo por un error.
+function storeServidor(api, timer, red = (...a) => fetch(...a)) {
+  const cola = []; let enviando = false, pronto = false, espera = 1000, reintento = null, vencida = false, perdido = null, cambios = 0;
+  // Con mala señal una petición puede quedar colgada: se corta a los 20 s (60 s si lleva o trae todo) y se reintenta
+  async function pedir(metodo, ruta, cuerpo) {
+    const corte = new AbortController(), t = setTimeout(() => corte.abort(), ruta === '/datos' ? 60000 : 20000);
+    try {
+      return await red(api + ruta, {method: metodo, cache: 'no-store', credentials: 'same-origin', redirect: 'manual', signal: corte.signal,
+        headers: cuerpo === undefined ? {} : {'Content-Type': 'application/json'}, body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo)});
+    } finally { clearTimeout(t); }
+  }
+  // Qué hacer con una respuesta: listo, sesión vencida (Access redirige o niega), reintentar (red o servidor) o no sirve
+  const clase = r => r.type === 'opaqueredirect' || r.status === 401 || r.status === 403 ? 'sesion' : r.ok ? 'ok' : r.status >= 500 || r.status === 429 ? 'red' : 'malo';
+  function aviso() {
+    const g = $('#guardado'); if (!g) return;
+    g.innerHTML = vencida ? '<div class="note"><b>Tu sesión venció.</b> Hay cambios sin guardar. <a href="/" target="_blank" rel="noopener">Vuelve a entrar en otra pestaña</a> y regresa aquí: se guardarán solos.</div>'
+      : cola.length ? '<div class="note"><b>Hay cambios sin guardar.</b> Revisa tu conexión; Rumbo sigue intentando.</div>'
+      : perdido ? `<div class="note"><b>Un cambio no se pudo guardar</b> (${esc(perdido)}). Anótalo de nuevo.</div>` : '';
+  }
+  async function enviar() {
+    if (enviando || vencida) return;
+    enviando = true; clearTimeout(reintento);
+    try {
+      while (cola.length) {
+        const e = cola[0];
+        let c; try { c = clase(await pedir(e.metodo, e.ruta, e.cuerpo ? e.cuerpo() : undefined)); } catch (err) { c = 'red'; }
+        if (c === 'sesion') { vencida = true; break; }
+        if (c === 'red') { reintento = setTimeout(enviar, pronto ? 0 : espera); pronto = false; espera = Math.min(espera * 2, 30000); break; }
+        if (c === 'malo') perdido = e.ruta;
+        cola.shift(); espera = 1000; pronto = false;
+      }
+    } finally { enviando = false; aviso(); }
+  }
+  const encolar = (metodo, ruta, cuerpo) => { cambios++; cola.push({metodo, ruta, cuerpo}); aviso(); enviar(); };
+  // Volvió la señal o la persona volvió a la pestaña: si hay una petición en curso y falla, se reintenta enseguida
+  const reanudar = () => { if (vencida) vencida = false; espera = 1000; if (enviando) pronto = true; else enviar(); };
+  // Lee todo; sin red o sin sesión espera y reintenta. Si mientras leía se anotó algo, descarta lo leído.
+  async function cargar(primera) {
+    const antes = cambios;
+    let r, c; try { r = await pedir('GET', '/datos'); c = clase(r); } catch (err) { c = 'red'; }
+    if (c !== 'ok') {
+      if (c === 'sesion') { vencida = true; aviso(); }
+      if (primera) setTimeout(() => cargar(true), 3000);
+      return;
+    }
+    const d = await r.json();
+    if (cola.length || cambios !== antes) return;
+    clearTimeout(timer); vencida = false; aviso();
+    const main = d.main;
+    if (main && main.aj && main.aj.empezado) { demo = false; const S2 = {aj: {...AJ_BASE, ...main.aj}}; COLS.forEach(c => { S2[c] = d.cols[c] || []; }); S = S2; }
+    else tomarDemo();
+    loaded = true; render();
+  }
+  const ruta = (c, id) => `/docs/${c}/${encodeURIComponent(id)}`;
+  addEventListener('online', reanudar);
+  addEventListener('focus', reanudar);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') return; reanudar(); if (loaded && !cola.length) cargar(false); });
+  addEventListener('beforeunload', e => { if (cola.length) { e.preventDefault(); e.returnValue = ''; } });
+  return {tipo: 'servidor', cargar, cola, reanudar,
+    put: (c, o) => { const b = limpio(o); encolar('PUT', ruta(c, o.id), () => b); },
+    del: (c, i) => encolar('DELETE', ruta(c, i)),
+    // Los Ajustes son un solo documento: se manda lo último, y si ya hay uno esperando no se agrega otro
+    setAj: () => { const u = cola[cola.length - 1]; if (u && u.aj && !(enviando && cola.length === 1)) return; cambios++; cola.push({metodo: 'PUT', ruta: '/ajustes', aj: true, cuerpo: () => ({aj: limpio(S.aj)})}); aviso(); enviar(); },
+    clear: async () => encolar('DELETE', '/datos'),
+    reemplazar: async S2 => { const b = {main: {aj: limpio(S2.aj)}, cols: Object.fromEntries(COLS.map(c => [c, limpio(S2[c])]))}; encolar('PUT', '/datos', () => b); }};
+}
 async function iniciarStore() {
   const timer = setTimeout(() => { if (!loaded) $('#banner').innerHTML = '<div class="note">Tus datos aún no responden. Revisa tu conexión; esta página sigue intentando.</div>'; }, 10000);
   let db = null, user = null, id = null;
   try { if (window.claude && window.claude.use) [db, user] = await Promise.all([claude.use('db'), claude.use('user')]); } catch (e) {}
   try { id = user ? await user.id() : null; } catch (e) {}
+  const meta = !(db && id) && document.querySelector('meta[name="rumbo-api"]');
+  const api = meta && meta.getAttribute ? meta.getAttribute('content') : null;
+  if (api) { store = storeServidor(api, timer); store.cargar(true); return; }
   if (db && id) {
     const mainRef = db.doc(`data/users/${id}/rumbo`);
     const refs = {}; COLS.forEach(c => { refs[c] = mainRef.collection(c); });
@@ -1517,8 +1588,16 @@ function abrirEmpezar() {
 // DAT-04: descargar respaldo
 async function descargar() {
   let dl = null; try { dl = window.claude && claude.use ? await claude.use('downloads') : null; } catch (e) {}
-  if (!dl) { toast('Esta vista no permite descargar archivos.'); return; }
-  try { await dl.save({filename: `rumbo-respaldo-${iso(hoy())}.json`, data: JSON.stringify(respaldo(S), null, 1)}); }
+  const filename = `rumbo-respaldo-${iso(hoy())}.json`, data = JSON.stringify(respaldo(S), null, 1);
+  // Fuera del artifact (rumbo.jviscafe.com), la descarga normal del navegador
+  if (!dl) {
+    try {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'})); a.download = filename;
+      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    } catch (e) { toast('No se pudo descargar el respaldo.'); }
+    return;
+  }
+  try { await dl.save({filename, data}); }
   catch (e) { if (e && e.code !== 'declined') toast('No se pudo descargar el respaldo.'); }
 }
 

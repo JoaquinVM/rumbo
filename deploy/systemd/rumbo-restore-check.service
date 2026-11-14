@@ -1,0 +1,9 @@
+[Unit]
+Description=Rumbo: weekly restore of the newest backup into a scratch database (PUB-03)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/apps/rumbo/app/deploy/restore.sh --check latest

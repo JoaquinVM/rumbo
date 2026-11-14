@@ -1,0 +1,7 @@
+# Only the server and the page go into the image (deploy/Dockerfile)
+*
+!index.html
+!servidor/package.json
+!servidor/package-lock.json
+!servidor/*.mjs
+!servidor/esquema.sql

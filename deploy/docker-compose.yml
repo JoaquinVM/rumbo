@@ -1,0 +1,83 @@
+# Rumbo on the Akhana VPS (PUB-01, PUB-02, docs/DESPLIEGUE.md). Run through deploy/deploy.sh, which passes
+# `-p rumbo --env-file /opt/apps/rumbo/.env`. Nothing publishes a port: the only way in is the apps tunnel
+# (deploy/tunel), which reaches `app` as `rumbo` on the shared `apps` network. The database lives only on
+# `interna`, which has no way out. Limits add up to 640 MiB; with the tunnel, 768 MiB.
+
+x-seguro: &seguro
+  restart: unless-stopped
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 200
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  db:
+    <<: *seguro
+    image: postgres:17.12-alpine3.24
+    user: postgres
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=20"]
+    environment:
+      POSTGRES_DB: rumbo
+      POSTGRES_USER: rumbo
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD no está en el .env}
+      TZ: ${TZ:-America/La_Paz}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks: [interna]
+    mem_limit: 384m
+    memswap_limit: 384m
+    cpus: 0.5
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rumbo -d rumbo"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    <<: *seguro
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      labels:
+        jviscafe.app: rumbo
+    image: rumbo-app
+    read_only: true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: rumbo
+      PGPASSWORD: ${DB_PASSWORD}
+      PGDATABASE: rumbo
+      ACCESS_TEAM: ${ACCESS_TEAM:?ACCESS_TEAM no está en el .env}
+      ACCESS_AUD: ${ACCESS_AUD:?ACCESS_AUD no está en el .env}
+      CORREOS_PERMITIDOS: ${CORREOS_PERMITIDOS:?CORREOS_PERMITIDOS no está en el .env}
+      TZ: ${TZ:-America/La_Paz}
+    networks:
+      interna: {}
+      apps:
+        aliases: [rumbo]
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.5
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1:8080/salud"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 20s
+
+networks:
+  interna:
+    internal: true
+  apps:
+    external: true
+    name: apps
+
+volumes:
+  db_data:

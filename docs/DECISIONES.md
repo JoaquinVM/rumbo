@@ -80,3 +80,18 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     pastel, y se guarda en los Ajustes de la base (`aj.color`; si falta, Azul). Se descartaron el verde y el turquesa
     porque se confunden con el verde de metas. El Rosa pastel lleva texto vino en sus bloques y un rosa más fuerte
     para textos y trazos sobre el fondo claro.
+44. (J) 13/11/2026, trabajo 068: Rumbo se usa en `rumbo.jviscafe.com`, en el VPS de Akhana, aislado de Akhana. Entra
+    quien Cloudflare Access apruebe por correo; no hay inicio de sesión propio. Los datos del artifact se copian una
+    vez con el respaldo y el artifact se deja de usar.
+45. (C) Servidor propio en Node 24 con PostgreSQL 17 y `pg` como única dependencia, solo en el servidor; la página sigue
+    sin librerías ni compilación. Se descartó SQLite (`node:sqlite` todavía es experimental). Los documentos se guardan
+    tal cual (JSON), así que no hay migración de campos.
+46. (C) Las escrituras al servidor salen de a una y en orden; sin señal se reintentan y se avisa «Hay cambios sin
+    guardar». Si venció la sesión de Access, se pide volver a entrar en otra pestaña: recargar perdería lo pendiente.
+    Si no hay red al abrir, no se muestra el ejemplo, porque desde él se podría «empezar» encima de los datos reales.
+47. (C) Se publica con un tag `vX.Y.Z`: el CI mueve `production` y el VPS la despliega con respaldo previo y vuelta
+    atrás (`docs/DESPLIEGUE.md`). Respaldo diario cifrado en B2 con clave y ruta propias, prueba semanal de
+    restauración y avisos en healthchecks.io.
+48. (J) 14/11/2026, trabajo 068: Rumbo se usa con internet («no que sea con internet nomas»). Si la señal se corta un
+    momento, lo anotado se reintenta y se avisa mientras la pestaña siga abierta, pero no se guarda en el teléfono: si
+    el teléfono cierra la pestaña antes de que vuelva la señal, eso se pierde.

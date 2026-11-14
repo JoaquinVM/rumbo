@@ -10,13 +10,15 @@ context: |
   Stack (no cambiarlo sin una propuesta aprobada):
   - Una sola página `index.html`: HTML, CSS y JavaScript sin librerías, sin compilación y sin dependencias de npm.
     La gráfica es SVG propio. Fuentes de Google Fonts (Bricolage Grotesque e Instrument Sans).
-  - Se publica como artifact privado de claude.ai, siempre a la misma URL
-    (https://claude.ai/artifact/Pa47kuqzy96qmKqbB6Bc5z), con las capacidades `db` y `user`. Publicar requiere el sí
-    de Joaquín.
-  - Datos privados por persona en la base del artifact, bajo `data/users/<id>/rumbo` y sus subcolecciones. Sin base
-    disponible, guarda en localStorage y lo dice. Nunca hay servidor propio.
-  - Pruebas: `npm run verificar` (Node 20, `pruebas/verificar.mjs`) carga el script de `index.html` en un contexto
-    de Node y prueba las funciones de cálculo. Corre también en GitHub Actions en cada PR.
+  - Servidor propio en `servidor/` (Node 24, PostgreSQL 17, `pg` como única dependencia): entrega la página y la API
+    de guardado en https://rumbo.jviscafe.com, detrás de Cloudflare Access, en el VPS de Akhana aislado de Akhana
+    (`docs/DESPLIEGUE.md`). Se publica con un tag `vX.Y.Z` en `main`, con el sí de Joaquín.
+  - Datos privados por correo de Access en la base de Rumbo, cada documento tal cual. Dentro de un artifact la página
+    usaría su base; sin ninguna de las dos, localStorage, y lo dice. El artifact
+    https://claude.ai/artifact/Pa47kuqzy96qmKqbB6Bc5z se dejó de usar.
+  - Pruebas: `npm run verificar` (`pruebas/verificar.mjs`, `nube.mjs` y `servidor-pagina.mjs`) carga el script de
+    `index.html` en un contexto de Node y prueba los cálculos y el guardado; `npm run probar-servidor` prueba el
+    servidor contra un Postgres. Corren en GitHub Actions en cada PR (Node 24).
   - Diseño: `docs/DISENO.md` (estilo Bloques sólidos). Dominio y entidades: `docs/DOMINIO.md`.
   - Repo `JoaquinVM/rumbo`; es un sistema de Foundry y sus reglas están en `CLAUDE.md`.
 
