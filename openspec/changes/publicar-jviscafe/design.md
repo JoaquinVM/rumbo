@@ -34,8 +34,10 @@ cambiar cálculos o la forma de los datos, tocar el artifact.
   (reemplazar) y `DELETE /api/datos` (borrar todo). `GET /salud` solo responde a la revisión de salud de Docker.
 - **Cola de escrituras en la página.** Las escrituras salen una por una, en orden. Si falla la red o el servidor
   responde 5xx, se reintenta con espera creciente (hasta 30 s) y al volver la conexión. Mientras quede algo, se
-  muestra «Hay cambios sin guardar» y `beforeunload` advierte. Un 401 o una redirección de Access significan sesión
-  vencida: la cola se detiene y se pide recargar. Al volver a la pestaña, si no hay nada pendiente, se recargan los
+  muestra «Hay cambios sin guardar» y `beforeunload` advierte. Un 401, un 403 o una redirección de Access significan
+  sesión vencida: la cola se detiene y se pide volver a entrar en otra pestaña (recargar perdería lo pendiente); al
+  volver, sigue sola. Cada petición se corta a los 20 s (60 s si lleva o trae todo) para que una red colgada no trabe la
+  cola. Al volver a la pestaña, si no hay nada pendiente, se recargan los
   datos para ver lo anotado en otro equipo. Un 4xx distinto no se reintenta, porque repetirlo no lo arregla: se avisa.
 - **Red y aislamiento.** La red `apps` (puente `br-apps`) es externa y compartida por las apps y su `cloudflared`. Rumbo
   suma su red `rumbo-interna` (`internal: true`), donde está sola su base. Ningún servicio publica puertos. Todos

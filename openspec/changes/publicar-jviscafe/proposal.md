@@ -20,7 +20,8 @@ la copia de los datos del artifact.
 - **La página elige dónde guardar:** en el artifact, la base del artifact, como hoy; servida por el servidor, la API;
   sin ninguna de las dos, el navegador, como hoy. El artifact sigue funcionando, pero se deja de usar.
 - **Guardado pendiente:** si una escritura no llega, se reintenta en orden, la pantalla lo avisa y no se puede cerrar
-  sin advertencia. Si venció la sesión de Access, se pide recargar.
+  sin advertencia. Si venció la sesión de Access, se pide volver a entrar en otra pestaña, sin perder lo pendiente.
+- **Descargar el respaldo** funciona también fuera del artifact, con la descarga normal del navegador (DAT-04).
 - **Aislado de Akhana:** proyecto y redes de Docker aparte, sin root, sin `docker.sock` y con topes de memoria y CPU.
   Se usa un segundo túnel solo para las apps. No se toca nada de `/opt/akhana`.
 - **Respaldo** diario cifrado en B2 con clave y ruta propias, una prueba semanal de restauración y avisos en

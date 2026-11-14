@@ -18,7 +18,7 @@ El sistema SHALL guardar los datos de cada persona en su espacio privado: en `ru
 ## ADDED Requirements
 
 ### Requirement: DAT-07 Guardado pendiente
-En `rumbo.jviscafe.com`, el sistema SHALL guardar en el orden en que se anotó. Si una escritura no llega al servidor, SHALL reintentarla sin perder el orden y mostrar «Hay cambios sin guardar» hasta que todo llegue, y SHALL advertir antes de cerrar la página mientras quede algo pendiente. Si la sesión de Cloudflare Access venció, SHALL pedir recargar la página sin descartar lo pendiente.
+En `rumbo.jviscafe.com`, el sistema SHALL guardar en el orden en que se anotó. Si una escritura no llega al servidor, SHALL reintentarla sin perder el orden y mostrar «Hay cambios sin guardar» hasta que todo llegue, y SHALL advertir antes de cerrar la página mientras quede algo pendiente. Si la sesión de Cloudflare Access venció, SHALL pedir volver a entrar en otra pestaña, sin recargar ni descartar lo pendiente, y guardarlo al volver.
 
 #### Scenario: Sin señal un momento
 - **WHEN** la persona anota un gasto de Bs 20 y luego lo borra mientras el teléfono no tiene señal
@@ -26,4 +26,4 @@ En `rumbo.jviscafe.com`, el sistema SHALL guardar en el orden en que se anotó. 
 
 #### Scenario: Sesión vencida
 - **WHEN** la sesión de Access venció y la persona anota un ingreso de Bs 500
-- **THEN** Rumbo pide recargar la página para volver a entrar y el ingreso sigue pendiente, sin perderse
+- **THEN** Rumbo pide volver a entrar en otra pestaña y, al regresar, guarda el ingreso sin que se pierda
