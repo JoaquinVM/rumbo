@@ -1,4 +1,9 @@
-## ADDED Requirements
+# publicacion Specification
+
+## Purpose
+Dónde corre Rumbo, quién entra, cómo se aísla de Akhana en el mismo VPS, cómo se respalda, cuándo avisa y cómo se publica una versión (`docs/DESPLIEGUE.md`).
+
+## Requirements
 
 ### Requirement: PUB-01 Dirección y entrada
 El sistema SHALL responder en `https://rumbo.jviscafe.com` a través del túnel de Cloudflare de las apps, sin publicar puertos en el VPS. Solo SHALL entrar quien Cloudflare Access apruebe, y el servidor MUST rechazar con 401 toda petición a la API sin un token de Access válido (firma, audiencia, emisor y vencimiento).
@@ -23,7 +28,7 @@ El sistema SHALL respaldar cada día la base de Rumbo, verificar el archivo y su
 
 #### Scenario: Respaldo diario
 - **WHEN** corre el respaldo de las 03:30 (hora de La Paz)
-- **THEN** queda un archivo verificado y cifrado en B2 bajo `apps/rumbo/`, y healthchecks.io recibe la señal de que salió bien
+- **THEN** queda un archivo verificado y cifrado en B2, en la carpeta `rumbo/` del bucket propio de las apps, y healthchecks.io recibe la señal de que salió bien
 
 ### Requirement: PUB-04 Avisos
 El sistema SHALL avisar por correo, a través de healthchecks.io, si falla el respaldo o la prueba de restauración, si falla un despliegue o si Rumbo no está sano. También SHALL avisar si el VPS deja de mandar señales.

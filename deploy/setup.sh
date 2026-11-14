@@ -10,6 +10,8 @@ REPO=git@github-rumbo:JoaquinVM/rumbo.git
 APPS=/opt/apps
 RUMBO=$APPS/rumbo
 KEY=/root/.ssh/rumbo_deploy
+# GitHub's ed25519 host key, as published in https://api.github.com/meta (checked on 14/11/2026)
+GITHUB_HOST_KEY='github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl'
 UNITS=(rumbo-deploy.service rumbo-deploy.timer rumbo-backup.service rumbo-backup.timer
     rumbo-restore-check.service rumbo-restore-check.timer)
 
@@ -21,6 +23,7 @@ case $step in
         if [[ ! -f $KEY ]]; then
             ssh-keygen -q -t ed25519 -N '' -C "vps-akhana-rumbo-deploy" -f "$KEY"
         fi
+        grep -qsF "$GITHUB_HOST_KEY" /root/.ssh/known_hosts || echo "$GITHUB_HOST_KEY" >> /root/.ssh/known_hosts
         if ! grep -q '^Host github-rumbo$' /root/.ssh/config 2> /dev/null; then
             printf '\nHost github-rumbo\n  HostName github.com\n  User git\n  IdentityFile %s\n  IdentitiesOnly yes\n' "$KEY" >> /root/.ssh/config
             chmod 600 /root/.ssh/config
