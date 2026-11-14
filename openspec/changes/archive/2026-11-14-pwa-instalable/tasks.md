@@ -13,4 +13,3 @@
 
 - [x] 3.1 `docs/DISENO.md` y `docs/DECISIONES.md`.
 - [x] 3.2 `openspec validate --all --strict` pasa.
-- [ ] 3.3 Joaquín lo agrega a la pantalla de inicio en un iPhone y un Android (después de publicar).
