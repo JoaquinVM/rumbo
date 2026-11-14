@@ -194,6 +194,33 @@ test('La página sale con su esqueleto, la marca de la API y cabeceras de seguri
   assert.equal((await fetch(url + '/../etc/passwd')).status, 404);
 });
 
+test('PAN-10 la página enlaza el manifest con credenciales y el servidor entrega el manifest y sus íconos', async () => {
+  const texto = await (await fetch(url + '/')).text();
+  assert.ok(texto.includes('<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">'));
+  assert.ok(texto.includes('<link rel="apple-touch-icon" href="/iconos/icono-180.png">'));
+  assert.ok(texto.includes('<meta name="theme-color" content="#EDF0EA" media="(prefers-color-scheme: light)">'));
+  const r = await fetch(url + '/manifest.webmanifest');
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type'), /^application\/manifest\+json/);
+  const m = await r.json();
+  assert.equal(m.short_name, 'Rumbo');
+  assert.equal(m.display, 'standalone');
+  assert.equal(m.start_url, '/');
+  assert.equal(m.background_color, '#EDF0EA');
+  assert.ok(m.icons.some(i => i.purpose === 'maskable' && i.sizes === '512x512'));
+  const tamanos = [...m.icons.map(i => [i.src, Number(i.sizes.split('x')[0])]), ['/iconos/icono-180.png', 180]];
+  for (const [src, lado] of tamanos) {
+    const ri = await fetch(url + src);
+    assert.equal(ri.status, 200, src);
+    assert.equal(ri.headers.get('content-type'), 'image/png', src);
+    const png = Buffer.from(await ri.arrayBuffer());
+    assert.equal(png.toString('latin1', 1, 4), 'PNG', src);
+    assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [lado, lado], src);
+  }
+  assert.equal((await fetch(url + '/iconos/otro.png')).status, 404);
+  assert.equal((await fetch(url + '/manifest.webmanifest', {method: 'POST'})).status, 404);
+});
+
 test('Las colecciones del servidor son las mismas de la página', () => {
   const m = html.match(/const COLS = \[([^\]]+)\]/);
   assert.deepEqual(COLS, m[1].split(',').map(s => s.trim().replace(/'/g, '')));

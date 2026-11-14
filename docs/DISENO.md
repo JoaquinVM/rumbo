@@ -66,6 +66,13 @@ Ingresos en verdes.
   blancas que se vuelven azules al elegirlas.
 - **Toques:** nada menor a 44 px.
 
+## Ícono de la app
+
+La brújula del encabezado, blanca sobre un bloque azul `#2B47E0` (`iconos/icono.svg`, aprobado el 14/11/2026). Es
+fija: no sigue el color principal de Ajustes. La brújula queda dentro del 80 % central para que Android pueda
+recortarla en círculo. Al instalar Rumbo en el teléfono, la barra de arriba y la pantalla de inicio usan el fondo de la
+app (`#EDF0EA`, `#0E1411` en oscuro).
+
 ## Reglas
 
 - Un color no se usa fuera de su significado: el rojo nunca decora y el azul nunca avisa.

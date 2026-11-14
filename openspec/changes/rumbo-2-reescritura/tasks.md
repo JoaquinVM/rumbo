@@ -2,7 +2,7 @@
 
 Plan de la opción B de `design.md`. Nada se construye hasta que Joaquín apruebe este cambio y la opción. Cada grupo es
 un trabajo de Foundry con su rama, su PR y su nivel; ninguno empieza antes de que 072 y 073 estén mergeados o
-descartados, salvo el 075, que empezó antes por pedido de Joaquín (decisión 51). Las pruebas de dinero viven en Vitest,
+descartados, salvo el 075, que empezó antes por pedido de Joaquín (decisión 52). Las pruebas de dinero viven en Vitest,
 nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) quedan como oráculo en `pruebas/v1/`.
 
 ## 1. Trabajo 075 · Base del proyecto y CI (Chispa)
