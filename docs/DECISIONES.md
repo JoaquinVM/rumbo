@@ -125,3 +125,7 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     contratos no importan nada nuestro (contratos solo usa Zod), aplicación solo dominio y contratos,
     infraestructura además aplicación, presentación solo contratos, el servidor solo contratos y dominio, la
     migración además la v1 congelada, y nadie importa la composición.
+57. (J) 16/11/2026, trabajo 072: se entra a Rumbo con Google, y el código por correo se queda por si Google falla. Entra
+    también la otra persona que usaba el artifact, con sus propios datos. Un correo nuevo va en la política de Access y
+    en `CORREOS_PERMITIDOS`; el servidor no cambia porque ya separa los datos por correo. La app de Google queda en
+    modo «Prueba»: para dos personas basta con agregarlas como usuarios de prueba, sin la verificación de Google.

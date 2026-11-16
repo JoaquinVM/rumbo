@@ -6,15 +6,16 @@ requerimientos están en `openspec/specs/publicacion` (PUB-01 a PUB-05) y `opens
 ## Cómo está armado
 
 ```
-Navegador ─► Cloudflare Access (correo + código) ─► túnel «apps» ─► cloudflared ─► red apps ─► rumbo:8080 ─► red interna ─► Postgres
+Navegador ─► Cloudflare Access (Google o correo + código) ─► túnel «apps» ─► cloudflared ─► red apps ─► rumbo:8080 ─► red interna ─► Postgres
 ```
 
 - **VPS:** el de Akhana Admin (Contabo, Ubuntu 24.04). Rumbo no comparte nada con Akhana: ni carpeta, ni proyecto de
   Docker, ni red, ni túnel, ni `.env`, ni clave de respaldo. Ningún contenedor publica puertos.
 - **Contenedores:** `rumbo-db-1` (Postgres 17, 384 MiB), `rumbo-app-1` (Node 24, 256 MiB) y `apps-tunel-cloudflared-1`
   (128 MiB). Todos corren sin root, sin capacidades de Linux y sin `docker.sock`.
-- **Entrada:** Cloudflare Access deja pasar solo los correos de su política. El servidor valida además el token de
-  Access y la lista `CORREOS_PERMITIDOS`. Cada correo tiene sus propios datos.
+- **Entrada:** se entra con Google o con un código por correo. Cloudflare Access deja pasar solo los correos de su
+  política. El servidor valida además el token de Access y la lista `CORREOS_PERMITIDOS`. Cada correo tiene sus propios
+  datos.
 
 | En el VPS | Qué es |
 | --- | --- |
@@ -86,7 +87,7 @@ Cada comando de root lo corre Joaquín, uno por uno.
 
 1. **Cloudflare, Zero Trust:**
    - Elegir el nombre del equipo, que va en `ACCESS_TEAM`.
-   - Activar el inicio con código por correo (*One-time PIN*).
+   - Activar el inicio con código por correo (*One-time PIN*) y con Google (ver «Entrar con Google»).
    - Crear la aplicación *self-hosted* `rumbo.jviscafe.com`, con una política *Allow* para los correos aprobados y
      una sesión de 1 mes. Su *AUD* va en `ACCESS_AUD`.
 2. **Cloudflare, túnel `apps`:** en Networks > Tunnels, crear el túnel `apps`, con el hostname público
@@ -118,6 +119,34 @@ Cada comando de root lo corre Joaquín, uno por uno.
     2. En `rumbo.jviscafe.com`, ir a Ajustes > Cargar respaldo, revisar los conteos y confirmar.
     3. Bajar el respaldo de la app nueva y compararlo con el primero, campo por campo.
     4. Desde ahí, el artifact se deja de usar.
+
+## Entrar con Google
+
+1. **Google Cloud** (console.cloud.google.com): en un proyecto propio, configurar la pantalla de consentimiento
+   (externa) y crear un cliente OAuth de tipo *Aplicación web* con la redirección
+   `https://empty-truth-cd43.cloudflareaccess.com/cdn-cgi/access/callback`.
+2. **Zero Trust > Integrations > Identity providers:** agregar Google con el *Client ID* y el *Client secret* de ese
+   cliente y probarlo con *Test*. El secreto se guarda en el gestor de contraseñas.
+3. **Access > Applications > Rumbo > Authentication:** con *Accept all available identity providers* entran Google y
+   el código; *Instant Auth* apagado, para que se pueda elegir.
+
+La app de Google («Rumbo Access») queda en modo *Prueba*: solo entran las cuentas que estén en *Público > Usuarios de
+prueba*. Cada correo nuevo se agrega también ahí.
+
+El correo de Google es el mismo con el que se entra con código, así que se ven los mismos datos.
+
+## Sumar o quitar un correo
+
+Tiene que estar en los tres lados: si falta en uno, no entra.
+
+1. **Google Cloud**, proyecto «Rumbo Access» > *Público > Usuarios de prueba*: agregar el correo (solo para entrar con
+   Google).
+2. **Access > Applications > Rumbo > Policies:** agregar el correo a la política *Allow*.
+3. **En el VPS**, como root: agregarlo a `CORREOS_PERMITIDOS` en `/opt/apps/rumbo/.env` (separados por comas) y recrear
+   solo el contenedor de la app, que no toca la base ni Akhana:
+   `docker compose -p rumbo -f /opt/apps/rumbo/app/deploy/docker-compose.yml --env-file /opt/apps/rumbo/.env up -d --no-build app`.
+4. Si la persona venía del artifact: ella baja su respaldo en el artifact (Ajustes > Descargar respaldo) y lo carga en
+   `rumbo.jviscafe.com` (Ajustes > Cargar respaldo), revisando los conteos antes de confirmar.
 
 ## Ensayo en la Mac
 
