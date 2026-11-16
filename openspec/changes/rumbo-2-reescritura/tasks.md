@@ -26,11 +26,11 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 2.9 Comparación con la v1: generador de estados con semilla y comparación con las tolerancias de `design.md`; corre en `unitarias` y falla si una regla cambia.
 - [ ] 2.10 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 
-## 3. Trabajo 077 · Contratos y servidor en TypeScript (Crisol)
+## 3. Trabajo 079 · Contratos y servidor en TypeScript (Crisol)
 
-- [ ] 3.1 Esquemas Zod de cada documento y de la API en `paquetes/contratos`, con pruebas DAT-09 (monto decimal rechazado, gasto sin categoría, campos desconocidos conservados).
-- [ ] 3.2 Servidor en TypeScript: Access (PUB-01), tablas `v2_*`, rutas `/api/v2`, validación con los contratos, `/salud` que exige la migración; las pruebas de `servidor.test.mjs` portadas y en verde contra Postgres.
-- [ ] 3.3 Imagen de Docker de varias etapas sin root, sin el Access de mentira (prueba que lo comprueba); el compose y los topes de PUB-02 no cambian.
+- [x] 3.1 Esquemas Zod de cada documento y de la API en `paquetes/contratos`, con pruebas DAT-09 (monto decimal rechazado, gasto sin categoría, campos desconocidos conservados).
+- [x] 3.2 Servidor en TypeScript: Access (PUB-01), tablas `v2_*`, rutas `/api/v2`, validación con los contratos, `/salud` que exige la migración; las pruebas de `servidor.test.mjs` portadas y en verde contra Postgres.
+- [x] 3.3 Imagen de Docker de varias etapas sin root, sin el Access de mentira (prueba que lo comprueba); el compose y los topes de PUB-02 no cambian.
 - [ ] 3.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 
 ## 4. Trabajo 078 · Pantallas I y ambiente de prueba (Crisol)

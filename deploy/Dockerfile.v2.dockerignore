@@ -1,0 +1,26 @@
+# What reaches the build of Rumbo 2's image (deploy/Dockerfile.v2): the workspaces' manifests, the page and the server
+# sources. Never e2e/servidor-prueba.mjs (the fake Access), the v1, tests or anything built here.
+*
+!package.json
+!package-lock.json
+!tsconfig.base.json
+!paquetes/dominio/package.json
+!paquetes/dominio/tsconfig*.json
+!paquetes/dominio/src/
+!paquetes/contratos/package.json
+!paquetes/contratos/tsconfig*.json
+!paquetes/contratos/src/
+!app/package.json
+!app/tsconfig.json
+!app/vite.config.ts
+!app/index.html
+!app/src/
+!app/public/
+!servidor/package.json
+!servidor/tsconfig*.json
+!servidor/src/
+!migracion/package.json
+!e2e/package.json
+**/*.test.ts
+**/*.test.tsx
+**/*.prueba.ts

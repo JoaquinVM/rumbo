@@ -32,7 +32,7 @@ Las reglas de este archivo mandan sobre las de Foundry dentro de este repo.
   `npm run capas` lo comprueba.
 - `pruebas/v1/` es la v1.0.0 congelada, el oráculo de la v2 (`pruebas/v1/LEEME.md`). No se edita.
 - Pruebas: `npm run verificar` (v1: modelo de dinero, que cada vista se dibuje y el guardado), `npm run
-  probar-servidor` (servidor contra un Postgres; variables `PG*`), `npm run tipos`, `npm run capas`, `npm run
+  probar-servidor` (servidores de la v1 y la v2 contra un Postgres; variables `PG*`), `npm run tipos`, `npm run capas`, `npm run
   unitarias` (Vitest), y con la app construida (`npm run construir`) `npm run e2e` (Playwright) y `npm run
   lighthouse`; los dos últimos necesitan un Postgres (`PG*`). Toda regla de dinero nueva lleva su prueba: en la v2,
   en Vitest y nombrada con el ID del requirement.
