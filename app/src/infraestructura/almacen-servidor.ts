@@ -153,6 +153,9 @@ export function almacenServidor(api = '/api/v2', e: Entorno = entornoDelNavegado
       if (u && u.ajustes && !(enviando && cola.length === 1)) return;
       encolar({ metodo: 'PUT', ruta: '/ajustes', ajustes: true, cuerpo: () => ({ aj: JSON.parse(JSON.stringify(aj())) as unknown }) });
     },
+    // The v1's reemplazar and clear: in the queue, after what was already written, all or nothing on the server.
+    reemplazar(d) { const b = JSON.parse(JSON.stringify(d)) as unknown; encolar({ metodo: 'PUT', ruta: '/datos', cuerpo: () => b }); },
+    borrarTodo: () => encolar({ metodo: 'DELETE', ruta: '/datos' }),
     estado: (): EstadoGuardado => ({ pendientes: cola.length, sesionVencida: vencida, perdido, sinRespuesta, noAbrio: false }),
     suscribir: (f) => { oyentes.add(f); return () => { oyentes.delete(f); }; },
   };

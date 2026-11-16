@@ -28,11 +28,13 @@ export function almacenArtifact(db: BaseArtifact, usuario: string, alFallar: () 
   const fallo = (): void => { alFallar(); };
   const limpio = (o: unknown): unknown => JSON.parse(JSON.stringify(o));
   let cadena: Promise<unknown> = Promise.resolve(), pendienteAj = false;
+  const remoto: Record<string, unknown> = {};
+  const enCadena = (f: () => Promise<void>): void => { cadena = cadena.then(f, f); };
+  const idsDe = (c: string): string[] => ((remoto[c] as { id: string }[] | undefined) ?? []).map((d) => d.id);
 
   return {
     origen: 'artifact',
     iniciar(o) {
-      const remoto: Record<string, unknown> = {};
       const vistos = new Set<string>();
       let cargado = false;
       const juntar = (): void => {
@@ -53,6 +55,23 @@ export function almacenArtifact(db: BaseArtifact, usuario: string, alFallar: () 
       if (pendienteAj) return;
       pendienteAj = true;
       cadena = cadena.then(async () => { pendienteAj = false; try { await principal.set({ aj: limpio(aj()) }); } catch { fallo(); } });
+    },
+    // The v1's reemplazar: without going through «empty», it deletes only what is left over, writes the new and the main last
+    reemplazar(d) {
+      enCadena(async () => {
+        for (const c of COLECCIONES) {
+          const quedan = new Set(d.cols[c].map((x) => x.id));
+          for (const id of idsDe(c)) if (!quedan.has(id)) await refs[c]!.doc(id).delete().catch(() => undefined);
+        }
+        for (const c of COLECCIONES) for (const x of d.cols[c]) await refs[c]!.doc(x.id).set(limpio(x)).catch(fallo);
+        await principal.set({ aj: limpio(d.main?.aj) }).catch(fallo);
+      });
+    },
+    borrarTodo() {
+      enCadena(async () => {
+        await principal.delete().catch(() => undefined);
+        for (const c of COLECCIONES) for (const id of idsDe(c)) await refs[c]!.doc(id).delete().catch(() => undefined);
+      });
     },
     estado: (): EstadoGuardado => ({ pendientes: 0, sesionVencida: false, perdido: null, sinRespuesta: false, noAbrio }),
     suscribir: (f) => { oyentes.add(f); return () => { oyentes.delete(f); }; },

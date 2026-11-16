@@ -20,7 +20,7 @@ function Cuentas({ cuentas, elegida, alElegir, excluir }: { cuentas: CuentaVista
   );
 }
 
-export function Anotar({ app, id, alCerrar, aviso }: { app: App; id?: string; alCerrar: () => void; aviso: (t: string) => void }) {
+export function Anotar({ app, id, alCerrar, aviso, separar }: { app: App; id?: string; alCerrar: () => void; aviso: (t: string) => void; separar?: (id: string) => void }) {
   const [f] = useState(() => app.formulario(id));
   const [b, setB] = useState<BorradorMovimiento | null>(f ? f.borrador : null);
   const monto = useRef<HTMLInputElement>(null);
@@ -129,6 +129,9 @@ export function Anotar({ app, id, alCerrar, aviso }: { app: App; id?: string; al
             </>
           )}
         </div>
+        {f.editando && f.borrador.tipo === 'gasto' && separar && (
+          <button type="button" className="btn sec" style={{ alignSelf: 'flex-start', padding: 0 }} onClick={() => separar(f.borrador.id)}>Me deben una parte</button>
+        )}
         <div className="actions">
           {f.editando && <BotonDosToques className="btn del izq" texto="Borrar" armado="Toca otra vez para borrar" alConfirmar={() => { app.borrarMovimiento(b.id); alCerrar(); aviso('Movimiento borrado'); }} />}
           <button type="button" className="btn sec" onClick={alCerrar}>Cancelar</button>

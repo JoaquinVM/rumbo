@@ -14,6 +14,10 @@ export interface Almacen {
   escribir(col: Coleccion, doc: { id: string }): void;
   borrar(col: Coleccion, id: string): void;
   guardarAjustes(aj: () => Ajustes): void;
+  // DAT-02 and DAT-04: everything at once (starting, loading a backup), after the writes already queued.
+  reemplazar(d: Datos): void;
+  // DAT-06: everything goes; the next load finds nothing saved.
+  borrarTodo(): void;
   estado(): EstadoGuardado;
   suscribir(alCambiar: () => void): () => void;
 }

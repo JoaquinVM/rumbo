@@ -18,6 +18,8 @@ export function almacenMemoria(datos: Datos | null = null): AlmacenMemoria {
     escribir: (c, doc) => { escrituras.push(`PUT ${c}/${doc.id}`); documentos[`${c}/${doc.id}`] = JSON.parse(JSON.stringify(doc)); },
     borrar: (c, id) => { escrituras.push(`DELETE ${c}/${id}`); },
     guardarAjustes: () => { escrituras.push('PUT ajustes'); },
+    reemplazar: (d) => { escrituras.push('PUT datos'); documentos.datos = JSON.parse(JSON.stringify(d)); },
+    borrarTodo: () => { escrituras.push('DELETE datos'); },
     estado: () => quieto,
     suscribir: () => () => {},
   };
