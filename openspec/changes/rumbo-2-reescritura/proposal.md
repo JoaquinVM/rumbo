@@ -16,8 +16,10 @@ fácil romper una vieja sin notarlo. Este cambio **solo define** Rumbo 2: no con
 
 ## What Changes
 
-- **Lo que ve y hace la persona no cambia.** Las 15 capabilities de `openspec/specs` siguen igual, con sus mismos
-  escenarios y los mismos números. Rumbo 2 se acepta cuando todos los escenarios de hoy dan lo mismo, al centavo.
+- **Lo que ve y hace la persona no cambia, salvo una cosa.** Las 15 capabilities de `openspec/specs` siguen igual,
+  con sus mismos escenarios y los mismos números. Rumbo 2 se acepta cuando todos los escenarios de hoy dan lo mismo, al
+  centavo. La excepción la pidió Joaquín el 16/11/2026, solo para Rumbo 2 (decisión 58): el saldo de cada cuenta se
+  muestra siempre con dos decimales (FMT-02), así que los escenarios de FMT-04 y CTA-01 lo dicen con «,00».
 - **Dinero en centavos enteros.** Todo monto guardado y todo cálculo de hechos (saldos, deudas, patrimonio, Hoy,
   topes, Desglose) usa centavos enteros, en un módulo de dominio sin dependencias. El tipo de cambio, la inflación, los
   rendimientos y las tasas siguen siendo números con decimales: no son dinero.
@@ -48,7 +50,9 @@ Ninguna. Rumbo 2 no agrega funciones para la persona.
 
 ### Modified Capabilities
 
-- `formato`: FMT-03 guarda centavos; nuevo FMT-05, dinero en centavos enteros y cómo se redondea.
+- `formato`: FMT-03 guarda centavos; nuevo FMT-05, dinero en centavos enteros y cómo se redondea; FMT-02 y FMT-04,
+  el saldo de cada cuenta con dos decimales (decisión 58).
+- `cuentas`: CTA-01, su escenario muestra el saldo con dos decimales (decisión 58).
 - `datos`: DAT-04 respaldo en versión 2 que sigue cargando los de versión 1; nuevos DAT-08 (migración a centavos) y
   DAT-09 (validación compartida en página y servidor).
 - `publicacion`: nuevos PUB-06 (Playwright y Lighthouse antes de publicar) y PUB-07 (ambiente de prueba y corte de la

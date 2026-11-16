@@ -129,3 +129,7 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     también la otra persona que usaba el artifact, con sus propios datos. Un correo nuevo va en la política de Access y
     en `CORREOS_PERMITIDOS`; el servidor no cambia porque ya separa los datos por correo. La app de Google queda en
     modo «Prueba»: para dos personas basta con agregarlas como usuarios de prueba, sin la verificación de Google.
+58. (J) 16/11/2026, trabajo 078: el saldo de cada cuenta se muestra siempre con dos decimales («Bs 3.550,00»,
+    «Bs 3.180,40»), en Plan y en los botones para elegir una cuenta; los totales, el patrimonio y lo demás de FMT-02
+    siguen sin decimales, y el «≈ Bs» de una cuenta en dólares también. Solo en Rumbo 2: la v1 no cambia, y el pedido
+    queda en las specs de `rumbo-2-reescritura` (FMT-02, FMT-04 y CTA-01) para las pantallas.
