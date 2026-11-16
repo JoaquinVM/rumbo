@@ -142,3 +142,7 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     «0,125» no se guarda.
 61. (C) La comparación con la v1 (`pruebas/comparacion/`) corre 400 estados al azar con semilla fija en cada PR. Revisa
     cada cuota de cada préstamo desde el saldo de la v1, para que un centavo distinto en una cuota no tape los demás.
+62. (J) 16/11/2026, trabajo 077: cuando el interés de una cuota cae justo en medio centavo, Rumbo 2 lo redondea hacia
+    arriba, como dice FMT-05, aunque la v1, por sus decimales, a veces lo redondeaba hacia abajo (en 1 de cada 5 de
+    esos casos, que son cerca de 1 de cada 1.200 cuotas). Lo ya guardado no cambia; la comparación con la v1 permite
+    esa diferencia de 1 centavo solo en esas cuotas.
