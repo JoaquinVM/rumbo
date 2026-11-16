@@ -129,3 +129,16 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     también la otra persona que usaba el artifact, con sus propios datos. Un correo nuevo va en la política de Access y
     en `CORREOS_PERMITIDOS`; el servidor no cambia porque ya separa los datos por correo. La app de Google queda en
     modo «Prueba»: para dos personas basta con agregarlas como usuarios de prueba, sin la verificación de Google.
+58. (C) 16/11/2026, trabajo 077: el dominio de Rumbo 2 (`paquetes/dominio`) guarda y suma el dinero en centavos
+    enteros; solo `porTasa`, `aBs` y las divisiones redondean, con aritmética exacta (sin decimales de JavaScript), a
+    centavo y la mitad hacia arriba. Donde la v1 no redondeaba al pasar dólares a Bs, la v2 redondea cada conversión:
+    por eso el patrimonio, el disponible, el Desglose y los topes pueden diferir en 1 centavo por cada cuenta, deuda o
+    movimiento en dólares, como permite `design.md`. Lo apartado para una meta suma cada moneda y convierte una vez.
+59. (C) Las estimaciones (ritmo, proyección, «¿Y si…?», monto al día, aporte de una meta) se calculan en centavos con
+    decimales y con las mismas cuentas que la v1, y se redondean solo al mostrarse: así el titular, el monto al día y
+    «vas bien» salen iguales que en la v1. `mostrar` copia el texto de la v1, incluido que un monto negativo justo en
+    medio boliviano se muestra hacia arriba (−Bs 1,50 sin decimales es «−Bs 1»), como hacía `Math.round`.
+60. (C) Al leer lo escrito, los ceros al final no cuentan como decimales: «0,500» son 50 centavos, como en la v1;
+    «0,125» no se guarda.
+61. (C) La comparación con la v1 (`pruebas/comparacion/`) corre 400 estados al azar con semilla fija en cada PR. Revisa
+    cada cuota de cada préstamo desde el saldo de la v1, para que un centavo distinto en una cuota no tape los demás.
