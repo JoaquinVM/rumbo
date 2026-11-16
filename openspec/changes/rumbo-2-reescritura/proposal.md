@@ -16,10 +16,12 @@ fácil romper una vieja sin notarlo. Este cambio **solo define** Rumbo 2: no con
 
 ## What Changes
 
-- **Lo que ve y hace la persona no cambia, salvo una cosa.** Las 15 capabilities de `openspec/specs` siguen igual,
+- **Lo que ve y hace la persona no cambia, salvo dos cosas.** Las 15 capabilities de `openspec/specs` siguen igual,
   con sus mismos escenarios y los mismos números. Rumbo 2 se acepta cuando todos los escenarios de hoy dan lo mismo, al
-  centavo. La excepción la pidió Joaquín el 16/11/2026, solo para Rumbo 2 (decisión 63): el saldo de cada cuenta se
-  muestra siempre con dos decimales (FMT-02), así que los escenarios de FMT-04 y CTA-01 lo dicen con «,00».
+  centavo. Las excepciones las pidió Joaquín el 16/11/2026, solo para Rumbo 2: el saldo de cada cuenta se muestra
+  siempre con dos decimales (FMT-02, decisión 63), así que los escenarios de FMT-04 y CTA-01 lo dicen con «,00»; y se
+  pueden ver los movimientos de una categoría con su total (MOV-07), también tocándola en el Desglose (DES-05,
+  decisión 64).
 - **Dinero en centavos enteros.** Todo monto guardado y todo cálculo de hechos (saldos, deudas, patrimonio, Hoy,
   topes, Desglose) usa centavos enteros, en un módulo de dominio sin dependencias. El tipo de cambio, la inflación, los
   rendimientos y las tasas siguen siendo números con decimales: no son dinero.
@@ -46,7 +48,8 @@ fácil romper una vieja sin notarlo. Este cambio **solo define** Rumbo 2: no con
 
 ### New Capabilities
 
-Ninguna. Rumbo 2 no agrega funciones para la persona.
+Ninguna. La única función nueva para la persona, ver los movimientos de una categoría, cabe en capabilities que ya
+existen.
 
 ### Modified Capabilities
 
@@ -57,6 +60,8 @@ Ninguna. Rumbo 2 no agrega funciones para la persona.
   DAT-09 (validación compartida en página y servidor).
 - `publicacion`: nuevos PUB-06 (Playwright y Lighthouse antes de publicar) y PUB-07 (ambiente de prueba y corte de la
   v1 a Rumbo 2).
+- `movimientos`: nuevo MOV-07, ver los movimientos de una categoría con su total, igual al del Desglose.
+- `desglose`: nuevo DES-05, tocar una categoría abre sus movimientos del mes.
 
 ## Impact
 

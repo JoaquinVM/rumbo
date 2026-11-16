@@ -22,14 +22,17 @@ Motivación en `proposal.md`. Lo que hay hoy (v1.0.0, 14/11/2026):
 ## Goals / Non-Goals
 
 **Goals:**
-- Los mismos escenarios de las 15 specs, con los mismos números, sobre una base de código por capas y en centavos.
+- Los mismos escenarios de las 15 specs, con los mismos números, más MOV-07 y DES-05 (decisión 64), sobre una base de
+  código por capas y en centavos.
 - Que una regla de dinero rota se vea en el CI antes del merge: por su prueba, por la comparación con la v1 o en el
   navegador.
 - Migrar los datos reales sin perder ni cambiar un centavo, con vuelta atrás.
 
 **Non-Goals:**
 - Funciones nuevas para la persona, cambios visuales o de textos. Lo que pida Joaquín mientras tanto entra en la v1 o
-  espera al corte.
+  espera al corte. Las excepciones son el saldo de cada cuenta con dos decimales (FMT-02, decisión 63) y ver los
+  movimientos de una categoría (MOV-07 y DES-05, decisión 64), que Joaquín pidió para Rumbo 2 y se construyen con sus
+  pantallas.
 - Mover los cálculos al servidor. Siguen en el teléfono, como hoy: son instantáneos y funcionan con la señal cortada.
 - Cambiar de VPS, de base, de túnel, de Access o de respaldo.
 - Trabajar sin conexión más allá de lo que haga 073.
@@ -164,6 +167,7 @@ diferir en un centavo por cada redondeo, que no cambia lo que se muestra.
 | MOV-03 | Transferencia entre monedas | Dos montos, cada uno en su moneda | Exacto |
 | MOV-06 | Tipo de cambio del movimiento | `aBs(monto, m.tc)` | ≤ 1 c por movimiento en US$ |
 | DES-01 a 04 | Resumen del mes, cada 100, fuera de tus gastos, intereses | Sumas de centavos; «de cada 100», horas y 10 años como estimación | Exacto / mismo texto |
+| MOV-07, DES-05 | Movimientos de una categoría (nuevo, decisión 64) | La misma suma de centavos que el Desglose de esa categoría | No hay v1: exacto contra el Desglose de la v2 |
 | IND-01 a 04 | Tasa de ahorro, colchón, neto, deuda total | Estimaciones sobre centavos | Mismo texto |
 | AJU-01 | Promedio irregular | Estimación | Mismo texto |
 | PRO-01 a 08 | Ritmo, proyección, plata de hoy, préstamos, ¿Y si…? | Estimaciones que parten de centavos | Mismo texto del titular; puntos de la gráfica a menos de Bs 1 |

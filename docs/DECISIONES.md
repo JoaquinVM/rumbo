@@ -150,3 +150,9 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     «Bs 3.180,40»), en Plan y en los botones para elegir una cuenta; los totales, el patrimonio y lo demás de FMT-02
     siguen sin decimales, y el «≈ Bs» de una cuenta en dólares también. Solo en Rumbo 2: la v1 no cambia, y el pedido
     queda en las specs de `rumbo-2-reescritura` (FMT-02, FMT-04 y CTA-01) para las pantallas.
+64. (J) 16/11/2026, trabajo 080: los movimientos se pueden ver por categoría solo en Rumbo 2; la v1 sigue recibiendo
+    solo arreglos. Se entra de dos formas: tocando una categoría del Desglose, que abre Movimientos de ese mes con esa
+    categoría, y con la pastilla «Categoría» de Movimientos, debajo de las cuentas, que se quita con su ✕. El total es
+    el mismo del Desglose: en Intereses cada cuota suma solo su interés, y lo que un gasto pasó a préstamo no aparece.
+    Se combina con el filtro de cuenta y se mantiene al cambiar de mes. Joaquín lo vio en un prototipo local con los
+    datos de ejemplo antes de aprobarlo (MOV-07, DES-05).
