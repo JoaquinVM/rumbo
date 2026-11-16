@@ -204,6 +204,8 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     (`PUT /api/v2/datos`, en la cola de DAT-07), como la v1. Borrar todo en el navegador deja la clave
     `rumbo-2-centavos` vacía en vez de quitarla, para que la próxima vez no vuelva a convertir lo de la v1. 073 se porta
     con el manifest y los íconos dentro de la página construida (`app/public`); 072 no cambió código de la página.
+    Las pantallas que no son la primera se cargan aparte, con el primer toque (o enseguida si la página abre en Desglose
+    o Plan), para que la pantalla Rumbo pese lo mismo que antes y Lighthouse siga sobre 90 en las máquinas del CI.
 72. (C) Tres diferencias chicas con la v1, todas para no cambiar un monto sin querer: «Cuadrar» abre con el saldo con
     su signo (la v1 lo mostraba sin el «−»), el ingreso irregular de Ajustes se muestra con sus centavos si los tiene
     (la v1 lo redondeaba al guardar de nuevo), y los botones para elegir la cuenta al apartar para una meta muestran lo
