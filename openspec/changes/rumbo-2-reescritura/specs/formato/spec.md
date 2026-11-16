@@ -1,5 +1,27 @@
 ## MODIFIED Requirements
 
+### Requirement: FMT-02 Decimales según dónde se muestra
+El sistema SHALL mostrar con 2 decimales los movimientos y el saldo de cada cuenta en su moneda, tanto en Plan como en los botones para elegir una cuenta (al anotar, transferir o pagar). SHALL mostrar sin decimales los resúmenes, los totales de cuentas, el patrimonio, la gráfica, los indicadores y el equivalente en Bs de una cuenta en dólares.
+
+#### Scenario: Movimiento y resumen
+- **WHEN** un gasto es de 35 y el gastado del mes es 3073,40
+- **THEN** el movimiento dice «−Bs 35,00» y el resumen «Bs 3.073»
+
+#### Scenario: Saldo de cada cuenta
+- **WHEN** Banco tiene 3180,40 y Efectivo 650
+- **THEN** Plan muestra «Bs 3.180,40» y «Bs 650,00», y el total de Cuentas «Bs 3.830»
+
+#### Scenario: Elegir la cuenta al anotar
+- **WHEN** la persona anota un gasto y Banco tiene 3180,40
+- **THEN** el botón de Banco dice «Banco · Bs 3.180,40»
+
+### Requirement: FMT-04 Montos en dólares
+El sistema SHALL mostrar los montos de cuentas en dólares como «US$ 1.234,50».
+
+#### Scenario: Cuenta en dólares
+- **WHEN** la cuenta Dólares tiene 1200
+- **THEN** su saldo dice «US$ 1.200,00»
+
 ### Requirement: FMT-03 Lectura de montos escritos
 El sistema SHALL leer un monto tal como se escribe: punto o coma de miles y punto o coma decimal, y SHALL guardarlo en centavos enteros (FMT-05). Un monto con más de 2 decimales MUST NOT guardarse: el sistema SHALL decir que use hasta 2 decimales.
 
