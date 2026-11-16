@@ -47,12 +47,12 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 5.2 Plan, detalle del préstamo y de la meta, categorías y topes (PAN-03, PAN-07 a PAN-09) según los mockups, con el saldo de cada cuenta en dos decimales y los totales sin decimales (FMT-02, FMT-04, CTA-01, decisión 63); Playwright: pagar una cuota y apartar para una meta.
 - [x] 5.3 Ajustes, color principal, empezar con mis datos, ejemplo, borrar todo y respaldo versión 2 que carga los de versión 1 (AJU, DAT-01, DAT-02, DAT-04, DAT-06); Playwright: empezar, descargar y cargar un respaldo, cargar uno de la v1.
 - [x] 5.4 Lo que agreguen 072 y 073 a la v1, portado y probado igual que en la v1 (073: manifest e íconos, PAN-10; 072 no cambió código de la página).
-- [ ] 5.5 Revisor Crisol en Opus que ensaya la app en local; CI en verde; sí de Joaquín para el merge; Joaquín prueba en su teléfono (máximo 2 pruebas).
+- [x] 5.5 Revisor Crisol en Opus que ensaya la app en local; CI en verde; sí de Joaquín para el merge; Joaquín prueba en su teléfono (máximo 2 pruebas).
 
 ## 6. Trabajo 084 · Migración y corte (Crisol)
 
-- [ ] 6.1 `migracion` con los modos «solo revisar», `--aplicar` (una transacción, verificación con los dos motores, fila en `v2_migracion`) y `--volver`; pruebas contra Postgres: migración que cuadra, monto con 3 decimales que no cambia nada, verificación que no cuadra que deshace todo, ida y vuelta con un gasto anotado después.
+- [x] 6.1 `migracion` con los modos «solo revisar», `--aplicar` (una transacción, verificación con los dos motores, fila en `v2_migracion`) y `--volver`; pruebas contra Postgres: migración que cuadra, monto con 3 decimales que no cambia nada, verificación que no cuadra que deshace todo, ida y vuelta con un gasto anotado después.
 - [ ] 6.2 Ensayo en la Mac de Joaquín con el último respaldo de B2 en modo «solo revisar»; resultado sin montos. Si hay montos raros, Joaquín decide cada uno.
-- [ ] 6.3 `docs/DESPLIEGUE.md` y `docs/DOMINIO.md` con el corte, la vuelta atrás y los montos en centavos.
+- [x] 6.3 `docs/DESPLIEGUE.md` y `docs/DOMINIO.md` con el corte, la vuelta atrás y los montos en centavos.
 - [ ] 6.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 - [ ] 6.5 Sesión de publicar, con el sí de Joaquín: respaldo previo, `migracion --aplicar`, tag `v2.0.0`, comprobar en `rumbo.jviscafe.com` los saldos, el patrimonio y el libre, y archivar este cambio (`openspec archive rumbo-2-reescritura`).

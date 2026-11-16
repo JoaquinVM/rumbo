@@ -53,6 +53,62 @@ Para seguirlo, la persona que tenga acceso de root corre `journalctl -u rumbo-de
   que hacerlo: `deploy/restore.sh --replace /var/backups/apps/rumbo/<archivo> --yes`. Antes de reemplazar, saca un
   respaldo `pre-restore`.
 
+## Migración a centavos (Rumbo 2)
+
+Rumbo 2 guarda el dinero en centavos enteros en sus propias tablas (`v2_principal`, `v2_docs`), al lado de las de la
+v1 (`principal`, `docs`), que no cambian. `migracion` (DAT-08) pasa los datos de unas a otras:
+
+| Modo | Qué hace |
+| --- | --- |
+| `node migracion/dist/cli.js` | **Solo revisar.** Lee las tablas de la v1, convierte en memoria y compara cada regla de dinero con los dos motores (la v1 congelada y Rumbo 2). No escribe nada. Dice cuántos documentos hay por persona y si cuadra, sin montos. |
+| `… --aplicar` | Lo mismo y, en **una sola transacción**, escribe las tablas de Rumbo 2, las vuelve a leer, verifica de nuevo y anota la fila de `v2_migracion` (sin ella, `/salud` de Rumbo 2 no está sano). Si algo no cuadra, no queda nada escrito. Se niega a correr si ya hay una migración anotada, salvo con `--de-nuevo`. |
+| `… --volver` | Escribe en las tablas de la v1 lo que hay en las de Rumbo 2, en decimales (centavos ÷ 100), con lo anotado después del corte. Las de Rumbo 2 quedan como están. |
+
+`--detalle` muestra qué cálculo no da lo mismo, con sus montos: solo en la pantalla de la persona. Si un monto tiene
+más de 2 decimales o no es un número, nada se aplica y la lista dice cuál es (colección, id, nota o nombre, fecha):
+Joaquín decide cada uno y se corrige en la v1 antes de migrar.
+
+La herramienta va dentro de la imagen de Rumbo 2 (`/app/migracion/dist/cli.js`, con la v1 congelada al lado para
+comparar). Lee la base de las variables `PG*` (la contraseña también como `DB_PASSWORD`, la del `.env`).
+
+### Ensayo en la Mac, sin tocar producción
+
+1. Bajar el último respaldo cifrado de B2 con el rclone de la Mac (clave de B2 y las dos claves de crypt del gestor):
+   `rclone copy rumbo-crypt:<archivo> ~/rumbo-ensayo/` (`rclone lsl rumbo-crypt:` lista los archivos).
+2. Un Postgres 17 local, solo para el ensayo:
+   `docker run -d --name rumbo-ensayo -e POSTGRES_USER=rumbo -e POSTGRES_PASSWORD=ensayo -e POSTGRES_DB=rumbo -p 127.0.0.1:55499:5432 postgres:17.12-alpine3.24`.
+3. Restaurar: `docker exec -i rumbo-ensayo pg_restore -U rumbo -d rumbo --no-owner < ~/rumbo-ensayo/<archivo>`.
+4. Desde el repo, con Node 22 o 24: `npm ci && npm run construir-migracion`, y
+   `PGHOST=127.0.0.1 PGPORT=55499 PGUSER=rumbo PGPASSWORD=ensayo PGDATABASE=rumbo node migracion/dist/cli.js`.
+5. Al terminar: `docker rm -f rumbo-ensayo` y borrar `~/rumbo-ensayo`. El respaldo nunca sale de la Mac.
+
+## Corte a Rumbo 2
+
+Con el sí de Joaquín. Cada comando de root lo corre él, uno por uno. Mientras dura (unos 20 minutos), no se anota
+nada en Rumbo.
+
+1. **Respaldo previo:** `/opt/apps/rumbo/app/deploy/backup.sh --tag pre-corte` y
+   `/opt/apps/rumbo/app/deploy/restore.sh --check latest`.
+2. **Imagen de Rumbo 2 del commit que se va a publicar**, sin tocar la que atiende:
+   `cd /opt/apps/rumbo/app && git fetch --quiet origin && git archive <commit> | docker build -f deploy/Dockerfile.v2 -t rumbo-migracion -`.
+3. **Solo revisar** contra la base real:
+   `docker run --rm --network rumbo_interna --env-file /opt/apps/rumbo/.env -e PGHOST=db -e PGUSER=rumbo -e PGDATABASE=rumbo -e TZ=America/La_Paz rumbo-migracion node migracion/dist/cli.js`.
+   Tiene que decir «Resultado: CUADRA.».
+4. **Aplicar:** el mismo comando con `--aplicar` al final.
+5. **Publicar:** el tag `v2.0.0` en ese commit. El CI mueve `production` y en 2 minutos `rumbo-deploy` despliega Rumbo 2,
+   con su respaldo previo. Como la migración está anotada, queda sano; si no, vuelve solo a la v1.
+6. **Comprobar** en `rumbo.jviscafe.com`: saldos, patrimonio y libre iguales a los de la v1 antes del corte.
+7. `docker image rm rumbo-migracion`.
+
+### Volver a la v1 después del corte
+
+1. `deploy/backup.sh --tag pre-volver`.
+2. `--volver` con el mismo `docker run` del paso 3 (con la imagen que corre: `rumbo-app`).
+3. En GitHub, Actions > verificar > Run workflow, con el último tag de la v1 (`v1.x.y`). Lo anotado en Rumbo 2 queda en
+   la v1 en decimales.
+
+Las tablas de la v1 se guardan al menos 30 días después del corte; retirarlas es otro trabajo, con su sí.
+
 ## Respaldo y avisos
 
 - `backup.sh` saca el respaldo con `pg_dump` y lo verifica con `pg_restore --list`. Después lo sube cifrado a

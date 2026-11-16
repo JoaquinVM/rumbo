@@ -2,9 +2,13 @@
   "name": "@rumbo/migracion",
   "private": true,
   "type": "module",
-  "scripts": { "tipos": "tsc --noEmit -p ." },
+  "scripts": {
+    "tipos": "tsc --noEmit -p .",
+    "construir": "vite build"
+  },
   "dependencies": {
     "@rumbo/contratos": "*",
-    "@rumbo/dominio": "*"
+    "@rumbo/dominio": "*",
+    "pg": "8.23.1"
   }
 }
