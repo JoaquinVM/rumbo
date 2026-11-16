@@ -1,6 +1,6 @@
 // DES-05, PAN-03, PAN-07, PAN-08, PAN-09, DEU-02, FIJ-06, MET-02, FMT-02: the Desglose to a category's movements, Plan,
 // paying a loan's installment and setting money aside for a goal. Every check reads what reached the server.
-import { datosDePrueba, expect, hoy, sinScrollHorizontal, test, type Datos } from './persona';
+import { abrir, datosDePrueba, expect, hoy, sinScrollHorizontal, test, type Datos } from './persona';
 
 // The test person plus a loan of Bs 18.400 at 14 % whose installment is due today, and a goal.
 function conPrestamoYMeta(): Datos {
@@ -13,7 +13,7 @@ function conPrestamoYMeta(): Datos {
 
 test('el Desglose lleva de una categoría a sus movimientos con el mismo total', async ({ page, persona }) => {
   await persona.cargar(datosDePrueba());
-  await page.goto('/#movimientos');
+  await abrir(page, '/#movimientos');
   await page.getByRole('group', { name: 'Filtrar por cuenta' }).getByRole('button', { name: 'Efectivo' }).click();
   await page.getByRole('link', { name: 'Desglose' }).click();
   const resumen = page.getByRole('region', { name: 'Resumen del mes' });
@@ -28,7 +28,7 @@ test('el Desglose lleva de una categoría a sus movimientos con el mismo total',
 
 test('Plan: patrimonio, cuentas con dos decimales y cuadrar', async ({ page, persona }) => {
   await persona.cargar(datosDePrueba());
-  await page.goto('/#plan');
+  await abrir(page, '/#plan');
   await expect(page.getByRole('region', { name: 'Patrimonio' })).toContainText('Bs 18.845'); // 615 + 3.229,50 + 15.000
   await expect(page.getByText('Bs 3.229,50')).toBeVisible();
   await expect(page.getByText('US$ 1.200,00')).toBeVisible();
@@ -43,7 +43,7 @@ test('Plan: patrimonio, cuentas con dos decimales y cuadrar', async ({ page, per
 
 test('pagar la cuota de un préstamo desde su detalle', async ({ page, persona }) => {
   await persona.cargar(conPrestamoYMeta());
-  await page.goto('/#plan');
+  await abrir(page, '/#plan');
   await page.getByRole('button', { name: /Préstamo del banco/ }).click();
   await expect(page.getByRole('region', { name: 'Por pagar' })).toContainText('Bs 18.400');
   await expect(page.getByRole('region', { name: 'Próximas cuotas' })).toContainText('214,67');
@@ -64,7 +64,7 @@ test('pagar la cuota de un préstamo desde su detalle', async ({ page, persona }
 
 test('apartar para una meta y desapartar', async ({ page, persona }) => {
   await persona.cargar(conPrestamoYMeta());
-  await page.goto('/#plan');
+  await abrir(page, '/#plan');
   await page.getByRole('button', { name: /Fondo de emergencia/ }).click();
   await expect(page.getByRole('region', { name: 'Llevas' })).toContainText('Bs 0');
   await sinScrollHorizontal(page);
@@ -82,8 +82,9 @@ test('apartar para una meta y desapartar', async ({ page, persona }) => {
 
 test('un tope nuevo desde Categorías y topes', async ({ page, persona }) => {
   await persona.cargar(datosDePrueba());
-  await page.goto('/#plan');
+  await abrir(page, '/#plan');
   await page.getByRole('button', { name: /6 categorías · 0 con tope/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Categorías y topes' })).toBeVisible();
   await page.getByRole('button', { name: /Súper/ }).click();
   await page.getByRole('dialog').getByLabel('Tope mensual (vacío = sin tope)').fill('1.400');
   await sinScrollHorizontal(page);

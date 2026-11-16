@@ -60,7 +60,13 @@ export function Inicio({ app }: { app: App }) {
   }, [est.cargado]);
 
   useEffect(() => {
-    const cambio = (): void => { setVista(vistaDeLaDireccion()); setDetalle(null); scrollTo(0, 0); };
+    // Only a real change of address closes a detail: a late event of the first load (WebKit) changes nothing
+    let antes = location.hash;
+    const cambio = (): void => {
+      if (location.hash === antes) return;
+      antes = location.hash;
+      setVista(vistaDeLaDireccion()); setDetalle(null); scrollTo(0, 0);
+    };
     addEventListener('hashchange', cambio);
     return () => removeEventListener('hashchange', cambio);
   }, []);

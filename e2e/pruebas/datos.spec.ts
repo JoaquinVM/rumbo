@@ -1,10 +1,10 @@
 // DAT-01, DAT-02, DAT-04, DAT-06, AJU-05, PAN-10: starting with my data from the example, downloading and loading a
 // backup (also one of the v1), the main color, deleting everything, and what lets a phone install Rumbo.
 import { readFile } from 'node:fs/promises';
-import { datosDePrueba, expect, sinScrollHorizontal, test } from './persona';
+import { abrir, datosDePrueba, expect, sinScrollHorizontal, test } from './persona';
 
 test('empezar con mis datos desde el ejemplo', async ({ page, persona }) => {
-  await page.goto('/');
+  await abrir(page, '/');
   await expect(page.getByText('Datos de ejemplo')).toBeVisible();
   await page.getByRole('button', { name: 'Empezar con mis datos' }).click();
   const hoja = page.getByRole('dialog');
@@ -29,7 +29,7 @@ test('empezar con mis datos desde el ejemplo', async ({ page, persona }) => {
 
 test('descargar un respaldo y cargarlo de vuelta después de borrar todo', async ({ page, persona }) => {
   await persona.cargar(datosDePrueba());
-  await page.goto('/');
+  await abrir(page, '/');
   await page.getByRole('button', { name: 'Ajustes' }).click();
   await sinScrollHorizontal(page);
   const [descarga] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Descargar respaldo' }).click()]);
@@ -58,7 +58,7 @@ test('descargar un respaldo y cargarlo de vuelta después de borrar todo', async
 
 test('cargar un respaldo de la v1: se pasa a centavos y se ve igual', async ({ page, persona }) => {
   await persona.cargar(datosDePrueba());
-  await page.goto('/');
+  await abrir(page, '/');
   await page.getByRole('button', { name: 'Ajustes' }).click();
   const v1 = {
     app: 'rumbo', version: 1, fecha: '2026-11-01',
@@ -88,7 +88,7 @@ test('cargar un respaldo de la v1: se pasa a centavos y se ve igual', async ({ p
 
 test('el color principal se guarda y se ve igual al volver a abrir', async ({ page, persona }) => {
   await persona.cargar(datosDePrueba());
-  await page.goto('/');
+  await abrir(page, '/');
   await page.getByRole('button', { name: 'Ajustes' }).click();
   await page.getByRole('button', { name: 'Morado' }).click();
   await expect.poll(async () => (await persona.leer()).main?.aj.color).toBe('morado');
@@ -100,7 +100,7 @@ test('el color principal se guarda y se ve igual al volver a abrir', async ({ pa
 
 test('PAN-10: la página trae el manifest y los íconos para instalarla', async ({ page, persona }) => {
   await persona.cargar(datosDePrueba());
-  await page.goto('/');
+  await abrir(page, '/');
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('crossorigin', 'use-credentials');
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/iconos/icono-180.png');
   const m = await page.request.get('/manifest.webmanifest', { headers: { 'cf-access-jwt-assertion': persona.token } });

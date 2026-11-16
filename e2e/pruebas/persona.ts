@@ -85,3 +85,10 @@ export async function abrirAnotar(page: import('@playwright/test').Page): Promis
   await expect(hoja.locator('#m-monto')).toBeFocused();
   return hoja;
 }
+
+// Opens a page and waits for the fonts: they arrive after the first paint (PUB-06) and move the layout a little, so a
+// tap in that instant could land on something else, in WebKit above all.
+export async function abrir(page: import('@playwright/test').Page, ruta: string): Promise<void> {
+  await page.goto(ruta);
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+}
