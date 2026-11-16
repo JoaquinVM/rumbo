@@ -1,5 +1,11 @@
-# Every pull request and every push to main runs the page tests and the server tests against PostgreSQL.
-# A tag v* on a commit of main that passes them moves the `production` branch to that commit; the VPS polls that
+# Every pull request and every push to main runs five jobs (PUB-06, design.md of rumbo-2-reescritura, CI/CD):
+#   tipos      TypeScript in every workspace and the layer rule (dependency-cruiser)
+#   unitarias  the v1 tests (production still serves the v1) and Vitest: layers and the frozen v1 oracle
+#   servidor   the server against PostgreSQL, and the image builds
+#   e2e        Playwright in Chromium and WebKit at 375 px, light and dark, against the server with PostgreSQL and a
+#              fake Access (e2e/servidor-prueba.mjs, a test-only entry point the image never copies)
+#   lighthouse Lighthouse in phone mode: at least 90 in performance and 95 in accessibility and best practices
+# A tag v* on a commit of main that passes all five moves the `production` branch to that commit; the VPS polls that
 # branch (deploy/deploy-watch.sh) and deploys it (PUB-05, docs/DESPLIEGUE.md). GitHub never reaches the VPS.
 # Going back: Actions > verificar > Run workflow > pick an earlier tag (it is tested again and then deployed).
 name: verificar
@@ -17,8 +23,15 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  PGHOST: localhost
+  PGPORT: 5432
+  PGUSER: rumbo
+  PGPASSWORD: ci-only-db-password
+  PGDATABASE: rumbo
+
 jobs:
-  verificar:
+  tipos:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -26,7 +39,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm run verificar
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run tipos
+      - run: npm run capas
+
+  unitarias:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: v1 tests (the page in production)
+        run: npm run verificar
+      - run: npm run unitarias
 
   servidor:
     runs-on: ubuntu-latest
@@ -41,26 +71,85 @@ jobs:
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U rumbo -d rumbo" --health-interval 5s --health-timeout 5s --health-retries 20
-    env:
-      PGHOST: localhost
-      PGPORT: 5432
-      PGUSER: rumbo
-      PGPASSWORD: ci-only-db-password
-      PGDATABASE: rumbo
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm ci --omit=dev --no-audit --no-fund
-        working-directory: servidor
+          cache: npm
+      - run: npm ci --no-audit --no-fund
       - run: npm run probar-servidor
       - name: Image builds
         run: docker build -f deploy/Dockerfile -t rumbo-app:ci .
 
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17.12-alpine3.24
+        env:
+          POSTGRES_DB: rumbo
+          POSTGRES_USER: rumbo
+          POSTGRES_PASSWORD: ci-only-db-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U rumbo -d rumbo" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run construir
+      - name: Browsers
+        run: npx playwright install --with-deps chromium webkit
+        working-directory: e2e
+      - run: npm run e2e
+      - name: Video and trace of what failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-fallas
+          path: |
+            e2e/test-results/
+            e2e/playwright-report/
+          retention-days: 14
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17.12-alpine3.24
+        env:
+          POSTGRES_DB: rumbo
+          POSTGRES_USER: rumbo
+          POSTGRES_PASSWORD: ci-only-db-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U rumbo -d rumbo" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run construir
+      - run: npm run lighthouse
+      - name: Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse
+          path: e2e/.lighthouseci/
+          retention-days: 14
+
   production:
     name: Move production
-    needs: [verificar, servidor]
+    needs: [tipos, unitarias, servidor, e2e, lighthouse]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     timeout-minutes: 5
