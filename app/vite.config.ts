@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// The server serves dist/index.html at / and dist/assets/* next to it.
+// The server serves dist/index.html at / and dist/assets/* next to it. Top-level await needs ES2022.
 export default defineConfig({
   plugins: [react()],
-  build: { outDir: 'dist', emptyOutDir: true },
+  build: { outDir: 'dist', emptyOutDir: true, target: 'es2022' },
 });

@@ -33,11 +33,11 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 3.3 Imagen de Docker de varias etapas sin root, sin el Access de mentira (prueba que lo comprueba); el compose y los topes de PUB-02 no cambian.
 - [ ] 3.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 
-## 4. Trabajo 078 · Pantallas I y ambiente de prueba (Crisol)
+## 4. Trabajo 081 · Pantallas I y ambiente de prueba (Crisol)
 
-- [ ] 4.1 Aplicación e infraestructura: casos de uso de anotar, editar, borrar, transferir, confirmar y saltar un fijo; almacenes servidor (cola de DAT-07), artifact, navegador y memoria; pruebas de la cola (orden, reintento, 401).
-- [ ] 4.2 Pantalla Rumbo (titular, gráfica, Hoy, Por confirmar, avisos, indicadores, ¿Y si…?) según los mockups de `docs/DISENO.md`; pruebas de componentes y Playwright a 375 px en claro y oscuro.
-- [ ] 4.3 Anotar y Movimientos (MOV-01 a MOV-07) según los mockups, con el saldo de cada cuenta en dos decimales en los botones para elegirla (FMT-02, decisión 63) y la pastilla «Categoría» igual a las de cuentas (decisión 64); los movimientos y el total de una categoría salen del dominio, con su prueba MOV-07 en Vitest (Comida fuera igual al Desglose, la cuota en Intereses, la mitad de la cena y con una cuenta); pruebas de componentes y Playwright: anotar y editar un gasto, transferir entre monedas, confirmar y saltar un fijo, elegir y quitar una categoría, sin señal y sesión vencida.
+- [x] 4.1 Aplicación e infraestructura: casos de uso de anotar, editar, borrar, transferir, confirmar y saltar un fijo; almacenes servidor (cola de DAT-07), artifact, navegador y memoria; pruebas de la cola (orden, reintento, 401).
+- [x] 4.2 Pantalla Rumbo (titular, gráfica, Hoy, Por confirmar, avisos, indicadores, ¿Y si…?) según los mockups de `docs/DISENO.md`; pruebas de componentes y Playwright a 375 px en claro y oscuro.
+- [x] 4.3 Anotar y Movimientos (MOV-01 a MOV-07) según los mockups, con el saldo de cada cuenta en dos decimales en los botones para elegirla (FMT-02, decisión 63) y la pastilla «Categoría» igual a las de cuentas (decisión 64); los movimientos y el total de una categoría salen del dominio, con su prueba MOV-07 en Vitest (Comida fuera igual al Desglose, la cuota en Intereses, la mitad de la cena y con una cuenta); pruebas de componentes y Playwright: anotar y editar un gasto, transferir entre monedas, confirmar y saltar un fijo, elegir y quitar una categoría, sin señal y sesión vencida.
 - [ ] 4.4 Ambiente de prueba (PUB-07): hostname y aplicación de Access (los crea Joaquín), contenedor y base aparte, carga de una copia migrada del respaldo; comprobar que `rumbo.jviscafe.com` no cambia y correr `deploy/aislamiento.sh`.
 - [ ] 4.5 Revisor Crisol en Opus que ensaya en el ambiente de prueba; CI en verde; sí de Joaquín para el merge.
 

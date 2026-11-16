@@ -173,3 +173,25 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     paquete de contratos compilado se elige al correr con `node --conditions=rumbo-compilado`; en el resto del
     proyecto se usa su código TypeScript. El e2e sigue usando el servidor de la v1 hasta que las pantallas usen
     `/api/v2`.
+67. (C) 16/11/2026, trabajo 081: sin servidor ni artifact, Rumbo 2 guarda en el navegador con la clave
+    `rumbo-2-centavos`, no `rumbo-v2` como decía `design.md`: esa clave ya es de la v1 y tiene montos con decimales, y
+    leerla como centavos mostraría todo cien veces más chico. La primera vez convierte lo de `rumbo-v2` con la función
+    de la migración (DAT-08) y no lo borra. En el artifact usa su propio documento (`rumbo2`) por lo mismo.
+68. (C) 16/11/2026, trabajo 081: las pantallas de Rumbo 2 se arman con un contrato de la app (`paquetes/contratos/src/
+    app.ts`): la aplicación entrega números en centavos y códigos, y la presentación elige las palabras y da formato.
+    Como la presentación solo conoce los contratos, `presentacion/modelos/formato.ts` copia el `mostrar` del dominio, y
+    una prueba compara los dos en 20.000 montos. Lo que todavía no se construye (Desglose, Plan, Ajustes, metas y
+    empezar con mis datos, grupo 5) muestra «llega pronto» en Rumbo 2, sin tocar los datos.
+69. (C) 16/11/2026, trabajo 081: el ambiente de prueba es `rumbo-prueba.jviscafe.com`, el compose `rumbo-prueba`
+    (`deploy/prueba/`), con su base `rumbo2_prueba` y su propio rol en el Postgres de Rumbo. No se llama
+    `rumbo_prueba` porque `restore.sh --check` crea y borra esa base cada domingo. El rol no puede leer la base `rumbo`
+    (`prueba.sh base` lo comprueba). La copia sale de un respaldo local nuevo, se restauran solo las tablas de la v1 en
+    `rumbo2_prueba`, se convierte y se comprueba (montos exactos, ida y vuelta a decimales y contratos) solo para los
+    correos de `CORREOS_PERMITIDOS` del ambiente, y después se borran esas tablas: los datos de otra persona no quedan
+    ahí. La carga dice cuántos documentos hay, nunca montos. La verificación completa con los dos motores es del 080.
+70. (C) 16/11/2026, trabajo 081: el e2e y Lighthouse usan ya el servidor de la v2 (`servidor/dist`), con un Access de
+    mentira que da a cada prueba su propia persona; Lighthouse entra sin token (`E2E_ACCESS_ABIERTO=1`, solo en esa
+    corrida) porque no puede mandar una cabecera solo al servidor y no a Google Fonts. Las fuentes se cargan sin frenar
+    la primera pintada (la página se ve con la letra del sistema y cambia cuando llegan): así Rumbo da 95 a 100 en
+    rendimiento. La accesibilidad da 95: los textos chicos al 88 % sobre los bloques ámbar y verde no llegan al
+    contraste pedido; son los colores de la v1 y cambiarlos es un cambio visual que no se pidió.

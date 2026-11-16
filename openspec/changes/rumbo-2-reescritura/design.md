@@ -52,7 +52,7 @@ crece entre dos y tres veces en código (lo midió Strata) y aquí cada trabajo 
 | Riesgo | Alto: un PR de miles de líneas que el revisor no alcanza a ensayar en 2 vueltas; nada se usa hasta el final; si se corta la sesión, se pierde el hilo | Bajo a medio: cada PR se revisa entero; el dominio se compara con la v1 antes de dibujar una pantalla; la v1 sigue en producción hasta el corte | Medio a alto: v1 y v2 tocan los mismos datos a la vez, así que hay que pasar a centavos al principio y cambiar el dinero de la v1 para que los lea, o traducir en cada pantalla; dos interfaces conviviendo |
 | Tu tiempo | 1 sí de merge, 1 de corte; muchas pruebas al final | 6 sí de merge, 1 de corte, 2 pruebas en el teléfono | 10 o más sí de merge y de publicar |
 | Infraestructura | Igual | Igual + ambiente de prueba (256 MiB) mientras dure | Igual |
-| Cuándo ves algo | Al final | En el ambiente de prueba desde el trabajo 078 | Desde la primera pantalla |
+| Cuándo ves algo | Al final | En el ambiente de prueba desde el trabajo 081 | Desde la primera pantalla |
 
 Costo de infraestructura en las tres: **0 USD**. El VPS, Cloudflare (túnel y Access hasta 50 personas), B2 (dentro de
 los 10 GB gratis) y healthchecks.io no cambian. El repo es privado: GitHub da 2.000 minutos de Actions al mes; hoy se
@@ -197,8 +197,8 @@ para no perder lo que agregue una versión futura (DAT-05).
 - `/salud` de la v2 responde sano solo si la migración de esa base está hecha y verificada (una fila en
   `v2_migracion`). Si no, el despliegue no queda sano y vuelve a la v1 solo (PUB-05).
 - Respaldo versión 2 (centavos). Cargar uno de versión 1 lo convierte con la función de la migración (DAT-04).
-- En el navegador (sin servidor), la clave de `localStorage` cambia a `rumbo-v2` y la primera carga convierte la de la
-  v1 con la misma función.
+- En el navegador (sin servidor), Rumbo 2 guarda en su propia clave de `localStorage`, `rumbo-2-centavos` (la v1 ya
+  usa `rumbo-v2`, con decimales), y la primera carga convierte la de la v1 con la misma función (decisión 67).
 
 ### CI/CD
 
@@ -220,9 +220,10 @@ servidor), saca un respaldo previo, levanta y vuelve atrás si no queda sana.
 
 - Hasta el corte, `rumbo.jviscafe.com` es la v1 y recibe solo arreglos. Lo nuevo que se agregue a la v1 se porta a la
   v2 en el trabajo de su pantalla.
-- Desde el trabajo 078, un ambiente de prueba en `rumbo-prueba.jviscafe.com` (otro hostname del mismo túnel y otra
-  aplicación de Access con el mismo correo), con su propio contenedor de 256 MiB y su propia base en el mismo Postgres,
-  cargada con una copia migrada del último respaldo. Con él, los contenedores de las apps suman 1 GiB, el tope de
+- Desde el trabajo 081, un ambiente de prueba en `rumbo-prueba.jviscafe.com` (otro hostname del mismo túnel y otra
+  aplicación de Access con el mismo correo), con su propio contenedor de 256 MiB y su propia base (`rumbo2_prueba`, con
+  su propio rol) en el mismo Postgres, cargada con una copia migrada del último respaldo, solo de los correos de ese
+  ambiente (decisión 69). Con él, los contenedores de las apps suman 1 GiB, el tope de
   PUB-02. Se apaga y se borra al terminar el corte.
 - El corte (trabajo 080) es una sesión de publicar: respaldo, migración y verificación de la base real, tag de la v2.
 
@@ -270,7 +271,5 @@ Lo corre el trabajo 080, con Joaquín corriendo como root cada comando que lo pi
 
 ## Open Questions
 
-- El nombre exacto del ambiente de prueba (`rumbo-prueba.jviscafe.com` u otro) se decide en el trabajo 078; no cambia
-  nada más.
 - Si el ensayo del paso 1 encuentra montos con más de 2 decimales, qué hacer con cada uno lo decide Joaquín en el
   trabajo 080, con la lista a la vista.

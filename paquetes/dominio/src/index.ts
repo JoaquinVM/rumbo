@@ -14,3 +14,5 @@ export * from './movimientos';
 export * from './desglose';
 export * from './proyeccion';
 export * from './conversion';
+export * from './catalogo';
+export * from './ejemplo';

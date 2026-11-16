@@ -5,7 +5,7 @@
 #   1. From the apps network, Akhana's container names do not resolve and no Akhana container IP answers.
 #   2. From the apps network, the host does not answer on Akhana's ports (8081 local entry, 443/80 tailscale serve,
 #      5432, 8080) on any of its addresses.
-#   3. Rumbo's containers and the apps tunnel run without root, without docker.sock, without capabilities, without
+#   3. Rumbo's containers (also the test environment's, PUB-07) and the apps tunnel run without root, without docker.sock, without capabilities, without
 #      published ports and with memory and CPU limits that add up to 1 GiB or less.
 #   4. Shows when Akhana's containers started and how many times they restarted, to compare before and after.
 # Exit code 0 only if 0 to 3 pass.
@@ -23,7 +23,8 @@ docker network inspect apps > /dev/null 2>&1 || { echo "FALLA: no existe la red 
 gateway=$(docker network inspect apps --format '{{range .IPAM.Config}}{{.Gateway}}{{end}}')
 mapfile -t akhana < <(docker ps --filter label=com.docker.compose.project=akhana --format '{{.Names}}')
 mapfile -t ours < <(docker ps --filter label=com.docker.compose.project=rumbo --format '{{.Names}}'
-    docker ps --filter label=com.docker.compose.project=apps-tunel --format '{{.Names}}')
+    docker ps --filter label=com.docker.compose.project=apps-tunel --format '{{.Names}}'
+    docker ps --filter label=com.docker.compose.project=rumbo-prueba --format '{{.Names}}')
 
 # What to probe: names that must not resolve, and host:port pairs that must not answer
 names=("${akhana[@]}" db api web tunnel)
@@ -72,7 +73,7 @@ while read -r what t; do
 done < <(grep -E '^(RESOLVE|NORESOLVE|OPEN|CLOSED) ' <<< "$results" | sort -s -k2,2)
 grep -qE '^(RESOLVE|NORESOLVE|OPEN|CLOSED) ' <<< "$results" || { bad "la sonda no corrió:"; echo "$results"; }
 
-echo "3. Contenedores de Rumbo y del túnel"
+echo "3. Contenedores de Rumbo, del ambiente de prueba y del túnel"
 (( ${#ours[@]} )) || bad "no hay contenedores de Rumbo ni del túnel corriendo"
 total=0
 for name in "${ours[@]}"; do

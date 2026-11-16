@@ -96,3 +96,40 @@ export function movimientosDelMes(S: Estado, mes: Mes, cuentaId: string | 'todas
   }
   return dias;
 }
+
+// MOV-07: whether a movement counts for a category, the same way the Desglose adds it up (gastoMesCat): the expenses
+// or income of that category, also those of confirmed fixed items; in Intereses also the loan payments, for their
+// interest only, and the unpaid interest. A loan made out of an expense keeps the category of the expense but is not
+// an expense, so it does not count.
+export const cuentaParaCategoria = (m: Movimiento, cat: string): boolean =>
+  ((m.tipo === 'gasto' || m.tipo === 'ingreso') && m.categoriaId === cat) ||
+  (cat === 'intereses' && (m.tipo === 'interes' || (m.tipo === 'pago' && !!m.interes)));
+
+// MOV-07: what a movement adds to its category, in Bs with its own exchange rate (MOV-06): a loan payment, its interest.
+export const montoParaCategoria = (S: Estado, m: Movimiento): Centavos =>
+  bsMov(S, m, m.tipo === 'pago' ? (m.interes ?? (0 as Centavos)) : m.monto);
+
+export interface MovimientosDeCategoria {
+  dias: DiaDeMovimientos[]; // `gastado` is what each day adds to the category
+  total: Centavos;
+  cantidad: number;
+}
+
+// MOV-07: the movements of a month that count for a category, newest first and grouped by day, with what each day and
+// the whole month add to it. Without an account filter the total is the category's in the Desglose of that month.
+export function movimientosDeCategoria(S: Estado, mes: Mes, cat: string, cuentaId: string | 'todas' = 'todas'): MovimientosDeCategoria {
+  const dias = movimientosDelMes({ ...S, movs: S.movs.filter((m) => cuentaParaCategoria(m, cat)) }, mes, cuentaId);
+  let total = 0 as Centavos, cantidad = 0;
+  for (const d of dias) {
+    d.gastado = sumar(...d.movs.map((m) => montoParaCategoria(S, m)));
+    total = sumar(total, d.gastado);
+    cantidad += d.movs.length;
+  }
+  return { dias, total, cantidad };
+}
+
+// MOV-07: the categories that can be picked in a month: the active ones and the archived ones with movements in it.
+export function categoriasParaElegir(S: Estado, mes: Mes): Categoria[] {
+  const usadas = new Set(S.movs.filter((m) => mesDe(m.fecha) === mes).map((m) => m.categoriaId));
+  return S.categorias.filter((c) => !c.archivada || usadas.has(c.id));
+}

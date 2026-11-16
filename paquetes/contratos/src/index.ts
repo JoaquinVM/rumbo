@@ -2,3 +2,4 @@
 // Relative imports carry `.js` so the server can run the compiled package in Node.
 export * from './documentos.js';
 export * from './api.js';
+export type * from './app.js';
