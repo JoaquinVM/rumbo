@@ -18,6 +18,8 @@ fácil romper una vieja sin notarlo. Este cambio **solo define** Rumbo 2: no con
 
 - **Lo que ve y hace la persona no cambia.** Las 15 capabilities de `openspec/specs` siguen igual, con sus mismos
   escenarios y los mismos números. Rumbo 2 se acepta cuando todos los escenarios de hoy dan lo mismo, al centavo.
+  Hay una sola función nueva, que Joaquín pidió para Rumbo 2 y no llega a la v1 (trabajo 078, decisión 63): ver los
+  movimientos de una categoría con su total (MOV-07), también tocándola en el Desglose (DES-05).
 - **Dinero en centavos enteros.** Todo monto guardado y todo cálculo de hechos (saldos, deudas, patrimonio, Hoy,
   topes, Desglose) usa centavos enteros, en un módulo de dominio sin dependencias. El tipo de cambio, la inflación, los
   rendimientos y las tasas siguen siendo números con decimales: no son dinero.
@@ -44,7 +46,8 @@ fácil romper una vieja sin notarlo. Este cambio **solo define** Rumbo 2: no con
 
 ### New Capabilities
 
-Ninguna. Rumbo 2 no agrega funciones para la persona.
+Ninguna. La única función nueva para la persona, ver los movimientos de una categoría, cabe en capabilities que ya
+existen.
 
 ### Modified Capabilities
 
@@ -53,6 +56,8 @@ Ninguna. Rumbo 2 no agrega funciones para la persona.
   DAT-09 (validación compartida en página y servidor).
 - `publicacion`: nuevos PUB-06 (Playwright y Lighthouse antes de publicar) y PUB-07 (ambiente de prueba y corte de la
   v1 a Rumbo 2).
+- `movimientos`: nuevo MOV-07, ver los movimientos de una categoría con su total, igual al del Desglose.
+- `desglose`: nuevo DES-05, tocar una categoría abre sus movimientos del mes.
 
 ## Impact
 

@@ -146,3 +146,9 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     arriba, como dice FMT-05, aunque la v1, por sus decimales, a veces lo redondeaba hacia abajo (en 1 de cada 5 de
     esos casos, que son cerca de 1 de cada 1.200 cuotas). Lo ya guardado no cambia; la comparación con la v1 permite
     esa diferencia de 1 centavo solo en esas cuotas.
+63. (J) 16/11/2026, trabajo 078: los movimientos se pueden ver por categoría solo en Rumbo 2; la v1 sigue recibiendo
+    solo arreglos. Se entra de dos formas: tocando una categoría del Desglose, que abre Movimientos de ese mes con esa
+    categoría, y con la pastilla «Categoría» de Movimientos, debajo de las cuentas, que se quita con su ✕. El total es
+    el mismo del Desglose: en Intereses cada cuota suma solo su interés, y lo que un gasto pasó a préstamo no aparece.
+    Se combina con el filtro de cuenta y se mantiene al cambiar de mes. Joaquín lo vio en un prototipo local con los
+    datos de ejemplo antes de aprobarlo (MOV-07, DES-05).
