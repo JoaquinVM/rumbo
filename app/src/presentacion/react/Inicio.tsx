@@ -1,16 +1,12 @@
 // Layer 5 · Presentation: the frame of every screen (PAN-01), the v1's page: header, notices, the screen, the + button
 // and the four tabs; the details (a debt, a goal, the categories, Ajustes) and the sheets.
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import type { App, TipoPago } from '@rumbo/contratos';
-import { Ajustes } from './Ajustes';
 import { Anotar } from './Anotar';
 import { useAviso } from './comunes';
-import { Desglose } from './Desglose';
-import { DetalleDeuda, DetalleMeta } from './Detalles';
+import { cargarDiferidas, Diferido } from './diferidas';
 import { ElegirCategoria, VerMovimiento } from './Hojas';
-import { HojaCategoria, HojaCuadrar, HojaCuenta, HojaDeuda, HojaEmpezar, HojaFijo, HojaMeta, HojaPago, HojaSeparar } from './HojasPlan';
 import { Movimientos } from './Movimientos';
-import { Categorias, Plan } from './Plan';
 import { Rumbo, type AjustesRumbo } from './Rumbo';
 import { enMoneda, sumarMeses } from '../modelos/formato';
 import { cssDelTema } from '../modelos/tema';
@@ -58,6 +54,15 @@ export function Inicio({ app }: { app: App }) {
     const t = setTimeout(() => setLento(true), 1000);
     return () => clearTimeout(t);
   }, [est.cargado]);
+
+  // The other screens load on the first tap (or now, if Rumbo opens on one of them): not before the first one (PUB-06)
+  useEffect(() => {
+    if (vistaDeLaDireccion() === 'desglose' || vistaDeLaDireccion() === 'plan') { void cargarDiferidas().catch(() => {}); return undefined; }
+    const pedir = (): void => { void cargarDiferidas().catch(() => {}); };
+    addEventListener('pointerdown', pedir, { once: true, capture: true });
+    addEventListener('keydown', pedir, { once: true, capture: true });
+    return () => { removeEventListener('pointerdown', pedir, { capture: true }); removeEventListener('keydown', pedir, { capture: true }); };
+  }, []);
 
   useEffect(() => {
     // Only a real change of address closes a detail: a late event of the first load (WebKit) changes nothing
@@ -109,11 +114,11 @@ export function Inicio({ app }: { app: App }) {
   const meta = detalle?.tipo === 'meta' ? app.meta(detalle.id) : null;
   if (!est.cargado) pantalla = lento ? <div className="empty"><h3>Cargando tu rumbo…</h3>Abriendo tus datos guardados.</div> : null;
   else if (deuda) {
-    pantalla = <DetalleDeuda v={deuda} adelanto={adelanto} acc={{
+    pantalla = <Diferido con={({ DetalleDeuda }) => <DetalleDeuda v={deuda} adelanto={adelanto} acc={{
       volver, editar: () => setHoja({ tipo: 'deuda', id: deuda.id }), pago: (t) => pago(deuda.id, t), adelanto: setAdelanto, ver,
-    }} />;
+    }} />} />;
   } else if (meta) {
-    pantalla = <DetalleMeta v={meta} acc={{
+    pantalla = <Diferido con={({ DetalleMeta }) => <DetalleMeta v={meta} acc={{
       volver, editar: () => setHoja({ tipo: 'meta', id: meta.id }),
       apartar: (cuentaId, monto, signo) => {
         const r = app.apartar(meta.id, cuentaId, monto, signo);
@@ -125,9 +130,9 @@ export function Inicio({ app }: { app: App }) {
         else avisar(textoDeError(r.codigo));
         return false;
       },
-    }} />;
-  } else if (detalle?.tipo === 'categorias') pantalla = <Categorias v={app.categorias()} alVolver={volver} editar={(id) => setHoja({ tipo: 'editarCategoria', ...(id ? { id } : {}) })} />;
-  else if (detalle?.tipo === 'ajustes') pantalla = <Ajustes app={app} alVolver={volver} aviso={avisar} />;
+    }} />} />;
+  } else if (detalle?.tipo === 'categorias') pantalla = <Diferido con={({ Categorias }) => <Categorias v={app.categorias()} alVolver={volver} editar={(id) => setHoja({ tipo: 'editarCategoria', ...(id ? { id } : {}) })} />} />;
+  else if (detalle?.tipo === 'ajustes') pantalla = <Diferido con={({ Ajustes }) => <Ajustes app={app} alVolver={volver} aviso={avisar} />} />;
   else if (vista === 'rumbo') {
     pantalla = (
       <Rumbo v={app.rumbo({ ...rumbo, extra: rumbo.extra * 100, adelanto: rumbo.adelanto * 100 })} a={rumbo} acc={{
@@ -153,15 +158,15 @@ export function Inicio({ app }: { app: App }) {
     );
   } else if (vista === 'desglose') {
     pantalla = (
-      <Desglose v={app.desglose(mesActual)} acc={{
+      <Diferido con={({ Desglose }) => <Desglose v={app.desglose(mesActual)} acc={{
         mes: (n) => setMes(sumarMeses(mesActual, n)),
         // DES-05: Movimientos of the same month with that category, in every account
         categoria: (id) => { setCategoria(id); setFiltro('todas'); location.hash = '#movimientos'; },
-      }} />
+      }} />} />
     );
   } else {
     pantalla = (
-      <Plan v={app.plan()} acc={{
+      <Diferido con={({ Plan }) => <Plan v={app.plan()} acc={{
         cuenta: (id) => setHoja({ tipo: 'cuenta', ...(id ? { id } : {}) }),
         cuadrar: (id) => setHoja({ tipo: 'cuadrar', id }),
         fijo: nuevoFijo,
@@ -170,7 +175,7 @@ export function Inicio({ app }: { app: App }) {
         verMeta: (id) => verDetalle({ tipo: 'meta', id }),
         nuevaMeta: () => setHoja({ tipo: 'meta' }),
         categorias: () => verDetalle({ tipo: 'categorias' }),
-      }} />
+      }} />} />
     );
   }
 
@@ -209,7 +214,7 @@ export function Inicio({ app }: { app: App }) {
               ? <div className="note"><b>Hay cambios sin guardar.</b> Revisa tu conexión; Rumbo sigue intentando.</div>
               : g.perdido ? <div className="note"><b>Un cambio no se pudo guardar</b> ({g.perdido}). Anótalo de nuevo.</div> : null}
         </div>
-        <main style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>{pantalla}</main>
+        <main style={{ display: 'flex', flexDirection: 'column', gap: 14 }}><Suspense fallback={null}>{pantalla}</Suspense></main>
       </div>
       <button className="fab" onClick={() => abrirAnotar()} aria-label="Anotar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
@@ -222,19 +227,21 @@ export function Inicio({ app }: { app: App }) {
           <Pestana v="plan" actual={vista === 'plan' && !detalle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M9 3v4M15 3v4" /></svg>Plan</Pestana>
         </div>
       </nav>
+      <Suspense fallback={null}>
       {hoja?.tipo === 'anotar' && <Anotar app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} aviso={avisar} separar={(id) => setHoja({ tipo: 'separar', id })} />}
-      {hoja?.tipo === 'separar' && <HojaSeparar app={app} gastoId={hoja.id} alCerrar={cerrar} aviso={avisar} />}
-      {hoja?.tipo === 'cuenta' && <HojaCuenta app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} aviso={avisar} />}
-      {hoja?.tipo === 'cuadrar' && <HojaCuadrar app={app} id={hoja.id} alCerrar={cerrar} aviso={avisar} />}
-      {hoja?.tipo === 'fijo' && <HojaFijo app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} aviso={avisar} />}
-      {hoja?.tipo === 'deuda' && <HojaDeuda app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} alArchivar={() => { cerrar(); volver(); }} aviso={avisar} />}
-      {hoja?.tipo === 'pago' && <HojaPago app={app} deudaId={hoja.id} tipo={hoja.pago} alCerrar={cerrar} aviso={avisar} />}
-      {hoja?.tipo === 'meta' && <HojaMeta app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} alArchivar={() => { cerrar(); volver(); }} aviso={avisar} />}
-      {hoja?.tipo === 'editarCategoria' && <HojaCategoria app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} aviso={avisar} />}
-      {hoja?.tipo === 'empezar' && <HojaEmpezar app={app} alCerrar={cerrar} aviso={avisar} alEmpezar={() => {
+      {hoja?.tipo === 'separar' && <Diferido con={({ HojaSeparar }) => <HojaSeparar app={app} gastoId={hoja.id} alCerrar={cerrar} aviso={avisar} />} />}
+      {hoja?.tipo === 'cuenta' && <Diferido con={({ HojaCuenta }) => <HojaCuenta app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} aviso={avisar} />} />}
+      {hoja?.tipo === 'cuadrar' && <Diferido con={({ HojaCuadrar }) => <HojaCuadrar app={app} id={hoja.id} alCerrar={cerrar} aviso={avisar} />} />}
+      {hoja?.tipo === 'fijo' && <Diferido con={({ HojaFijo }) => <HojaFijo app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} aviso={avisar} />} />}
+      {hoja?.tipo === 'deuda' && <Diferido con={({ HojaDeuda }) => <HojaDeuda app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} alArchivar={() => { cerrar(); volver(); }} aviso={avisar} />} />}
+      {hoja?.tipo === 'pago' && <Diferido con={({ HojaPago }) => <HojaPago app={app} deudaId={hoja.id} tipo={hoja.pago} alCerrar={cerrar} aviso={avisar} />} />}
+      {hoja?.tipo === 'meta' && <Diferido con={({ HojaMeta }) => <HojaMeta app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} alArchivar={() => { cerrar(); volver(); }} aviso={avisar} />} />}
+      {hoja?.tipo === 'editarCategoria' && <Diferido con={({ HojaCategoria }) => <HojaCategoria app={app} {...(hoja.id ? { id: hoja.id } : {})} alCerrar={cerrar} aviso={avisar} />} />}
+      {hoja?.tipo === 'empezar' && <Diferido con={({ HojaEmpezar }) => <HojaEmpezar app={app} alCerrar={cerrar} aviso={avisar} alEmpezar={() => {
         cerrar(); setDetalle(null); setRumbo({ anios: 5, nominal: false, recortes: {}, extra: 0, adelanto: 0 });
         if (location.hash !== '#rumbo') location.hash = '#rumbo';
-      }} />}
+      }} />} />}
+      </Suspense>
       {hoja?.tipo === 'ver' && <VerMovimiento app={app} id={hoja.id} alCerrar={cerrar} aviso={avisar} />}
       {hoja?.tipo === 'categoria' && (
         <ElegirCategoria categorias={app.movimientos({ mes: mesActual, cuenta: filtro, categoria }).elegibles}

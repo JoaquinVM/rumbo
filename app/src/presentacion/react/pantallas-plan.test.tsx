@@ -3,10 +3,13 @@
 // Plan with each balance in 2 decimals, the detail of a loan and of a goal, the categories, Ajustes with the color and
 // the backup, starting with my data, and «Me deben una parte».
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Datos } from '@rumbo/contratos';
 import { appDePrueba, datosDePrueba } from '../../composicion/prueba';
+import { cargarDiferidas } from './diferidas';
 import { Inicio } from './Inicio';
+
+beforeAll(async () => { await cargarDiferidas(); }); // as after the first tap
 
 // The hash goes back to empty before each test, and its hashchange (async in jsdom) arrives before the test starts
 beforeEach(async () => { window.scrollTo = vi.fn() as never; location.hash = ''; await new Promise((r) => setTimeout(r, 0)); });
