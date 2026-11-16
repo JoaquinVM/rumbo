@@ -13,17 +13,17 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 1.4 `verificar.yml` con los trabajos `tipos`, `unitarias`, `servidor`, `e2e` (Playwright en Chromium y WebKit a 375 px, claro y oscuro, contra un servidor con Postgres y Access de mentira) y `lighthouse` (mínimos de PUB-06), sobre una página vacía de la v2; `production` exige los cinco. Verificado con un PR en verde y otro, de prueba, en rojo por Lighthouse.
 - [x] 1.5 Actualizar `CLAUDE.md`, `openspec/config.yaml` (stack y reglas de pruebas y de publicar) y `docs/DECISIONES.md` con lo que aprobó Joaquín.
 
-## 2. Trabajo 076 · Dominio en centavos (Crisol)
+## 2. Trabajo 077 · Dominio en centavos (Crisol)
 
-- [ ] 2.1 Documento Crisol `trabajos/076-…md` en Foundry con el pedido, cada regla del inventario de `design.md` y su prueba.
-- [ ] 2.2 Módulo de dinero: `Centavos`, `Monto`, `leer`, `mostrar`, `porTasa`, `aBs`, `repartir`, con pruebas FMT-01 a FMT-05 (incluido «Usa hasta 2 decimales» y «12,345» como miles).
-- [ ] 2.3 Cuentas, tipo de cambio y patrimonio: pruebas CTA-02 a CTA-08 y AJU-04 con los números de sus escenarios en centavos.
-- [ ] 2.4 Deudas: amortización, pagos, cobros, préstamos, cuota saltada, cierre, gasto que te deben y devolverlo; pruebas DEU-01 a DEU-12.
-- [ ] 2.5 Fijos y ocurrencias, Hoy y metas; pruebas FIJ-01 a FIJ-07, HOY-01 a HOY-05 y MET-01 a MET-05.
-- [ ] 2.6 Movimientos, topes, Desglose e indicadores; pruebas MOV-02 a MOV-06, LIM-03, LIM-04, DES-01 a DES-04 e IND-01 a IND-04.
-- [ ] 2.7 Ritmo, proyección y «¿Y si…?»; pruebas AJU-01, PRO-01 a PRO-08.
-- [ ] 2.8 Función de conversión v1 → centavos y vuelta (DAT-08), con pruebas: los 12 campos, la tasa de una deuda intacta, rechazo de más de 2 decimales y ida y vuelta exacta.
-- [ ] 2.9 Comparación con la v1: generador de estados con semilla y comparación con las tolerancias de `design.md`; corre en `unitarias` y falla si una regla cambia.
+- [x] 2.1 Documento Crisol `trabajos/077-rumbo-2-dominio.md` en Foundry con el pedido, cada regla del inventario de `design.md` y su prueba.
+- [x] 2.2 Módulo de dinero: `Centavos`, `Monto`, `leer`, `mostrar`, `porTasa`, `aBs`, `repartir`, con pruebas FMT-01 a FMT-05 (incluido «Usa hasta 2 decimales» y «12,345» como miles).
+- [x] 2.3 Cuentas, tipo de cambio y patrimonio: pruebas CTA-02 a CTA-08 y AJU-04 con los números de sus escenarios en centavos.
+- [x] 2.4 Deudas: amortización, pagos, cobros, préstamos, cuota saltada, cierre, gasto que te deben y devolverlo; pruebas DEU-01 a DEU-12.
+- [x] 2.5 Fijos y ocurrencias, Hoy y metas; pruebas FIJ-01 a FIJ-07, HOY-01 a HOY-05 y MET-01 a MET-05.
+- [x] 2.6 Movimientos, topes, Desglose e indicadores; pruebas MOV-02 a MOV-06, LIM-03, LIM-04, DES-01 a DES-04 e IND-01 a IND-04.
+- [x] 2.7 Ritmo, proyección y «¿Y si…?»; pruebas AJU-01, PRO-01 a PRO-08.
+- [x] 2.8 Función de conversión v1 → centavos y vuelta (DAT-08), con pruebas: los 12 campos, la tasa de una deuda intacta, rechazo de más de 2 decimales y ida y vuelta exacta.
+- [x] 2.9 Comparación con la v1: generador de estados con semilla y comparación con las tolerancias de `design.md`; corre en `unitarias` y falla si una regla cambia.
 - [ ] 2.10 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 
 ## 3. Trabajo 077 · Contratos y servidor en TypeScript (Crisol)
@@ -37,14 +37,14 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 
 - [ ] 4.1 Aplicación e infraestructura: casos de uso de anotar, editar, borrar, transferir, confirmar y saltar un fijo; almacenes servidor (cola de DAT-07), artifact, navegador y memoria; pruebas de la cola (orden, reintento, 401).
 - [ ] 4.2 Pantalla Rumbo (titular, gráfica, Hoy, Por confirmar, avisos, indicadores, ¿Y si…?) según los mockups de `docs/DISENO.md`; pruebas de componentes y Playwright a 375 px en claro y oscuro.
-- [ ] 4.3 Anotar y Movimientos (MOV-01 a MOV-06) según los mockups, con el saldo de cada cuenta en dos decimales en los botones para elegirla (FMT-02, decisión 58); pruebas de componentes y Playwright: anotar y editar un gasto, transferir entre monedas, confirmar y saltar un fijo, sin señal y sesión vencida.
+- [ ] 4.3 Anotar y Movimientos (MOV-01 a MOV-06) según los mockups, con el saldo de cada cuenta en dos decimales en los botones para elegirla (FMT-02, decisión 63); pruebas de componentes y Playwright: anotar y editar un gasto, transferir entre monedas, confirmar y saltar un fijo, sin señal y sesión vencida.
 - [ ] 4.4 Ambiente de prueba (PUB-07): hostname y aplicación de Access (los crea Joaquín), contenedor y base aparte, carga de una copia migrada del respaldo; comprobar que `rumbo.jviscafe.com` no cambia y correr `deploy/aislamiento.sh`.
 - [ ] 4.5 Revisor Crisol en Opus que ensaya en el ambiente de prueba; CI en verde; sí de Joaquín para el merge.
 
 ## 5. Trabajo 079 · Pantallas II (Crisol)
 
 - [ ] 5.1 Desglose (DES-01 a DES-04) según los mockups; pruebas de componentes y Playwright a 375 px en claro y oscuro.
-- [ ] 5.2 Plan, detalle del préstamo y de la meta, categorías y topes (PAN-03, PAN-07 a PAN-09) según los mockups, con el saldo de cada cuenta en dos decimales y los totales sin decimales (FMT-02, CTA-01, decisión 58); Playwright: pagar una cuota y apartar para una meta.
+- [ ] 5.2 Plan, detalle del préstamo y de la meta, categorías y topes (PAN-03, PAN-07 a PAN-09) según los mockups, con el saldo de cada cuenta en dos decimales y los totales sin decimales (FMT-02, FMT-04, CTA-01, decisión 63); Playwright: pagar una cuota y apartar para una meta.
 - [ ] 5.3 Ajustes, color principal, empezar con mis datos, ejemplo, borrar todo y respaldo versión 2 que carga los de versión 1 (AJU, DAT-01, DAT-02, DAT-04, DAT-06); Playwright: empezar, descargar y cargar un respaldo, cargar uno de la v1.
 - [ ] 5.4 Lo que agreguen 072 y 073 a la v1, portado y probado igual que en la v1.
 - [ ] 5.5 Revisor Crisol en Opus que ensaya en el ambiente de prueba; CI en verde; sí de Joaquín para el merge; Joaquín prueba en su teléfono (máximo 2 pruebas).

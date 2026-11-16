@@ -137,7 +137,7 @@ diferir en un centavo por cada redondeo, que no cambia lo que se muestra.
 
 | ID | Regla | En centavos | Comparación con v1 |
 | --- | --- | --- | --- |
-| FMT-01, 02, 04 | «Bs 1.234,50», «US$ 1.234,50», decimales según dónde | `mostrar(c, 2)` y `mostrar(c, 0)` | Mismo texto, salvo el saldo de cada cuenta, que la v2 muestra con 2 decimales (decisión 58) |
+| FMT-01, 02, 04 | «Bs 1.234,50», «US$ 1.234,50», decimales según dónde | `mostrar(c, 2)` y `mostrar(c, 0)` | Mismo texto, salvo el saldo de cada cuenta, que la v2 muestra con 2 decimales (decisión 63) |
 | FMT-03 | Leer lo escrito | `leer` devuelve centavos o el error `mas-de-2-decimales` | Mismo valor × 100 |
 | FMT-05 | Dinero en centavos | Tipo `Centavos` en todo el dominio | — |
 | CTA-02 | Saldo = inicial + movimientos | Suma de enteros | Exacto |
