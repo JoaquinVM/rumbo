@@ -20,9 +20,6 @@
 !servidor/tsconfig*.json
 !servidor/src/
 !migracion/package.json
-!migracion/tsconfig.json
-!migracion/vite.config.ts
-!migracion/src/
 !e2e/package.json
 **/*.test.ts
 **/*.test.tsx

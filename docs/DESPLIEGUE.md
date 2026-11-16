@@ -148,36 +148,6 @@ Tiene que estar en los tres lados: si falta en uno, no entra.
 4. Si la persona venía del artifact: ella baja su respaldo en el artifact (Ajustes > Descargar respaldo) y lo carga en
    `rumbo.jviscafe.com` (Ajustes > Cargar respaldo), revisando los conteos antes de confirmar.
 
-## Ambiente de prueba de Rumbo 2
-
-Mientras se construye Rumbo 2 (PUB-07), `https://rumbo-prueba.jviscafe.com` sirve la rama del trabajo con una copia
-migrada de los datos. No cambia nada de `rumbo.jviscafe.com`: otro contenedor (`rumbo-prueba-prueba-1`, 256 MiB, sin
-root, del compose `rumbo-prueba`), otra base (`rumbo2_prueba`, con su propio rol, en el Postgres de Rumbo), otro
-hostname del túnel `apps` y otra aplicación de Access. Con él, los topes de Rumbo suman 1 GiB (PUB-02).
-
-| En el VPS | Qué es |
-| --- | --- |
-| `/opt/apps/rumbo-prueba/app` | Clon del repo en la rama del trabajo, con la misma deploy key |
-| `/opt/apps/rumbo-prueba/.env` | Clave de su base, `ACCESS_TEAM`, el *AUD* de su aplicación de Access y el correo (600, root) |
-
-Se arma una vez; cada paso lo corre Joaquín como root:
-
-1. **Cloudflare, Zero Trust > Access > Applications:** aplicación *self-hosted* `rumbo-prueba.jviscafe.com`, política
-   *Allow* solo con el correo de Joaquín, Google y código, sesión de 1 mes. Su *AUD* va en el `.env` de la prueba.
-2. **Cloudflare, Networks > Tunnels > `apps` > Public hostnames:** `rumbo-prueba.jviscafe.com` → `http://rumbo-prueba:8080`.
-   Va después de Access, para que el hostname nunca quede abierto.
-3. `git clone -b <rama> git@github-rumbo:JoaquinVM/rumbo.git /opt/apps/rumbo-prueba/app`
-4. `bash /opt/apps/rumbo-prueba/app/deploy/prueba/prueba.sh revisar` (solo lee: memoria y topes).
-5. `… prueba.sh base`, y completar `ACCESS_AUD` y `CORREOS_PERMITIDOS` en `/opt/apps/rumbo-prueba/.env`.
-6. `… prueba.sh levantar` (queda «unhealthy» hasta cargar la copia).
-7. `… prueba.sh cargar`: respaldo local nuevo, sus tablas de la v1 en `rumbo2_prueba`, paso a centavos solo de los
-   correos del ambiente y borrado de esas tablas. Dice cuántos documentos cargó, nunca montos.
-8. `/opt/apps/rumbo/app/deploy/aislamiento.sh`, que ahora cuenta también el contenedor de prueba.
-
-Con un arreglo en la rama: `… prueba.sh actualizar`. Para volver a copiar los datos: `… prueba.sh cargar`. En el corte
-(trabajo 080): `… prueba.sh apagar` borra el contenedor, la base, el rol y la carpeta; después se quitan el hostname y
-la aplicación de Access.
-
 ## Ensayo en la Mac
 
 Con Docker Desktop, sin tocar el VPS:

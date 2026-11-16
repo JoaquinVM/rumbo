@@ -11,12 +11,12 @@ El sistema SHALL correr en cada PR, además de las pruebas de hoy, pruebas de pu
 - **WHEN** un cambio hace que Lighthouse dé 82 de rendimiento en la pantalla Rumbo
 - **THEN** el CI queda en rojo y un tag sobre ese commit no se publica
 
-### Requirement: PUB-07 Ambiente de prueba y corte a Rumbo 2
-El sistema SHALL ofrecer, mientras se construye Rumbo 2, un ambiente de prueba en su propio hostname de `jviscafe.com`, detrás de Cloudflare Access con el mismo correo, con su propia base y una copia migrada de los datos (DAT-08), sin tocar la base ni la versión de `rumbo.jviscafe.com`. El corte SHALL hacerse con el sí de Joaquín: respaldo previo, migración y verificación de la base real, y despliegue de Rumbo 2 en `rumbo.jviscafe.com`. Si Rumbo 2 no queda sano o la verificación no cuadra, SHALL volver sola a la v1 con sus datos, como dice PUB-05. Al terminar el corte, el ambiente de prueba SHALL apagarse y su copia de los datos borrarse.
+### Requirement: PUB-07 Ensayo local y corte a Rumbo 2
+El sistema SHALL probarse entero antes del corte sin tocar producción: cada trabajo en el CI, y la migración en la Mac de Joaquín con una copia del último respaldo (DAT-08), sin mostrar montos ni subirlos a ningún lado. Mientras se construye, `rumbo.jviscafe.com` SHALL seguir siendo la v1. El corte SHALL hacerse con el sí de Joaquín: respaldo previo, migración y verificación de la base real, y despliegue de Rumbo 2 en `rumbo.jviscafe.com`. Si Rumbo 2 no queda sano o la verificación no cuadra, SHALL volver sola a la v1 con sus datos, como dice PUB-05.
 
 #### Scenario: Ensayo con una copia
-- **WHEN** Joaquín abre el ambiente de prueba y anota un gasto de Bs 50
-- **THEN** el gasto queda en la base de prueba y `rumbo.jviscafe.com` sigue sin ese gasto
+- **WHEN** se migra en la Mac de Joaquín una copia del último respaldo
+- **THEN** dice cuántos documentos hay y si la verificación cuadra, sin mostrar montos, y `rumbo.jviscafe.com` no cambia
 
 #### Scenario: Corte que no queda sano
 - **WHEN** en el corte Rumbo 2 no responde sano

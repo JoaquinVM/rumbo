@@ -51,8 +51,8 @@ crece entre dos y tres veces en código (lo midió Strata) y aquí cada trabajo 
 | Tokens | 120 a 200 M | 155 a 240 M | 250 a 350 M |
 | Riesgo | Alto: un PR de miles de líneas que el revisor no alcanza a ensayar en 2 vueltas; nada se usa hasta el final; si se corta la sesión, se pierde el hilo | Bajo a medio: cada PR se revisa entero; el dominio se compara con la v1 antes de dibujar una pantalla; la v1 sigue en producción hasta el corte | Medio a alto: v1 y v2 tocan los mismos datos a la vez, así que hay que pasar a centavos al principio y cambiar el dinero de la v1 para que los lea, o traducir en cada pantalla; dos interfaces conviviendo |
 | Tu tiempo | 1 sí de merge, 1 de corte; muchas pruebas al final | 6 sí de merge, 1 de corte, 2 pruebas en el teléfono | 10 o más sí de merge y de publicar |
-| Infraestructura | Igual | Igual + ambiente de prueba (256 MiB) mientras dure | Igual |
-| Cuándo ves algo | Al final | En el ambiente de prueba desde el trabajo 081 | Desde la primera pantalla |
+| Infraestructura | Igual | Igual | Igual |
+| Cuándo ves algo | Al final | En local desde el trabajo 081; en producción en el corte | Desde la primera pantalla |
 
 Costo de infraestructura en las tres: **0 USD**. El VPS, Cloudflare (túnel y Access hasta 50 personas), B2 (dentro de
 los 10 GB gratis) y healthchecks.io no cambian. El repo es privado: GitHub da 2.000 minutos de Actions al mes; hoy se
@@ -75,7 +75,7 @@ Van uno tras otro: cada uno usa lo del anterior, y Foundry permite un solo Criso
 | 075 | Base del proyecto: monorepo, capas, CI con Playwright y Lighthouse sobre una página vacía | Chispa | Cambia cómo se prueba y publica, no el dinero ni los datos | 1 | 10–15 M |
 | 076 | Dominio en centavos: todas las reglas, sus pruebas y la comparación con la v1 | **Crisol** | Dinero | 2 | 35–50 M |
 | 077 | Contratos y servidor en TypeScript con validación compartida | **Crisol** | Datos guardados y permisos | 1 | 20–30 M |
-| 078 | Pantallas I: Rumbo, Hoy, Por confirmar, anotar y Movimientos; ambiente de prueba | **Crisol** | Pantallas críticas (Hoy, anotar) | 2 | 35–55 M |
+| 078 | Pantallas I: Rumbo, Hoy, Por confirmar, anotar y Movimientos (fue el 081, sin ambiente de prueba: decisión 69) | **Crisol** | Pantallas críticas (Hoy, anotar) | 2 | 35–55 M |
 | 079 | Pantallas II: Desglose, Plan, deudas, metas, categorías, Ajustes, empezar y respaldo | **Crisol** | Pantallas de dinero y respaldo | 2 | 35–55 M |
 | 080 | Migración a centavos y corte en `rumbo.jviscafe.com` | **Crisol** | Migración de datos | 1 + publicar | 20–35 M |
 
@@ -220,11 +220,8 @@ servidor), saca un respaldo previo, levanta y vuelve atrás si no queda sana.
 
 - Hasta el corte, `rumbo.jviscafe.com` es la v1 y recibe solo arreglos. Lo nuevo que se agregue a la v1 se porta a la
   v2 en el trabajo de su pantalla.
-- Desde el trabajo 081, un ambiente de prueba en `rumbo-prueba.jviscafe.com` (otro hostname del mismo túnel y otra
-  aplicación de Access con el mismo correo), con su propio contenedor de 256 MiB y su propia base (`rumbo2_prueba`, con
-  su propio rol) en el mismo Postgres, cargada con una copia migrada del último respaldo, solo de los correos de ese
-  ambiente (decisión 69). Con él, los contenedores de las apps suman 1 GiB, el tope de
-  PUB-02. Se apaga y se borra al terminar el corte.
+- Sin ambiente de prueba en el VPS (decisión 69): cada trabajo se prueba en local y en el CI, la migración se ensaya
+  en la Mac de Joaquín con una copia del último respaldo, y el corte tiene vuelta atrás.
 - El corte (trabajo 080) es una sesión de publicar: respaldo, migración y verificación de la base real, tag de la v2.
 
 ## Risks / Trade-offs
@@ -254,8 +251,8 @@ Lo corre el trabajo 080, con Joaquín corriendo como root cada comando que lo pi
    local y correr `migracion` en modo «solo revisar». Dice cuántos documentos hay por colección, si alguno tiene montos
    con más de 2 decimales o que no son números, y si la verificación cuadra. No muestra montos ni los sube a ningún
    lado: los datos son de Joaquín.
-2. **Ambiente de prueba:** cargar esa copia migrada en `rumbo-prueba.jviscafe.com`. Joaquín lo usa unos días y lo
-   compara con la v1 (máximo 2 pruebas en el teléfono).
+2. **Ensayo de Rumbo 2 con esa copia, en la Mac:** el servidor de la v2 con la copia migrada, para que Joaquín lo
+   compare con la v1 antes del corte (máximo 2 pruebas).
 3. **Corte, con su sí:**
    1. Respaldo previo con `deploy/backup.sh` y comprobación con `restore.sh --check`.
    2. `migracion --aplicar`: en una sola transacción lee `principal` y `docs`, convierte, escribe `v2_principal` y
@@ -263,8 +260,7 @@ Lo corre el trabajo 080, con Joaquín corriendo como root cada comando que lo pi
       cuadra, la transacción se deshace y no queda nada escrito.
    3. Tag `v2.0.0`: el CI mueve `production` y el VPS despliega la v2. Si no queda sana, vuelve a la v1, que sigue
       leyendo sus tablas intactas.
-   4. Comprobar en `rumbo.jviscafe.com` que los saldos, el patrimonio y el libre son los de la v1, y apagar el ambiente
-      de prueba.
+   4. Comprobar en `rumbo.jviscafe.com` que los saldos, el patrimonio y el libre son los de la v1.
 4. **Vuelta atrás después del corte:** `migracion --volver` escribe en las tablas de la v1 lo que hay en las de la v2
    pasado a decimales (con un respaldo `pre-volver` antes) y se publica el último tag de la v1. Lo anotado en la v2 se
    conserva.

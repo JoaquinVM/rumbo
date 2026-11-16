@@ -182,13 +182,11 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     Como la presentación solo conoce los contratos, `presentacion/modelos/formato.ts` copia el `mostrar` del dominio, y
     una prueba compara los dos en 20.000 montos. Lo que todavía no se construye (Desglose, Plan, Ajustes, metas y
     empezar con mis datos, grupo 5) muestra «llega pronto» en Rumbo 2, sin tocar los datos.
-69. (C) 16/11/2026, trabajo 081: el ambiente de prueba es `rumbo-prueba.jviscafe.com`, el compose `rumbo-prueba`
-    (`deploy/prueba/`), con su base `rumbo2_prueba` y su propio rol en el Postgres de Rumbo. No se llama
-    `rumbo_prueba` porque `restore.sh --check` crea y borra esa base cada domingo. El rol no puede leer la base `rumbo`
-    (`prueba.sh base` lo comprueba). La copia sale de un respaldo local nuevo, se restauran solo las tablas de la v1 en
-    `rumbo2_prueba`, se convierte y se comprueba (montos exactos, ida y vuelta a decimales y contratos) solo para los
-    correos de `CORREOS_PERMITIDOS` del ambiente, y después se borran esas tablas: los datos de otra persona no quedan
-    ahí. La carga dice cuántos documentos hay, nunca montos. La verificación completa con los dos motores es del 080.
+69. (J) 16/11/2026, trabajo 081: no se monta el ambiente de prueba en el VPS que pedía PUB-07 («mejor haz todo,
+    pruébalo en local y luego pásalo a producción, y si algo falla se hace rollback»). Cada trabajo de Rumbo 2 se
+    prueba en local y en el CI; la migración se ensaya en la Mac de Joaquín con una copia del último respaldo, sin
+    mostrar montos; y el corte (080) publica con respaldo previo y vuelta atrás sola si no queda sano (PUB-05).
+    Producción sigue siendo la v1 hasta ese corte.
 70. (C) 16/11/2026, trabajo 081: el e2e y Lighthouse usan ya el servidor de la v2 (`servidor/dist`), con un Access de
     mentira que da a cada prueba su propia persona; Lighthouse entra sin token (`E2E_ACCESS_ABIERTO=1`, solo en esa
     corrida) porque no puede mandar una cabecera solo al servidor y no a Google Fonts. Las fuentes se cargan sin frenar

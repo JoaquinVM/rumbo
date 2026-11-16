@@ -39,8 +39,9 @@ fácil romper una vieja sin notarlo. Este cambio **solo define** Rumbo 2: no con
   claro y oscuro) y Lighthouse, todas en el CI de cada PR.
 - **CI/CD:** se mantiene igual (pruebas en cada PR; un tag `vX.Y.Z` en `main` mueve `production` y el VPS despliega
   con respaldo previo y vuelta atrás) y se le suman Playwright y Lighthouse como condición para publicar.
-- **Convivencia con la v1:** la v1 sigue en `rumbo.jviscafe.com` mientras se construye. Rumbo 2 se ensaya en un
-  ambiente de prueba con una copia migrada de los datos y reemplaza a la v1 en un corte con su sí.
+- **Convivencia con la v1:** la v1 sigue en `rumbo.jviscafe.com` mientras se construye. Rumbo 2 se prueba en local,
+  la migración con una copia de los datos en la Mac de Joaquín, y reemplaza a la v1 en un corte con su sí y con vuelta
+  atrás (decisión 69).
 - **Opciones y costo** de cómo construirlo (de una vez, por etapas o pantalla por pantalla) están en `design.md`, con
   una recomendación: **por etapas**, en 6 trabajos.
 
@@ -58,7 +59,7 @@ existen.
 - `cuentas`: CTA-01, su escenario muestra el saldo con dos decimales (decisión 63).
 - `datos`: DAT-04 respaldo en versión 2 que sigue cargando los de versión 1; nuevos DAT-08 (migración a centavos) y
   DAT-09 (validación compartida en página y servidor).
-- `publicacion`: nuevos PUB-06 (Playwright y Lighthouse antes de publicar) y PUB-07 (ambiente de prueba y corte de la
+- `publicacion`: nuevos PUB-06 (Playwright y Lighthouse antes de publicar) y PUB-07 (ensayo local y corte de la
   v1 a Rumbo 2).
 - `movimientos`: nuevo MOV-07, ver los movimientos de una categoría con su total, igual al del Desglose.
 - `desglose`: nuevo DES-05, tocar una categoría abre sus movimientos del mes.
@@ -72,8 +73,7 @@ existen.
 - **Dependencias:** hoy hay una (`pg`). Rumbo 2 suma React, Zod y las herramientas de desarrollo (Vite, TypeScript,
   Vitest, Testing Library, Playwright, Lighthouse CI, dependency-cruiser). Rompe la regla «sin compilación ni
   librerías» de `CLAUDE.md` y `openspec/config.yaml`: al aprobar este cambio, esa regla se reemplaza.
-- **Infraestructura:** mismo VPS, mismo túnel, mismo Access, mismo B2; un hostname de prueba más y un contenedor de
-  256 MiB mientras dure el ensayo. Sin costo nuevo.
+- **Infraestructura:** mismo VPS, mismo túnel, mismo Access, mismo B2. Sin costo nuevo.
 - **Docs:** `CLAUDE.md`, `openspec/config.yaml`, `docs/DOMINIO.md`, `docs/DECISIONES.md`, `docs/DESPLIEGUE.md`; en
   Foundry, la ficha de Rumbo.
 - **Trabajos en curso:** 072 (entrar con Google) y 073 (PWA) cambian la v1 ahora; Rumbo 2 los porta y no empieza a

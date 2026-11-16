@@ -15,12 +15,11 @@ COPY servidor/package.json servidor/
 COPY migracion/package.json migracion/
 COPY e2e/package.json e2e/
 RUN npm ci --no-audit --no-fund --include-workspace-root \
-      -w @rumbo/dominio -w @rumbo/contratos -w @rumbo/app -w rumbo-servidor -w @rumbo/migracion
+      -w @rumbo/dominio -w @rumbo/contratos -w @rumbo/app -w rumbo-servidor
 COPY paquetes paquetes
 COPY app app
 COPY servidor servidor
-COPY migracion migracion
-RUN npm run construir && npm run construir-servidor && npm run construir -w @rumbo/migracion
+RUN npm run construir && npm run construir-servidor
 
 # 2 · Only what the server needs to run: pg and zod
 FROM node:24.21.0-alpine3.24 AS dependencias
@@ -43,8 +42,6 @@ COPY --from=construir /src/paquetes/contratos/dist paquetes/contratos/dist
 COPY servidor/package.json servidor/
 COPY --from=construir /src/servidor/dist servidor/dist
 COPY --from=construir /src/app/dist app/dist
-# The loader of the test environment's copy (PUB-07): run by hand, never by the server
-COPY --from=construir /src/migracion/dist migracion/dist
 ENV NODE_ENV=production PORT=8080
 USER node
 EXPOSE 8080
