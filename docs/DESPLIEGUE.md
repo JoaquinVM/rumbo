@@ -123,23 +123,29 @@ Cada comando de root lo corre Joaquín, uno por uno.
 ## Entrar con Google
 
 1. **Google Cloud** (console.cloud.google.com): en un proyecto propio, configurar la pantalla de consentimiento
-   (externa, en producción) y crear un cliente OAuth de tipo *Aplicación web* con la redirección
+   (externa) y crear un cliente OAuth de tipo *Aplicación web* con la redirección
    `https://empty-truth-cd43.cloudflareaccess.com/cdn-cgi/access/callback`.
-2. **Zero Trust > Settings > Authentication > Login methods:** agregar Google con el *Client ID* y el *Client secret* de
-   ese cliente y probarlo con *Test*.
-3. **Access > Applications > Rumbo > Login methods:** dejar marcados Google y *One-time PIN*.
+2. **Zero Trust > Integrations > Identity providers:** agregar Google con el *Client ID* y el *Client secret* de ese
+   cliente y probarlo con *Test*. El secreto se guarda en el gestor de contraseñas.
+3. **Access > Applications > Rumbo > Authentication:** con *Accept all available identity providers* entran Google y
+   el código; *Instant Auth* apagado, para que se pueda elegir.
+
+La app de Google («Rumbo Access») queda en modo *Prueba*: solo entran las cuentas que estén en *Público > Usuarios de
+prueba*. Cada correo nuevo se agrega también ahí.
 
 El correo de Google es el mismo con el que se entra con código, así que se ven los mismos datos.
 
 ## Sumar o quitar un correo
 
-Tiene que estar en los dos lados: si falta en uno, no entra.
+Tiene que estar en los tres lados: si falta en uno, no entra.
 
-1. **Access > Applications > Rumbo > Policies:** agregar el correo a la política *Allow*.
-2. **En el VPS**, como root: agregarlo a `CORREOS_PERMITIDOS` en `/opt/apps/rumbo/.env` (separados por comas) y recrear
+1. **Google Cloud**, proyecto «Rumbo Access» > *Público > Usuarios de prueba*: agregar el correo (solo para entrar con
+   Google).
+2. **Access > Applications > Rumbo > Policies:** agregar el correo a la política *Allow*.
+3. **En el VPS**, como root: agregarlo a `CORREOS_PERMITIDOS` en `/opt/apps/rumbo/.env` (separados por comas) y recrear
    solo el contenedor de la app, que no toca la base ni Akhana:
    `docker compose -p rumbo -f /opt/apps/rumbo/app/deploy/docker-compose.yml --env-file /opt/apps/rumbo/.env up -d --no-build app`.
-3. Si la persona venía del artifact: ella baja su respaldo en el artifact (Ajustes > Descargar respaldo) y lo carga en
+4. Si la persona venía del artifact: ella baja su respaldo en el artifact (Ajustes > Descargar respaldo) y lo carga en
    `rumbo.jviscafe.com` (Ajustes > Cargar respaldo), revisando los conteos antes de confirmar.
 
 ## Ensayo en la Mac

@@ -98,6 +98,34 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
 49. (J) 14/11/2026, trabajo 068: los respaldos de las apps van en un bucket propio de B2 (`jviscafe-apps-respaldos`),
     no en una carpeta del bucket de Akhana: así nunca aparecen en los listados de los scripts de Akhana. La clave
     `rumbo-vps` solo ve ese bucket y la carpeta `rumbo/`. Sigue siendo gratis: los 10 GB gratis de B2 son por cuenta.
-50. (J) 14/11/2026, trabajo 072: se entra a Rumbo con Google, y el código por correo se queda por si Google falla. Entra
+50. (J) 14/11/2026, trabajo 074: Rumbo 2 se construye por etapas (opción B del cambio `rumbo-2-reescritura`), en los
+    trabajos 075 a 080: base y CI, dominio en centavos, servidor, pantallas en dos partes, y migración con corte. La
+    v1 sigue en producción hasta el corte. Un monto con más de 2 decimales no se guarda (FMT-03).
+51. (J) 14/11/2026, trabajo 073: Rumbo se puede agregar a la pantalla de inicio del teléfono con el nombre «Rumbo», la
+    brújula blanca sobre azul como ícono (fija, no sigue el color de Ajustes) y el fondo de la app como color de tema y
+    de pantalla de inicio. No lleva service worker: se sigue usando con internet (decisión 48).
+52. (J) 14/11/2026, trabajo 075: la base de Rumbo 2 (grupo 1) empieza ya, sin esperar a que 072 se mergee (073
+    entró mientras se construía). Los trabajos 076 en adelante siguen esperando a 072. Para no chocar con él, 075 no
+    toca `index.html` de la raíz ni `servidor/*.mjs`.
+53. (C) 14/11/2026, trabajo 075: la v1 congelada en `pruebas/v1/` es una copia de v1.0.0 (`index.html` y
+    `verificar.mjs`), no un traslado: producción sigue sirviendo el `index.html` de la raíz con `servidor/*.mjs` y la
+    imagen no cambia hasta el corte (080), y 072 sigue trabajando sobre esos archivos. `pruebas/v1/motor.mjs`
+    carga su motor en Node para compararlo con la v2.
+54. (C) 14/11/2026, trabajo 075: un solo `package-lock.json` en la raíz para los seis workspaces, generado con npm 11.
+    `servidor/` es workspace pero conserva su propio `package.json` y `package-lock.json` sin cambios, porque la
+    imagen de Docker instala desde ellos; el servidor en TypeScript (077) decide cómo se construye la imagen.
+    Versiones exactas: además de las del cambio, Zod 4.6.7, `@vitejs/plugin-react` 5.2.0 (como Strata), Playwright
+    1.64.0, Lighthouse CI 0.15.1 y los tipos de Node 24 y React 18.
+55. (C) 14/11/2026, trabajo 075: el e2e y Lighthouse corren contra `e2e/servidor-prueba.mjs`, un punto de entrada
+    solo de pruebas que usa el servidor de la v1 (`crearServidor`) con su base Postgres y un Access de mentira que
+    deja pasar un token fijo, y sirve la página de la v2 (`app/dist`) comprimida, como Cloudflare. La imagen no lo
+    copia (`.dockerignore` solo deja pasar la página de la v1, su manifiesto, sus íconos y `servidor/`). Lighthouse mide la mediana de 3 corridas en
+    su modo teléfono (pantalla de teléfono y 4G lento simulado).
+56. (C) 14/11/2026, trabajo 075: la regla de capas es la de Strata sobre las carpetas del monorepo: dominio y
+    contratos no importan nada nuestro (contratos solo usa Zod), aplicación solo dominio y contratos,
+    infraestructura además aplicación, presentación solo contratos, el servidor solo contratos y dominio, la
+    migración además la v1 congelada, y nadie importa la composición.
+57. (J) 16/11/2026, trabajo 072: se entra a Rumbo con Google, y el código por correo se queda por si Google falla. Entra
     también la otra persona que usaba el artifact, con sus propios datos. Un correo nuevo va en la política de Access y
-    en `CORREOS_PERMITIDOS`; el servidor no cambia porque ya separa los datos por correo.
+    en `CORREOS_PERMITIDOS`; el servidor no cambia porque ya separa los datos por correo. La app de Google queda en
+    modo «Prueba»: para dos personas basta con agregarlas como usuarios de prueba, sin la verificación de Google.

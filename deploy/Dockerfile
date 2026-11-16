@@ -4,7 +4,8 @@ WORKDIR /app
 COPY servidor/package.json servidor/package-lock.json servidor/
 RUN cd servidor && npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 COPY servidor/*.mjs servidor/esquema.sql servidor/
-COPY index.html ./
+COPY index.html manifest.webmanifest ./
+COPY iconos/*.png iconos/
 ENV NODE_ENV=production PORT=8080
 USER node
 EXPOSE 8080

@@ -1,0 +1,7 @@
+{
+  "name": "@rumbo/dominio",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "tipos": "tsc --noEmit -p ." }
+}

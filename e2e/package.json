@@ -1,0 +1,15 @@
+{
+  "name": "@rumbo/e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "tipos": "tsc --noEmit -p .",
+    "servidor": "node servidor-prueba.mjs",
+    "e2e": "playwright test",
+    "lighthouse": "lhci autorun --config=lighthouserc.cjs"
+  },
+  "devDependencies": {
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.64.0"
+  }
+}
