@@ -13,17 +13,17 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 1.4 `verificar.yml` con los trabajos `tipos`, `unitarias`, `servidor`, `e2e` (Playwright en Chromium y WebKit a 375 px, claro y oscuro, contra un servidor con Postgres y Access de mentira) y `lighthouse` (mínimos de PUB-06), sobre una página vacía de la v2; `production` exige los cinco. Verificado con un PR en verde y otro, de prueba, en rojo por Lighthouse.
 - [x] 1.5 Actualizar `CLAUDE.md`, `openspec/config.yaml` (stack y reglas de pruebas y de publicar) y `docs/DECISIONES.md` con lo que aprobó Joaquín.
 
-## 2. Trabajo 076 · Dominio en centavos (Crisol)
+## 2. Trabajo 077 · Dominio en centavos (Crisol)
 
-- [ ] 2.1 Documento Crisol `trabajos/076-…md` en Foundry con el pedido, cada regla del inventario de `design.md` y su prueba.
-- [ ] 2.2 Módulo de dinero: `Centavos`, `Monto`, `leer`, `mostrar`, `porTasa`, `aBs`, `repartir`, con pruebas FMT-01 a FMT-05 (incluido «Usa hasta 2 decimales» y «12,345» como miles).
-- [ ] 2.3 Cuentas, tipo de cambio y patrimonio: pruebas CTA-02 a CTA-08 y AJU-04 con los números de sus escenarios en centavos.
-- [ ] 2.4 Deudas: amortización, pagos, cobros, préstamos, cuota saltada, cierre, gasto que te deben y devolverlo; pruebas DEU-01 a DEU-12.
-- [ ] 2.5 Fijos y ocurrencias, Hoy y metas; pruebas FIJ-01 a FIJ-07, HOY-01 a HOY-05 y MET-01 a MET-05.
-- [ ] 2.6 Movimientos, topes, Desglose e indicadores; pruebas MOV-02 a MOV-06, LIM-03, LIM-04, DES-01 a DES-04 e IND-01 a IND-04.
-- [ ] 2.7 Ritmo, proyección y «¿Y si…?»; pruebas AJU-01, PRO-01 a PRO-08.
-- [ ] 2.8 Función de conversión v1 → centavos y vuelta (DAT-08), con pruebas: los 12 campos, la tasa de una deuda intacta, rechazo de más de 2 decimales y ida y vuelta exacta.
-- [ ] 2.9 Comparación con la v1: generador de estados con semilla y comparación con las tolerancias de `design.md`; corre en `unitarias` y falla si una regla cambia.
+- [x] 2.1 Documento Crisol `trabajos/077-rumbo-2-dominio.md` en Foundry con el pedido, cada regla del inventario de `design.md` y su prueba.
+- [x] 2.2 Módulo de dinero: `Centavos`, `Monto`, `leer`, `mostrar`, `porTasa`, `aBs`, `repartir`, con pruebas FMT-01 a FMT-05 (incluido «Usa hasta 2 decimales» y «12,345» como miles).
+- [x] 2.3 Cuentas, tipo de cambio y patrimonio: pruebas CTA-02 a CTA-08 y AJU-04 con los números de sus escenarios en centavos.
+- [x] 2.4 Deudas: amortización, pagos, cobros, préstamos, cuota saltada, cierre, gasto que te deben y devolverlo; pruebas DEU-01 a DEU-12.
+- [x] 2.5 Fijos y ocurrencias, Hoy y metas; pruebas FIJ-01 a FIJ-07, HOY-01 a HOY-05 y MET-01 a MET-05.
+- [x] 2.6 Movimientos, topes, Desglose e indicadores; pruebas MOV-02 a MOV-06, LIM-03, LIM-04, DES-01 a DES-04 e IND-01 a IND-04.
+- [x] 2.7 Ritmo, proyección y «¿Y si…?»; pruebas AJU-01, PRO-01 a PRO-08.
+- [x] 2.8 Función de conversión v1 → centavos y vuelta (DAT-08), con pruebas: los 12 campos, la tasa de una deuda intacta, rechazo de más de 2 decimales y ida y vuelta exacta.
+- [x] 2.9 Comparación con la v1: generador de estados con semilla y comparación con las tolerancias de `design.md`; corre en `unitarias` y falla si una regla cambia.
 - [ ] 2.10 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 
 ## 3. Trabajo 077 · Contratos y servidor en TypeScript (Crisol)
