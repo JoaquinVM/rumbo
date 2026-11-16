@@ -24,7 +24,14 @@ const soloPuede = (nombre, desde, permitidas) => ({
 module.exports = {
   forbidden: [
     soloPuede('dominio-aislado', 'dominio', []),
-    soloPuede('contratos-aislados', 'contratos', []),
+    soloPuede('contratos-aislados', 'contratos', ['dominio']),
+    {
+      name: 'contratos-solo-tipos-del-dominio',
+      comment: 'Contratos usa del dominio solo tipos (Centavos), así el servidor no carga el dominio',
+      severity: 'error',
+      from: { path: zonas.contratos },
+      to: { path: zonas.dominio, dependencyTypesNot: ['type-only'] },
+    },
     soloPuede('aplicacion-hacia-adentro', 'aplicacion', ['dominio', 'contratos']),
     soloPuede('infraestructura-hacia-adentro', 'infraestructura', ['aplicacion', 'dominio', 'contratos']),
     soloPuede('presentacion-solo-contratos', 'presentacion', ['contratos']),
@@ -64,7 +71,7 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: '\\.test\\.tsx?$' },
+    exclude: { path: ['\\.test\\.tsx?$', '/dist/'] },
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.json' },
     enhancedResolveOptions: {

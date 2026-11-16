@@ -35,7 +35,7 @@ const conArchivos = (archivos: Record<string, string>, origen: string) => {
 
 describe('Capas verificadas', () => {
   it('el código de hoy cumple la regla', () => {
-    expect(correr('paquetes', 'app/src', 'migracion/src')).toEqual({ falla: false, salida: '' });
+    expect(correr('paquetes', 'app/src', 'servidor/src', 'migracion/src')).toEqual({ falla: false, salida: '' });
   });
 
   it('falla y nombra el archivo cuando la presentación importa el dominio', () => {
@@ -68,5 +68,21 @@ describe('Capas verificadas', () => {
     const r = conArchivos({ [origen]: "import '../composicion/main';\n" }, origen);
     expect(r.falla).toBe(true);
     expect(r.salida).toContain('nadie-importa-composicion');
+  });
+
+  it('falla cuando los contratos usan algo del dominio que no es un tipo', () => {
+    const origen = 'paquetes/contratos/src/__prueba_temporal.ts';
+    const r = conArchivos({ [origen]: "import { centavos } from '@rumbo/dominio';\nexport const c = centavos(1);\n" }, origen);
+    expect(r.falla).toBe(true);
+    expect(r.salida).toContain('contratos-solo-tipos-del-dominio');
+    const tipo = conArchivos({ [origen]: "import type { Centavos } from '@rumbo/dominio';\nexport type C = Centavos;\n" }, origen);
+    expect(tipo).toEqual({ falla: false, salida: '' });
+  });
+
+  it('falla cuando el servidor importa la app', () => {
+    const origen = 'servidor/src/__prueba_temporal.ts';
+    const r = conArchivos({ [origen]: "import '../../app/src/composicion/main';\n" }, origen);
+    expect(r.falla).toBe(true);
+    expect(r.salida).toContain('servidor-solo-contratos-y-dominio');
   });
 });

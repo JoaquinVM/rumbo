@@ -2,7 +2,7 @@
   "name": "@rumbo/contratos",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
+  "exports": { ".": { "rumbo-compilado": "./dist/index.js", "default": "./src/index.ts" } },
   "scripts": { "tipos": "tsc --noEmit -p ." },
-  "dependencies": { "zod": "4.6.7" }
+  "dependencies": { "@rumbo/dominio": "*", "zod": "4.6.7" }
 }

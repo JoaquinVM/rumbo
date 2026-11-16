@@ -156,3 +156,20 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     el mismo del Desglose: en Intereses cada cuota suma solo su interés, y lo que un gasto pasó a préstamo no aparece.
     Se combina con el filtro de cuenta y se mantiene al cambiar de mes. Joaquín lo vio en un prototipo local con los
     datos de ejemplo antes de aprobarlo (MOV-07, DES-05).
+65. (C) 16/11/2026, trabajo 079: los contratos (`paquetes/contratos`) validan cada documento con Zod y dicen el problema
+    con un código (`monto-no-entero`, `falta-categoria`, `falta-campo`, `tipo-desconocido`, `fecha-invalida`…) y el
+    campo; la página elige las palabras. Los montos son los `Centavos` del dominio: los contratos usan del dominio solo
+    ese tipo (la regla de capas lo comprueba), así el servidor no carga el dominio. Cada tipo pide sus campos (gasto e
+    ingreso, cuenta y categoría; transferencia, las dos cuentas; pago, cobro, préstamo y recibido, cuenta y deuda;
+    interés sin pagar y cierre, la deuda; un préstamo, su tasa, cuota y día), como los guarda la v1: una prueba pasa
+    por el contrato el ejemplo y 400 estados al azar de la v1 convertidos a centavos. Los campos desconocidos pasan y se
+    guardan tal cual (DAT-05).
+66. (C) 16/11/2026, trabajo 079: el servidor de Rumbo 2 vive en `servidor/src` (TypeScript, se compila con `tsc -b`) y
+    no cambia nada de la v1: `servidor/*.mjs`, `servidor/package.json`, `esquema.sql`, `deploy/Dockerfile`, el compose
+    y `deploy/deploy.sh` quedan iguales, y producción sigue sirviendo la v1. Sus tablas (`v2_principal`, `v2_docs`,
+    `v2_migracion`) las crea el propio servidor de la v2 al arrancar, solo agregando. Su imagen es `deploy/Dockerfile.v2`,
+    de tres etapas, con su propio `.dockerignore` que deja fuera `e2e/`; el CI la construye y comprueba con
+    `pruebas/imagen-v2.sh` que corre como `node`, no tiene el Access de mentira y no está sana sin la migración. El
+    paquete de contratos compilado se elige al correr con `node --conditions=rumbo-compilado`; en el resto del
+    proyecto se usa su código TypeScript. El e2e sigue usando el servidor de la v1 hasta que las pantallas usen
+    `/api/v2`.
