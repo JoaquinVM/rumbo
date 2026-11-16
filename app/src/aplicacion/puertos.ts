@@ -1,5 +1,5 @@
 // Layer 2 · Application: what the use cases need from outside, as ports. The infrastructure implements them.
-import type { Datos, EstadoGuardado, OrigenDatos } from '@rumbo/contratos';
+import type { CodigoError, Datos, EstadoGuardado, OrigenDatos } from '@rumbo/contratos';
 import type { Ajustes, Dia } from '@rumbo/dominio';
 
 export type Coleccion = 'cuentas' | 'categorias' | 'movs' | 'fijos' | 'ocurrencias' | 'deudas' | 'metas' | 'apartados';
@@ -31,3 +31,7 @@ export interface Preferencias {
   ultimaCuenta(): string | null;
   recordarCuenta(id: string): void;
 }
+
+// DAT-09: the shared contracts' check of a document. The composition loads it after the first screen is drawn (it
+// carries Zod); until it arrives nothing is written.
+export type Validador = (col: Coleccion, doc: unknown) => { ok: true } | { ok: false; codigo: CodigoError };

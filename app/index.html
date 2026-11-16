@@ -7,6 +7,8 @@
     <meta name="rumbo-api" content="/api/v2">
     <link rel="icon" href="data:,">
     <title>Rumbo</title>
+    <!-- The data are asked for while the code loads; almacen-servidor.ts takes this first answer -->
+    <script>window.__rumboDatos = fetch('/api/v2/datos', { cache: 'no-store', credentials: 'same-origin', redirect: 'manual' });</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- The fonts do not hold the first paint back (PUB-06): the page shows with the system font and swaps when they arrive -->

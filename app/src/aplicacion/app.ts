@@ -2,16 +2,16 @@
 // fijo, devolver al gasto) and the queries the screens read. It keeps the person's state in memory, like the v1: every
 // change is applied here first and then handed to the store, which saves it in order (DAT-07). The example is never
 // saved (DAT-01). Every document is checked with the shared contracts before it is queued (DAT-09).
-import {
-  validarDocumento, type Anotado, type App, type BorradorMovimiento, type CodigoError, type Datos, type DetalleMovimiento, type ErrorAnotar,
-  type ErrorFijo, type EstadoApp, type FormularioMovimiento, type ResultadoApp,
+import type {
+  Anotado, App, BorradorMovimiento, CodigoError, Datos, DetalleMovimiento, ErrorAnotar,
+  ErrorFijo, EstadoApp, FormularioMovimiento, ResultadoApp,
 } from '@rumbo/contratos';
 import {
   activos, ajustesBase, avisoTope, categoriasPorUso, confirmarFijo, conTipoDeCambio, cuentaDe, cuentasAbiertasDespues,
   devolverAlGasto, deudaDe, ejemplo, leer, monedaDe, monedaMov, mostrarNumero, notasSugeridas, saldoCuenta, saltarFijo,
   tipoDeCambioDe, tipoDeCambioParaGuardar, COLECCIONES, type Centavos, type Estado, type Movimiento,
 } from '@rumbo/dominio';
-import type { Almacen, Coleccion, Ids, Preferencias, Reloj } from './puertos';
+import type { Almacen, Coleccion, Ids, Preferencias, Reloj, Validador } from './puertos';
 import { categoriaDe, vistaCategoria, vistaMovimientos, vistaRumbo } from './vistas';
 
 type Escritura = { col: Coleccion; doc: { id: string } } | { col: Coleccion; borrar: string };
@@ -29,8 +29,8 @@ function montoEscrito(texto: string): ResultadoApp<Centavos, 'falta-monto' | 'ma
 // How an amount is shown to be edited: «1.500» or «12,50», like the v1.
 const textoMonto = (c: number | undefined): string => (c ? mostrarNumero(c, c % 100 ? 2 : 0) : '');
 
-export function crearApp({ almacen, reloj, ids, preferencias }: {
-  almacen: Almacen; reloj: Reloj; ids: Ids; preferencias: Preferencias;
+export function crearApp({ almacen, reloj, ids, preferencias, validar }: {
+  almacen: Almacen; reloj: Reloj; ids: Ids; preferencias: Preferencias; validar: () => Validador | null;
 }): App {
   let S: Estado = { aj: ajustesBase(), cuentas: [], categorias: [], movs: [], fijos: [], ocurrencias: [], deudas: [], metas: [], apartados: [] };
   let esEjemplo = true, cargado = false, delEjemplo: Estado | null = null;
@@ -58,7 +58,9 @@ export function crearApp({ almacen, reloj, ids, preferencias }: {
   almacen.iniciar({ alCargar, todo });
 
   // All the writes of a use case are checked first; if one fails, nothing changes.
-  function aplicar(cambios: Escritura[]): ResultadoApp<null, CodigoError> {
+  function aplicar(cambios: Escritura[]): ResultadoApp<null, CodigoError | 'cargando'> {
+    const validarDocumento = validar();
+    if (!validarDocumento) return no('cargando');
     for (const e of cambios) {
       if ('doc' in e) {
         const v = validarDocumento(e.col, e.doc);

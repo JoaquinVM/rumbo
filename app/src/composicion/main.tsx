@@ -4,7 +4,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { crearApp } from '../aplicacion/app';
-import type { Almacen } from '../aplicacion/puertos';
+import type { Almacen, Validador } from '../aplicacion/puertos';
 import { almacenArtifact, type BaseArtifact } from '../infraestructura/almacen-artifact';
 import { almacenNavegador } from '../infraestructura/almacen-navegador';
 import { almacenServidor } from '../infraestructura/almacen-servidor';
@@ -33,7 +33,18 @@ async function elegirAlmacen(): Promise<Almacen> {
 
 const raiz = document.getElementById('raiz');
 if (!raiz) throw new Error('Falta el elemento #raiz');
-const app = crearApp({ almacen: await elegirAlmacen(), reloj: relojDelSistema, ids: idsAlAzar, preferencias: preferenciasDelNavegador() });
+// The shared contracts (DAT-09) carry Zod: they load next to the first screen, not before it, and until they arrive
+// nothing is written. If the signal drops right then, they are asked for again when it comes back.
+let validar: Validador | null = null;
+function cargarContratos(): void {
+  if (validar) return;
+  import('@rumbo/contratos').then((c) => { validar = c.validarDocumento; }, () => setTimeout(cargarContratos, 3000));
+}
+cargarContratos();
+addEventListener('online', cargarContratos);
+const app = crearApp({
+  almacen: await elegirAlmacen(), reloj: relojDelSistema, ids: idsAlAzar, preferencias: preferenciasDelNavegador(), validar: () => validar,
+});
 createRoot(raiz).render(
   <StrictMode>
     <Inicio app={app} />

@@ -181,6 +181,7 @@ export interface FormularioMovimiento {
 
 export type ErrorAnotar =
   | 'falta-monto' | 'mas-de-2-decimales' | 'misma-cuenta' | 'falta-monto-destino' | 'falta-categoria' | 'falta-cuenta'
+  | 'cargando' // the contracts' check has not arrived yet
   | CodigoError;
 
 export type Anotado =
@@ -199,7 +200,7 @@ export interface DetalleMovimiento {
   deGasto: { nombre: string; fecha: Dia } | null; // DEU-12
 }
 
-export type ErrorFijo = 'falta-monto' | 'mas-de-2-decimales' | 'ya-estaba' | CodigoError;
+export type ErrorFijo = 'falta-monto' | 'mas-de-2-decimales' | 'ya-estaba' | 'cargando' | CodigoError;
 
 // ---------- the app ----------
 
@@ -217,7 +218,7 @@ export interface App {
   anotar(b: BorradorMovimiento): ResultadoApp<Anotado, ErrorAnotar>;
   borrarMovimiento(id: string): void;
   detalle(id: string): DetalleMovimiento | null;
-  devolverAlGasto(id: string): ResultadoApp<null, 'no-sale-de-un-gasto' | CodigoError>;
+  devolverAlGasto(id: string): ResultadoApp<null, 'no-sale-de-un-gasto' | 'cargando' | CodigoError>;
 
   confirmarFijo(clave: string, monto: string): ResultadoApp<{ nombre: string }, ErrorFijo>;
   saltarFijo(clave: string): ResultadoApp<null, ErrorFijo>;

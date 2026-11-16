@@ -9,6 +9,7 @@ const COMUNES: Record<string, string> = {
   'falta-categoria': 'Elige una categoría',
   'falta-cuenta': 'Elige una cuenta',
   'ya-estaba': 'Ese fijo ya estaba resuelto',
+  cargando: 'Un momento: Rumbo todavía está abriendo.',
 };
 
 // Anything else the shared contracts refused (DAT-09): nothing was saved and nothing is lost on the screen.

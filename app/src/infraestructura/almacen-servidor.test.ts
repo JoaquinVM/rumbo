@@ -179,4 +179,16 @@ describe('DAT-07 cola de guardado del servidor', () => {
     const x = await iniciado();
     expect(x.cargas).toEqual([null]);
   });
+
+  it('usa la lectura que la página pidió mientras cargaba el código, y no pide otra', async () => {
+    const x = entorno();
+    let pedida: (r: Response) => void = () => {};
+    x.e.precarga = () => new Promise<Response>((ok) => { pedida = ok; });
+    const a = almacenServidor('/api/v2', x.e), cargas: (Datos | null)[] = [];
+    a.iniciar({ alCargar: (d) => cargas.push(d), todo: () => vacio });
+    pedida(json({ main: { aj: { empezado: true } }, cols: vacio.cols }));
+    for (let i = 0; i < 10; i++) await Promise.resolve();
+    expect(x.llamadas).toHaveLength(0);
+    expect(cargas).toHaveLength(1);
+  });
 });

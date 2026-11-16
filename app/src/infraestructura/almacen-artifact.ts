@@ -1,7 +1,8 @@
 // Layer 4 · Infrastructure: the artifact's base (window.claude), as the v1 used it. Rumbo 2 keeps its data in cents
 // under its own document (`rumbo2`), so it never reads the v1's decimals as cents. The artifact is no longer used for
 // Rumbo (decision 52); this store stays so the page works there too.
-import { COLECCIONES, type Datos, type EstadoGuardado } from '@rumbo/contratos';
+import type { Datos, EstadoGuardado } from '@rumbo/contratos';
+import { COLECCIONES } from '@rumbo/dominio';
 import type { Almacen } from '../aplicacion/puertos';
 
 interface Instantanea { exists: boolean; data(): unknown }

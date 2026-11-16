@@ -1,6 +1,6 @@
 // Only for the tests (nobody else imports it). What the tests of the app use: a person with Efectivo Bs 650, Banco Bs 3.550 and Dólares US$ 1.200 at 12,50, the
 // electricity due on the 8th, and the app on a memory store on 10 November 2026.
-import type { Datos } from '@rumbo/contratos';
+import { validarDocumento, type Datos } from '@rumbo/contratos';
 import { categoriasBase } from '@rumbo/dominio';
 import { almacenMemoria, type AlmacenMemoria } from '../infraestructura/almacen-memoria';
 import { crearApp } from '../aplicacion/app';
@@ -32,7 +32,7 @@ export function appDePrueba(datos: Datos | null = datosDePrueba()) {
   let n = 0, ultima: string | null = null;
   const app = crearApp({
     almacen, reloj: { hoy: () => HOY }, ids: { nuevo: () => `nuevo${++n}` },
-    preferencias: { ultimaCuenta: () => ultima, recordarCuenta: (id) => { ultima = id; } },
+    preferencias: { ultimaCuenta: () => ultima, recordarCuenta: (id) => { ultima = id; } }, validar: () => validarDocumento,
   });
   return { app, almacen };
 }

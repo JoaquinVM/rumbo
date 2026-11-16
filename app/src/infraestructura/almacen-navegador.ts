@@ -2,8 +2,8 @@
 // saves everything at once in localStorage. The v1 used the key `rumbo-v2` with decimal amounts; Rumbo 2 uses its own
 // key in cents, and the first time it converts the v1's data with the migration's function (DAT-08). If that data
 // has an amount it cannot convert, it is left as it was.
-import { COLECCIONES, type Datos, type EstadoGuardado } from '@rumbo/contratos';
-import { v1ACentavos } from '@rumbo/dominio';
+import type { Datos, EstadoGuardado } from '@rumbo/contratos';
+import { COLECCIONES, v1ACentavos } from '@rumbo/dominio';
 import type { Almacen } from '../aplicacion/puertos';
 
 export const CLAVE = 'rumbo-2-centavos';

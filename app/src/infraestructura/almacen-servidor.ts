@@ -2,7 +2,7 @@
 // /api/v2. Writes go out one at a time and in order; what does not arrive is retried, doubling the wait up to 30 s, and
 // «Hay cambios sin guardar» shows until everything arrived. If Access asks to sign in again, the queue waits, nothing
 // is dropped, and it goes on when the person comes back to the tab. It never falls back to the example on an error.
-import { RAIZ_API, type Datos, type EstadoGuardado } from '@rumbo/contratos';
+import type { Datos, EstadoGuardado } from '@rumbo/contratos';
 import type { Ajustes } from '@rumbo/dominio';
 import type { Almacen, Coleccion } from '../aplicacion/puertos';
 
@@ -15,6 +15,8 @@ export interface Entorno {
   cancelar: (t: unknown) => void;
   escuchar: (evento: Evento, f: () => void) => void;
   alSalir: (hayPendientes: () => boolean) => void;
+  // The first read of the data, if the page already asked for it while the code was loading (index.html)
+  precarga?: () => Promise<Response> | null;
 }
 
 export function entornoDelNavegador(): Entorno {
@@ -27,6 +29,12 @@ export function entornoDelNavegador(): Entorno {
       else addEventListener(evento, f);
     },
     alSalir: (hay) => addEventListener('beforeunload', (e) => { if (hay()) { e.preventDefault(); e.returnValue = ''; } }),
+    precarga: () => {
+      const g = globalThis as { __rumboDatos?: Promise<Response> };
+      const p = g.__rumboDatos ?? null;
+      delete g.__rumboDatos;
+      return p;
+    },
   };
 }
 
@@ -38,7 +46,7 @@ const clase = (r: Response): Clase =>
   r.type === 'opaqueredirect' || r.status === 401 || r.status === 403 ? 'sesion'
     : r.ok ? 'ok' : r.status >= 500 || r.status === 429 ? 'red' : 'malo';
 
-export function almacenServidor(api = RAIZ_API, e: Entorno = entornoDelNavegador()): Almacen {
+export function almacenServidor(api = '/api/v2', e: Entorno = entornoDelNavegador()): Almacen {
   const cola: Pedido[] = [];
   let enviando = false, pronto = false, espera = 1000, reintento: unknown = null, vencida = false, perdido: string | null = null;
   let cambios = 0, cargado = false, sinRespuesta = false, alCargar: (d: Datos | null) => void = () => {};
@@ -57,6 +65,14 @@ export function almacenServidor(api = RAIZ_API, e: Entorno = entornoDelNavegador
     } finally {
       e.cancelar(t);
     }
+  }
+
+  // A request that was already sent, cut like the others if it hangs.
+  function conCorte(p: Promise<Response>, ms: number): Promise<Response> {
+    return new Promise((ok, mal) => {
+      const t = e.esperar(() => mal(new Error('sin respuesta')), ms);
+      p.then((r) => { e.cancelar(t); ok(r); }, (x: unknown) => { e.cancelar(t); mal(x); });
+    });
   }
 
   async function enviar(): Promise<void> {
@@ -101,7 +117,8 @@ export function almacenServidor(api = RAIZ_API, e: Entorno = entornoDelNavegador
   async function cargar(primera: boolean): Promise<void> {
     const antes = cambios;
     let r: Response | null = null, c: Clase;
-    try { r = await pedir('GET', '/datos'); c = clase(r); } catch { c = 'red'; }
+    const pre = primera ? e.precarga?.() ?? null : null;
+    try { r = await (pre ? conCorte(pre, 60000) : pedir('GET', '/datos')); c = clase(r); } catch { c = 'red'; }
     if (c !== 'ok' || !r) {
       if (c === 'sesion') { vencida = true; avisar(); }
       if (primera) e.esperar(() => { void cargar(true); }, 3000);

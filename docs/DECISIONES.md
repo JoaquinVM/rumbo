@@ -190,6 +190,9 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
 70. (C) 16/11/2026, trabajo 081: el e2e y Lighthouse usan ya el servidor de la v2 (`servidor/dist`), con un Access de
     mentira que da a cada prueba su propia persona; Lighthouse entra sin token (`E2E_ACCESS_ABIERTO=1`, solo en esa
     corrida) porque no puede mandar una cabecera solo al servidor y no a Google Fonts. Las fuentes se cargan sin frenar
-    la primera pintada (la página se ve con la letra del sistema y cambia cuando llegan): así Rumbo da 95 a 100 en
-    rendimiento. La accesibilidad da 95: los textos chicos al 88 % sobre los bloques ámbar y verde no llegan al
+    la primera pintada (la página se ve con la letra del sistema y cambia cuando llegan), la página pide los datos
+    mientras baja el código, y la validación de los contratos (Zod, una cuarta parte del código) se carga junto a la
+    primera pantalla y no antes: hasta que llega no se guarda nada («Un momento: Rumbo todavía está abriendo»), y si se
+    corta la señal se vuelve a pedir. Así Rumbo pasa el mínimo de 90 en rendimiento también en las máquinas del CI,
+    más lentas que la Mac. La accesibilidad da 95: los textos chicos al 88 % sobre los bloques ámbar y verde no llegan al
     contraste pedido; son los colores de la v1 y cambiarlos es un cambio visual que no se pidió.

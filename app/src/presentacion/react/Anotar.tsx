@@ -30,7 +30,7 @@ export function Anotar({ app, id, alCerrar, aviso }: { app: App; id?: string; al
   }, [f]);
   if (!f || !b) return null;
   const cs = f.cuentas, ejemplo = app.estado().ejemplo;
-  const cambiar = (x: Partial<BorradorMovimiento>): void => setB({ ...b, ...x });
+  const cambiar = (x: Partial<BorradorMovimiento>): void => setB((antes) => (antes ? { ...antes, ...x } : antes)); // from the latest, so two quick changes never undo each other
   const c = cs.find((x) => x.id === b.cuentaId) ?? cs[0]!, mon = c.moneda;
   const destinos = cs.filter((x) => x.id !== b.cuentaId);
   const destinoId = destinos.some((x) => x.id === b.cuentaDestinoId) ? b.cuentaDestinoId : destinos[0]?.id ?? null;

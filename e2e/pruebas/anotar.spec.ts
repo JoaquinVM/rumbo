@@ -52,7 +52,7 @@ test('transferir entre monedas: de Banco a Dólares, y usar ese cambio como tipo
   await expect(page.locator('.toast')).toHaveText('Transferencia anotada');
   await expect.poll(async () => (await persona.movs()).find((m) => m.tipo === 'transferencia'))
     .toMatchObject({ cuentaId: 'bn', cuentaDestinoId: 'us', monto: 130000, montoDestino: 10000, tc: 13 });
-  expect((await persona.leer()).main?.aj).toMatchObject({ tc: 13 });
+  await expect.poll(async () => (await persona.leer()).main?.aj.tc).toBe(13); // the settings go right after the movement
   await page.getByRole('link', { name: 'Movimientos' }).click();
   await expect(page.getByRole('button', { name: /Banco → Dólares · a Bs 13,00.*−Bs 1.300,00.*\+US\$ 100,00/ })).toBeVisible();
 });
