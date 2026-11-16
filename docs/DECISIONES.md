@@ -173,3 +173,26 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     paquete de contratos compilado se elige al correr con `node --conditions=rumbo-compilado`; en el resto del
     proyecto se usa su código TypeScript. El e2e sigue usando el servidor de la v1 hasta que las pantallas usen
     `/api/v2`.
+67. (C) 16/11/2026, trabajo 081: sin servidor ni artifact, Rumbo 2 guarda en el navegador con la clave
+    `rumbo-2-centavos`, no `rumbo-v2` como decía `design.md`: esa clave ya es de la v1 y tiene montos con decimales, y
+    leerla como centavos mostraría todo cien veces más chico. La primera vez convierte lo de `rumbo-v2` con la función
+    de la migración (DAT-08) y no lo borra. En el artifact usa su propio documento (`rumbo2`) por lo mismo.
+68. (C) 16/11/2026, trabajo 081: las pantallas de Rumbo 2 se arman con un contrato de la app (`paquetes/contratos/src/
+    app.ts`): la aplicación entrega números en centavos y códigos, y la presentación elige las palabras y da formato.
+    Como la presentación solo conoce los contratos, `presentacion/modelos/formato.ts` copia el `mostrar` del dominio, y
+    una prueba compara los dos en 20.000 montos. Lo que todavía no se construye (Desglose, Plan, Ajustes, metas y
+    empezar con mis datos, grupo 5) muestra «llega pronto» en Rumbo 2, sin tocar los datos.
+69. (J) 16/11/2026, trabajo 081: no se monta el ambiente de prueba en el VPS que pedía PUB-07 («mejor haz todo,
+    pruébalo en local y luego pásalo a producción, y si algo falla se hace rollback»). Cada trabajo de Rumbo 2 se
+    prueba en local y en el CI; la migración se ensaya en la Mac de Joaquín con una copia del último respaldo, sin
+    mostrar montos; y el corte (080) publica con respaldo previo y vuelta atrás sola si no queda sano (PUB-05).
+    Producción sigue siendo la v1 hasta ese corte.
+70. (C) 16/11/2026, trabajo 081: el e2e y Lighthouse usan ya el servidor de la v2 (`servidor/dist`), con un Access de
+    mentira que da a cada prueba su propia persona; Lighthouse entra sin token (`E2E_ACCESS_ABIERTO=1`, solo en esa
+    corrida) porque no puede mandar una cabecera solo al servidor y no a Google Fonts. Las fuentes se cargan sin frenar
+    la primera pintada (la página se ve con la letra del sistema y cambia cuando llegan), la página pide los datos
+    mientras baja el código, y la validación de los contratos (Zod, una cuarta parte del código) se carga junto a la
+    primera pantalla y no antes: hasta que llega no se guarda nada («Un momento: Rumbo todavía está abriendo»), y si se
+    corta la señal se vuelve a pedir. Así Rumbo pasa el mínimo de 90 en rendimiento también en las máquinas del CI,
+    más lentas que la Mac. La accesibilidad da 95: los textos chicos al 88 % sobre los bloques ámbar y verde no llegan al
+    contraste pedido; son los colores de la v1 y cambiarlos es un cambio visual que no se pidió.

@@ -33,13 +33,13 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 3.3 Imagen de Docker de varias etapas sin root, sin el Access de mentira (prueba que lo comprueba); el compose y los topes de PUB-02 no cambian.
 - [ ] 3.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 
-## 4. Trabajo 078 · Pantallas I y ambiente de prueba (Crisol)
+## 4. Trabajo 081 · Pantallas I (Crisol)
 
-- [ ] 4.1 Aplicación e infraestructura: casos de uso de anotar, editar, borrar, transferir, confirmar y saltar un fijo; almacenes servidor (cola de DAT-07), artifact, navegador y memoria; pruebas de la cola (orden, reintento, 401).
-- [ ] 4.2 Pantalla Rumbo (titular, gráfica, Hoy, Por confirmar, avisos, indicadores, ¿Y si…?) según los mockups de `docs/DISENO.md`; pruebas de componentes y Playwright a 375 px en claro y oscuro.
-- [ ] 4.3 Anotar y Movimientos (MOV-01 a MOV-07) según los mockups, con el saldo de cada cuenta en dos decimales en los botones para elegirla (FMT-02, decisión 63) y la pastilla «Categoría» igual a las de cuentas (decisión 64); los movimientos y el total de una categoría salen del dominio, con su prueba MOV-07 en Vitest (Comida fuera igual al Desglose, la cuota en Intereses, la mitad de la cena y con una cuenta); pruebas de componentes y Playwright: anotar y editar un gasto, transferir entre monedas, confirmar y saltar un fijo, elegir y quitar una categoría, sin señal y sesión vencida.
-- [ ] 4.4 Ambiente de prueba (PUB-07): hostname y aplicación de Access (los crea Joaquín), contenedor y base aparte, carga de una copia migrada del respaldo; comprobar que `rumbo.jviscafe.com` no cambia y correr `deploy/aislamiento.sh`.
-- [ ] 4.5 Revisor Crisol en Opus que ensaya en el ambiente de prueba; CI en verde; sí de Joaquín para el merge.
+- [x] 4.1 Aplicación e infraestructura: casos de uso de anotar, editar, borrar, transferir, confirmar y saltar un fijo; almacenes servidor (cola de DAT-07), artifact, navegador y memoria; pruebas de la cola (orden, reintento, 401).
+- [x] 4.2 Pantalla Rumbo (titular, gráfica, Hoy, Por confirmar, avisos, indicadores, ¿Y si…?) según los mockups de `docs/DISENO.md`; pruebas de componentes y Playwright a 375 px en claro y oscuro.
+- [x] 4.3 Anotar y Movimientos (MOV-01 a MOV-07) según los mockups, con el saldo de cada cuenta en dos decimales en los botones para elegirla (FMT-02, decisión 63) y la pastilla «Categoría» igual a las de cuentas (decisión 64); los movimientos y el total de una categoría salen del dominio, con su prueba MOV-07 en Vitest (Comida fuera igual al Desglose, la cuota en Intereses, la mitad de la cena y con una cuenta); pruebas de componentes y Playwright: anotar y editar un gasto, transferir entre monedas, confirmar y saltar un fijo, elegir y quitar una categoría, sin señal y sesión vencida.
+- [x] 4.4 ~~Ambiente de prueba~~: Joaquín decidió no montarlo (decisión 69); se prueba en local y se publica en el corte con vuelta atrás.
+- [ ] 4.5 Revisor Crisol en Opus que ensaya la app en local; CI en verde; sí de Joaquín para el merge.
 
 ## 5. Trabajo 079 · Pantallas II (Crisol)
 
@@ -47,7 +47,7 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [ ] 5.2 Plan, detalle del préstamo y de la meta, categorías y topes (PAN-03, PAN-07 a PAN-09) según los mockups, con el saldo de cada cuenta en dos decimales y los totales sin decimales (FMT-02, FMT-04, CTA-01, decisión 63); Playwright: pagar una cuota y apartar para una meta.
 - [ ] 5.3 Ajustes, color principal, empezar con mis datos, ejemplo, borrar todo y respaldo versión 2 que carga los de versión 1 (AJU, DAT-01, DAT-02, DAT-04, DAT-06); Playwright: empezar, descargar y cargar un respaldo, cargar uno de la v1.
 - [ ] 5.4 Lo que agreguen 072 y 073 a la v1, portado y probado igual que en la v1.
-- [ ] 5.5 Revisor Crisol en Opus que ensaya en el ambiente de prueba; CI en verde; sí de Joaquín para el merge; Joaquín prueba en su teléfono (máximo 2 pruebas).
+- [ ] 5.5 Revisor Crisol en Opus que ensaya la app en local; CI en verde; sí de Joaquín para el merge; Joaquín prueba en su teléfono (máximo 2 pruebas).
 
 ## 6. Trabajo 080 · Migración y corte (Crisol)
 
@@ -55,4 +55,4 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [ ] 6.2 Ensayo en la Mac de Joaquín con el último respaldo de B2 en modo «solo revisar»; resultado sin montos. Si hay montos raros, Joaquín decide cada uno.
 - [ ] 6.3 `docs/DESPLIEGUE.md` y `docs/DOMINIO.md` con el corte, la vuelta atrás y los montos en centavos.
 - [ ] 6.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
-- [ ] 6.5 Sesión de publicar, con el sí de Joaquín: respaldo previo, `migracion --aplicar`, tag `v2.0.0`, comprobar en `rumbo.jviscafe.com` los saldos, el patrimonio y el libre, apagar y borrar el ambiente de prueba, y archivar este cambio (`openspec archive rumbo-2-reescritura`).
+- [ ] 6.5 Sesión de publicar, con el sí de Joaquín: respaldo previo, `migracion --aplicar`, tag `v2.0.0`, comprobar en `rumbo.jviscafe.com` los saldos, el patrimonio y el libre, y archivar este cambio (`openspec archive rumbo-2-reescritura`).

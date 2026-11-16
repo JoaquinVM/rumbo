@@ -36,3 +36,5 @@ export const primerDiaDelMesSiguiente = (dia: Dia): Dia => `${sumarMeses(mesDe(d
 
 // FIJ-01: the day of a fixed item in a month; if the month is shorter, the last day.
 export const fechaFijo = (dia: number, mes: Mes): Dia => `${mes}-${pad(Math.min(dia, diasDelMes(mes)))}`;
+// The day of the week of a day: 0 is Sunday, like Date.getDay.
+export const diaDeLaSemana = (dia: Dia): number => new Date(utc(dia)).getUTCDay();

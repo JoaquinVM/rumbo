@@ -4,19 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Rumbo: a dónde te llevan tus ingresos y gastos.">
-    <meta name="color-scheme" content="light dark">
+    <meta name="rumbo-api" content="/api/v2">
     <link rel="icon" href="data:,">
     <title>Rumbo</title>
-    <style>
-      :root { --fondo: #f6f4ef; --texto: #1d1b17; --suave: #55504a; }
-      @media (prefers-color-scheme: dark) { :root { --fondo: #16151a; --texto: #f3f1ec; --suave: #c9c4bc; } }
-      * { box-sizing: border-box; }
-      html, body { margin: 0; }
-      body { background: var(--fondo); color: var(--texto); font: 16px/1.5 system-ui, -apple-system, sans-serif; }
-      main { max-width: 32rem; margin: 0 auto; padding: 3rem 1rem; }
-      h1 { margin: 0 0 .5rem; font-size: 2rem; }
-      p { margin: 0; color: var(--suave); }
-    </style>
+    <!-- The data are asked for while the code loads; almacen-servidor.ts takes this first answer -->
+    <script>window.__rumboDatos = fetch('/api/v2/datos', { cache: 'no-store', credentials: 'same-origin', redirect: 'manual' });</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- The fonts do not hold the first paint back (PUB-06): the page shows with the system font and swaps when they arrive -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   </head>
   <body>
     <div id="raiz"></div>

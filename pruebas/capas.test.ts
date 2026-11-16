@@ -1,6 +1,6 @@
 // Layer rule (design.md, Capas): a forbidden import makes `npm run capas` fail and name the rule and the file.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -19,17 +19,20 @@ const correr = (...rutas: string[]) => {
 };
 
 // Writes temporary files (path → content), runs the check on `origen` and always cleans up.
+// Only the folders it had to create are removed afterwards: the real code next to them stays.
 const conArchivos = (archivos: Record<string, string>, origen: string) => {
+  const creadas: string[] = [];
   try {
     for (const [ruta, texto] of Object.entries(archivos)) {
-      mkdirSync(join(raiz, dirname(ruta)), { recursive: true });
+      const carpeta = join(raiz, dirname(ruta));
+      if (!existsSync(carpeta)) creadas.push(carpeta);
+      mkdirSync(carpeta, { recursive: true });
       writeFileSync(join(raiz, ruta), texto);
     }
     return correr(origen);
   } finally {
     for (const ruta of Object.keys(archivos)) rmSync(join(raiz, ruta), { force: true });
-    for (const d of ['app/src/presentacion/modelos', 'app/src/infraestructura', 'app/src/aplicacion'])
-      if (Object.keys(archivos).some((r) => r.startsWith(d))) rmSync(join(raiz, d), { recursive: true, force: true });
+    for (const d of creadas) rmSync(d, { recursive: true, force: true });
   }
 };
 

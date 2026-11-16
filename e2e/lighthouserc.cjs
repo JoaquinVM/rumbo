@@ -1,12 +1,13 @@
-// PUB-06: Lighthouse in phone mode (its default: mobile screen and simulated slow 4G) on the v2 page served by
-// servidor-prueba.mjs. Below 90 in performance or 95 in accessibility or best practices, the CI goes red.
+// PUB-06: Lighthouse in phone mode (its default: mobile screen and simulated slow 4G) on the Rumbo screen with the
+// example, served by servidor-prueba.mjs. Below 90 in performance or 95 in accessibility or best practices, the CI goes red.
 module.exports = {
   ci: {
     collect: {
       url: ['http://localhost:4173/'],
-      startServerCommand: 'node servidor-prueba.mjs',
+      startServerCommand: 'E2E_ACCESS_ABIERTO=1 node --conditions=rumbo-compilado servidor-prueba.mjs',
       startServerReadyPattern: 'escucha',
       numberOfRuns: 3,
+      // As a person who has not started (the fake Access lets it in without a token): the Rumbo screen with the example
       settings: { chromeFlags: '--no-sandbox --headless=new' },
     },
     assert: {

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// PUB-06: Chromium and WebKit (Joaquín uses an iPhone), 375 px wide, light and dark, against the real server with
+// PUB-06: Chromium and WebKit (Joaquín uses an iPhone), 375 px wide, light and dark, against Rumbo 2's server with
 // PostgreSQL and the fake Access of servidor-prueba.mjs. Video and trace are kept only for what fails.
 const telefono = { viewport: { width: 375, height: 812 }, hasTouch: true };
 const navegadores = [
@@ -26,7 +26,7 @@ export default defineConfig({
     })),
   ),
   webServer: {
-    command: 'node servidor-prueba.mjs',
+    command: 'node --conditions=rumbo-compilado servidor-prueba.mjs',
     url: 'http://localhost:4173/salud',
     reuseExistingServer: !process.env.CI,
     stdout: 'pipe',
