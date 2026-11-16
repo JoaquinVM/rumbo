@@ -104,8 +104,8 @@ nada en Rumbo.
 
 1. `deploy/backup.sh --tag pre-volver`.
 2. `--volver` con el mismo `docker run` del paso 3 (con la imagen que corre: `rumbo-app`).
-3. En GitHub, Actions > verificar > Run workflow, con el último tag de la v1 (`v1.x.y`). Lo anotado en Rumbo 2 queda en
-   la v1 en decimales.
+3. En GitHub, Actions > verificar > Run workflow, con el último tag de la v1 que se publicó en el VPS (hoy `v1.0.0`;
+   `v1.3` y `v1.4` son de antes del VPS y no sirven). Lo anotado en Rumbo 2 queda en la v1 en decimales.
 
 Las tablas de la v1 se guardan al menos 30 días después del corte; retirarlas es otro trabajo, con su sí.
 
