@@ -11,10 +11,10 @@ import {
   devolverAlGasto, deudaDe, ejemplo, leer, monedaDe, monedaMov, mostrarNumero, notasSugeridas, saldoCuenta, saltarFijo,
   tipoDeCambioDe, tipoDeCambioParaGuardar, COLECCIONES, type Centavos, type Estado, type Movimiento,
 } from '@rumbo/dominio';
-import type { Almacen, Coleccion, Ids, Preferencias, Reloj, Validador } from './puertos';
+import type { Almacen, Ids, Preferencias, Reloj, Validador } from './puertos';
+import { casosPlan, datosDe, type Escritura } from './casos-plan';
 import { categoriaDe, vistaCategoria, vistaMovimientos, vistaRumbo } from './vistas';
-
-type Escritura = { col: Coleccion; doc: { id: string } } | { col: Coleccion; borrar: string };
+import { vistaAjustes, vistaCategorias, vistaDeuda, vistaDesglose, vistaMeta, vistaPlan } from './vistas-plan';
 
 const no = <C extends string>(codigo: C): { ok: false; codigo: C } => ({ ok: false, codigo });
 const si = <T>(datos: T): { ok: true; datos: T } => ({ ok: true, datos });
@@ -84,8 +84,37 @@ export function crearApp({ almacen, reloj, ids, preferencias, validar }: {
   }
 
   const hoy = (): string => reloj.hoy();
+  const plan = casosPlan({
+    S: () => S, hoy, nuevoId: () => ids.nuevo(), ejemplo: () => esEjemplo, ultimaCuenta: () => preferencias.ultimaCuenta(), validar, aplicar,
+    ponerAjustes(aj) {
+      S.aj = aj;
+      if (!esEjemplo) almacen.guardarAjustes(() => S.aj);
+      avisar();
+    },
+    reemplazar(N) {
+      S = N;
+      esEjemplo = false;
+      almacen.reemplazar(datosDe(N));
+      avisar();
+    },
+    borrarTodo() {
+      almacen.borrarTodo();
+      delEjemplo = null;
+      S = delEjemplo = ejemplo(hoy());
+      esEjemplo = true;
+      avisar();
+    },
+  });
 
   return {
+    ...plan,
+    leerMonto: (t) => { const l = leer(t); return l.ok ? l.centavos : null; },
+    desglose: (mes) => vistaDesglose(S, hoy(), mes),
+    plan: () => vistaPlan(S, hoy()),
+    deuda: (id, adelanto) => vistaDeuda(S, hoy(), id, adelanto),
+    meta: (id) => vistaMeta(S, hoy(), id),
+    categorias: () => vistaCategorias(S),
+    ajustes: () => vistaAjustes(S, hoy()),
     estado: (): EstadoApp => ({
       cargado, ejemplo: esEjemplo, origen: almacen.origen, hoy: hoy(), color: S.aj.color ?? 'azul', guardado: almacen.estado(),
     }),

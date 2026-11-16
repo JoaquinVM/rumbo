@@ -54,16 +54,3 @@ export function useAviso(): [ReactNode, (texto: string) => void] {
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   return [aviso ? <div key={aviso.n} className="toast" role="status">{aviso.texto}</div> : null, mostrar];
 }
-
-// What is not built yet in Rumbo 2 (job 081 builds Rumbo, anotar and Movimientos; the rest comes next).
-export function Pronto({ titulo, alVolver }: { titulo: string; alVolver?: () => void }) {
-  return (
-    <>
-      {alVolver && <div className="top"><button className="ib" onClick={alVolver} aria-label="Volver">‹</button></div>}
-      <div className="empty">
-        <h3>{titulo} llega pronto</h3>
-        Esta parte de Rumbo 2 se está construyendo. Mientras, la tienes en rumbo.jviscafe.com.
-      </div>
-    </>
-  );
-}

@@ -44,6 +44,11 @@ export function almacenNavegador(ls: Storage = localStorage): Almacen {
     escribir: guardar,
     borrar: guardar,
     guardarAjustes: guardar,
+    reemplazar: (d) => {
+      try { ls.setItem(CLAVE, JSON.stringify({ aj: d.main?.aj, ...d.cols })); } catch { /* full or blocked */ }
+    },
+    // An empty document, not a missing one: otherwise the next load would convert the v1's data again
+    borrarTodo: () => { try { ls.setItem(CLAVE, '{}'); } catch { /* blocked */ } },
     estado: () => quieto,
     suscribir: () => () => {},
   };

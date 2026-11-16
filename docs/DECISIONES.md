@@ -196,3 +196,15 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     corta la señal se vuelve a pedir. Así Rumbo pasa el mínimo de 90 en rendimiento también en las máquinas del CI,
     más lentas que la Mac. La accesibilidad da 95: los textos chicos al 88 % sobre los bloques ámbar y verde no llegan al
     contraste pedido; son los colores de la v1 y cambiarlos es un cambio visual que no se pidió.
+71. (C) 16/11/2026, trabajo 084: las pantallas restantes de Rumbo 2 copian las de la v1 con sus textos; los casos de uso
+    nuevos viven en `app/src/aplicacion/casos-plan.ts` y sus vistas en `vistas-plan.ts`, sobre las reglas del dominio. El
+    respaldo nuevo es versión 2 (centavos); al cargar uno de versión 1 se convierte con la función de DAT-08 y, si un
+    monto tiene más de 2 decimales, no se carga nada y se dice cuál es; uno de versión 2 con un documento que no pasa
+    los contratos se trata como «no es un respaldo de Rumbo». Empezar y cargar un respaldo guardan todo junto
+    (`PUT /api/v2/datos`, en la cola de DAT-07), como la v1. Borrar todo en el navegador deja la clave
+    `rumbo-2-centavos` vacía en vez de quitarla, para que la próxima vez no vuelva a convertir lo de la v1. 073 se porta
+    con el manifest y los íconos dentro de la página construida (`app/public`); 072 no cambió código de la página.
+72. (C) Tres diferencias chicas con la v1, todas para no cambiar un monto sin querer: «Cuadrar» abre con el saldo con
+    su signo (la v1 lo mostraba sin el «−»), el ingreso irregular de Ajustes se muestra con sus centavos si los tiene
+    (la v1 lo redondeaba al guardar de nuevo), y los botones para elegir la cuenta al apartar para una meta muestran lo
+    libre con 2 decimales, como los demás botones de cuenta (decisión 63).
