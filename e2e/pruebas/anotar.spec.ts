@@ -1,6 +1,6 @@
 // MOV-01, MOV-03, MOV-04, MOV-07, FMT-02, FMT-03, DAT-07: anotar and edit, transfer between currencies, one category,
 // no signal and an expired session. Every check reads what reached the server.
-import { datosDePrueba, expect, sinScrollHorizontal, test } from './persona';
+import { abrirAnotar, datosDePrueba, expect, sinScrollHorizontal, test } from './persona';
 
 test.beforeEach(async ({ page, persona }) => {
   await persona.cargar(datosDePrueba());
@@ -9,8 +9,7 @@ test.beforeEach(async ({ page, persona }) => {
 });
 
 test('anotar y editar un gasto', async ({ page, persona }) => {
-  await page.getByRole('button', { name: 'Anotar' }).click();
-  const hoja = page.getByRole('dialog');
+  const hoja = await abrirAnotar(page);
   await expect(hoja.getByRole('heading', { name: 'Anotar' })).toBeVisible();
   await sinScrollHorizontal(page);
   await hoja.locator('#m-monto').fill('0,125');
@@ -37,8 +36,7 @@ test('anotar y editar un gasto', async ({ page, persona }) => {
 });
 
 test('transferir entre monedas: de Banco a Dólares, y usar ese cambio como tipo de cambio', async ({ page, persona }) => {
-  await page.getByRole('button', { name: 'Anotar' }).click();
-  const hoja = page.getByRole('dialog');
+  const hoja = await abrirAnotar(page);
   await hoja.getByRole('button', { name: 'Transferencia' }).click();
   await hoja.getByRole('button', { name: 'Banco · Bs 3.229,50' }).first().click();
   await hoja.locator('#m-monto').fill('1.250');
@@ -74,8 +72,7 @@ test('sin señal: anota y borra, avisa, y al volver la señal guarda en orden', 
   const orden: string[] = [];
   page.on('requestfinished', (r) => { if (r.url().includes('/api/v2/docs/movs/')) orden.push(r.method()); });
   await context.setOffline(true);
-  await page.getByRole('button', { name: 'Anotar' }).click();
-  const hoja = page.getByRole('dialog');
+  const hoja = await abrirAnotar(page);
   await hoja.locator('#m-monto').fill('20');
   await hoja.locator('#m-nota').fill('Sin señal');
   await hoja.getByRole('button', { name: 'Guardar' }).click();
@@ -95,8 +92,7 @@ test('sin señal: anota y borra, avisa, y al volver la señal guarda en orden', 
 
 test('sesión vencida: pide entrar en otra pestaña y guarda al volver', async ({ page, persona }) => {
   await page.route('**/api/v2/docs/**', (r) => r.fulfill({ status: 401, body: '{"error":"sin-sesion"}' }));
-  await page.getByRole('button', { name: 'Anotar' }).click();
-  const hoja = page.getByRole('dialog');
+  const hoja = await abrirAnotar(page);
   await hoja.getByRole('button', { name: 'Ingreso' }).click();
   await hoja.locator('#m-monto').fill('500');
   await hoja.getByRole('button', { name: 'Negocio' }).click();
