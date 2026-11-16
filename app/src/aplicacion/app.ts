@@ -143,7 +143,7 @@ export function crearApp({ almacen, reloj, ids, preferencias }: {
       if (previo?.fijoId) { m.fijoId = previo.fijoId; if (previo.mes) m.mes = previo.mes; }
       if (previo && previo.tc != null) m.tc = previo.tc;
       const cambios: Escritura[] = [];
-      let ajustes = false;
+      let tcNuevo: number | null = null;
       if (b.tipo === 'transferencia') {
         if (!b.cuentaDestinoId || b.cuentaDestinoId === b.cuentaId || !cuentaDe(S, b.cuentaDestinoId)) return no('misma-cuenta');
         m.cuentaDestinoId = b.cuentaDestinoId;
@@ -153,22 +153,20 @@ export function crearApp({ almacen, reloj, ids, preferencias }: {
           if (!z.ok) return no(z.codigo === 'mas-de-2-decimales' ? 'mas-de-2-decimales' : 'falta-monto-destino');
           if (!z.centavos) return no('falta-monto-destino');
           m.montoDestino = z.centavos;
-          if (b.usarTc) {
-            const tc = desde === 'BOB' ? tipoDeCambioParaGuardar(m.monto, z.centavos) : tipoDeCambioParaGuardar(z.centavos, m.monto);
-            if (tc) ajustes = true;
-          }
+          if (b.usarTc) tcNuevo = desde === 'BOB' ? tipoDeCambioParaGuardar(m.monto, z.centavos) : tipoDeCambioParaGuardar(z.centavos, m.monto);
         }
       } else {
         if (!b.categoriaId) return no('falta-categoria');
         m.categoriaId = b.categoriaId;
       }
-      const final = conTipoDeCambio(S, m);
+      // CTA-06 and MOV-06: with «usar este cambio», the new rate is the one the movement keeps, as in the v1
+      const aj = tcNuevo ? { ...S.aj, tc: tcNuevo, tcFecha: h } : S.aj;
+      const final = conTipoDeCambio({ ...S, aj }, m);
       cambios.push({ col: 'movs', doc: final });
       const r = aplicar(cambios);
       if (!r.ok) return r;
-      if (ajustes && final.montoDestino) {
-        const desde = monedaDe(S, final.cuentaId);
-        S.aj = { ...S.aj, tc: (desde === 'BOB' ? tipoDeCambioParaGuardar(final.monto, final.montoDestino) : tipoDeCambioParaGuardar(final.montoDestino, final.monto)) as number, tcFecha: h };
+      if (aj !== S.aj) {
+        S.aj = aj;
         if (!esEjemplo) almacen.guardarAjustes(() => S.aj);
         avisar();
       }

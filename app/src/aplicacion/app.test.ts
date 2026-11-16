@@ -76,6 +76,9 @@ describe('transferir (MOV-03, MOV-06, CTA-06)', () => {
     app.anotar(transferencia({ monto: '1.300', usarTc: true }));
     expect(almacen.escrituras).toEqual(['PUT movs/t1', 'PUT ajustes']);
     expect(app.rumbo({ anios: 5, nominal: false, recortes: {}, extra: 0, adelanto: 0 }).tcFijo).toBe(13);
+    // the movement keeps the new rate, as in the v1: no «cambio de moneda» appears in the Desglose for it
+    expect(app.formulario('t1')).not.toBeNull();
+    expect(almacen.documentos['movs/t1']).toMatchObject({ tc: 13 });
   });
 
   it('la misma cuenta no se puede, y entre monedas pide lo que llegó', () => {

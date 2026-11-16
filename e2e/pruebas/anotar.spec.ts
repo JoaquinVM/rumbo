@@ -36,7 +36,7 @@ test('anotar y editar un gasto', async ({ page, persona }) => {
   await expect(page.getByRole('button', { name: /Almuerzo.*−Bs 40,50/ })).toBeVisible();
 });
 
-test('transferir entre monedas: Bs 1.250 de Banco a Dólares y llegan US$ 100', async ({ page, persona }) => {
+test('transferir entre monedas: de Banco a Dólares, y usar ese cambio como tipo de cambio', async ({ page, persona }) => {
   await page.getByRole('button', { name: 'Anotar' }).click();
   const hoja = page.getByRole('dialog');
   await hoja.getByRole('button', { name: 'Transferencia' }).click();
@@ -45,13 +45,16 @@ test('transferir entre monedas: Bs 1.250 de Banco a Dólares y llegan US$ 100', 
   await hoja.getByRole('button', { name: 'Dólares · US$ 1.200,00' }).last().click(); // the one under «Hacia»
   await hoja.locator('#m-dest').fill('100');
   await expect(hoja).toContainText('Este cambio fue a Bs 12,50 por dólar.');
+  await hoja.locator('#m-monto').fill('1.300');
+  await hoja.getByLabel('Usar Bs 13,00 como mi tipo de cambio').check(); // CTA-06: the movement keeps the new rate
   await sinScrollHorizontal(page);
   await hoja.getByRole('button', { name: 'Guardar' }).click();
   await expect(page.locator('.toast')).toHaveText('Transferencia anotada');
   await expect.poll(async () => (await persona.movs()).find((m) => m.tipo === 'transferencia'))
-    .toMatchObject({ cuentaId: 'bn', cuentaDestinoId: 'us', monto: 125000, montoDestino: 10000, tc: 12.5 });
+    .toMatchObject({ cuentaId: 'bn', cuentaDestinoId: 'us', monto: 130000, montoDestino: 10000, tc: 13 });
+  expect((await persona.leer()).main?.aj).toMatchObject({ tc: 13 });
   await page.getByRole('link', { name: 'Movimientos' }).click();
-  await expect(page.getByRole('button', { name: /Banco → Dólares · a Bs 12,50.*−Bs 1.250,00.*\+US\$ 100,00/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Banco → Dólares · a Bs 13,00.*−Bs 1.300,00.*\+US\$ 100,00/ })).toBeVisible();
 });
 
 test('elegir y quitar una categoría en Movimientos', async ({ page }) => {
