@@ -40,6 +40,14 @@ export function Inicio({ app }: { app: App }) {
   const [filtro, setFiltro] = useState('todas');
   const [categoria, setCategoria] = useState<string | null>(null);
   const cerrar = useCallback(() => setHoja(null), []);
+  // «Cargando…» shows only if the data take more than a second: when they come sooner, nothing is drawn and then
+  // pushed down by the notices above the screen (a layout shift that Lighthouse counts, PUB-06).
+  const [lento, setLento] = useState(false);
+  useEffect(() => {
+    if (est.cargado) return undefined;
+    const t = setTimeout(() => setLento(true), 1000);
+    return () => clearTimeout(t);
+  }, [est.cargado]);
 
   useEffect(() => {
     const cambio = (): void => { setVista(vistaDeLaDireccion()); setDetalle(null); scrollTo(0, 0); };
@@ -63,7 +71,7 @@ export function Inicio({ app }: { app: App }) {
   const verDetalle = (titulo: string): void => { setDetalle(titulo); scrollTo(0, 0); };
 
   let pantalla: React.ReactNode;
-  if (!est.cargado) pantalla = <div className="empty"><h3>Cargando tu rumbo…</h3>Abriendo tus datos guardados.</div>;
+  if (!est.cargado) pantalla = lento ? <div className="empty"><h3>Cargando tu rumbo…</h3>Abriendo tus datos guardados.</div> : null;
   else if (detalle) pantalla = <Pronto titulo={detalle} alVolver={() => setDetalle(null)} />;
   else if (vista === 'rumbo') {
     pantalla = (

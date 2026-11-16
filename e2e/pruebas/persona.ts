@@ -76,3 +76,12 @@ export async function sinScrollHorizontal(page: import('@playwright/test').Page)
   expect(a.ventana).toBe(375);
   expect(a.pagina).toBeLessThanOrEqual(a.ventana);
 }
+
+// Opens Anotar and waits until the page has put the cursor in the amount (Anotar.tsx does it 60 ms after opening):
+// typing in another field before that would send the text to the amount, as a person typing in that instant would.
+export async function abrirAnotar(page: import('@playwright/test').Page): Promise<import('@playwright/test').Locator> {
+  await page.getByRole('button', { name: 'Anotar' }).click();
+  const hoja = page.getByRole('dialog');
+  await expect(hoja.locator('#m-monto')).toBeFocused();
+  return hoja;
+}
