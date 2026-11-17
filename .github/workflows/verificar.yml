@@ -154,6 +154,7 @@ jobs:
         with:
           name: lighthouse
           path: e2e/.lighthouseci/
+          include-hidden-files: true # the folder starts with a dot
           retention-days: 14
 
   production:
