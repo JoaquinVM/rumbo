@@ -90,5 +90,6 @@ export async function abrirAnotar(page: import('@playwright/test').Page): Promis
 // tap in that instant could land on something else, in WebKit above all.
 export async function abrir(page: import('@playwright/test').Page, ruta: string): Promise<void> {
   await page.goto(ruta);
+  await page.waitForFunction(() => !!document.getElementById('fuentes')); // asked for after the first screen
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }

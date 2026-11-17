@@ -20,8 +20,7 @@
     <script>window.__rumboDatos = fetch('/api/v2/datos', { cache: 'no-store', credentials: 'same-origin', redirect: 'manual' });</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- The fonts do not hold the first paint back (PUB-06): the page shows with the system font and swaps when they arrive -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <!-- The fonts are asked for after the first screen is drawn (Inicio.tsx, PUB-06): the page shows with the system font and swaps when they arrive -->
   </head>
   <body>
     <div id="raiz"></div>
