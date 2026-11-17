@@ -41,7 +41,7 @@ services:
     <<: *seguro
     build:
       context: ..
-      dockerfile: deploy/Dockerfile
+      dockerfile: deploy/Dockerfile.v2 # Rumbo 2 since v2.0.0; deploy/Dockerfile is the v1 (tags v1.x)
       labels:
         jviscafe.app: rumbo
     image: rumbo-app

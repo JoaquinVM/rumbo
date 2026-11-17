@@ -1,7 +1,8 @@
 # Rumbo 2's image (design.md «CI/CD», PUB-01, PUB-02): it builds the page (app) and the server (servidor/src) and keeps
-# only what runs, as the unprivileged `node` user, with the migration's command (migracion/dist/cli.js). It is not deployed until the cut (job 080): deploy/docker-compose.yml
-# still builds deploy/Dockerfile, the v1. Only the files in Dockerfile.v2.dockerignore reach the build, so the fake
-# Access of the e2e tests (e2e/servidor-prueba.mjs) never gets in; pruebas/imagen-v2.sh checks it in the CI.
+# only what runs, as the unprivileged `node` user, with the migration's command (migracion/dist/cli.js). Since v2.0.0
+# deploy/docker-compose.yml builds it (job 084); going back to a v1 tag builds deploy/Dockerfile again. Only the files
+# in Dockerfile.v2.dockerignore reach the build, so the fake Access of the e2e tests (e2e/servidor-prueba.mjs) never
+# gets in; pruebas/imagen-v2.sh checks it in the CI.
 # Build: docker build -f deploy/Dockerfile.v2 -t rumbo-v2 .
 
 # 1 · Build the page and the server with every dependency they need
