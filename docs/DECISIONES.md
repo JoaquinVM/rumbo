@@ -225,5 +225,6 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
 75. (C) 17/11/2026, trabajo 084: las fuentes se piden recién cuando la primera pantalla ya está dibujada, no al abrir la
     página. Antes, en una máquina lenta como las del CI, llegaban antes de esa primera pintada y Lighthouse sumaba su
     bajada por 4G lento: el tag `v2.0.0` dio 86 y 88 de rendimiento con el mismo código que en `main` había dado más de
-    90. Ahora da 99 también con el procesador 8 veces más lento. Se ve igual que antes: primero la letra del sistema y
-    luego Bricolage e Instrument Sans.
+    90. Los informes del CI (que no se guardaban: su carpeta es oculta) mostraron además que el gráfico saltaba al
+    llegar las fuentes (CLS 0,19). Las fuentes van con `display=optional`: si no están cuando se dibuja el texto, esa
+    visita sigue con la letra del sistema y nada se mueve; las siguientes las encuentran en la caché del teléfono.
