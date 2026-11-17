@@ -10,7 +10,7 @@ El sistema SHALL permitir crear cuentas con nombre, moneda (Bs o USD), saldo de 
 
 #### Scenario: Crear Banco
 - **WHEN** la persona crea «Banco», Bs, saldo 3550, rendimiento 2 %
-- **THEN** aparece en Plan con Bs 3.550 y marcada «Día a día»
+- **THEN** aparece en Plan con Bs 3.550,00 y marcada «Día a día»
 
 #### Scenario: Archivar con movimientos
 - **WHEN** la persona archiva una cuenta con 20 movimientos

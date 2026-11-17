@@ -24,14 +24,14 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 2.7 Ritmo, proyección y «¿Y si…?»; pruebas AJU-01, PRO-01 a PRO-08.
 - [x] 2.8 Función de conversión v1 → centavos y vuelta (DAT-08), con pruebas: los 12 campos, la tasa de una deuda intacta, rechazo de más de 2 decimales y ida y vuelta exacta.
 - [x] 2.9 Comparación con la v1: generador de estados con semilla y comparación con las tolerancias de `design.md`; corre en `unitarias` y falla si una regla cambia.
-- [ ] 2.10 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
+- [x] 2.10 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 
 ## 3. Trabajo 079 · Contratos y servidor en TypeScript (Crisol)
 
 - [x] 3.1 Esquemas Zod de cada documento y de la API en `paquetes/contratos`, con pruebas DAT-09 (monto decimal rechazado, gasto sin categoría, campos desconocidos conservados).
 - [x] 3.2 Servidor en TypeScript: Access (PUB-01), tablas `v2_*`, rutas `/api/v2`, validación con los contratos, `/salud` que exige la migración; las pruebas de `servidor.test.mjs` portadas y en verde contra Postgres.
 - [x] 3.3 Imagen de Docker de varias etapas sin root, sin el Access de mentira (prueba que lo comprueba); el compose y los topes de PUB-02 no cambian.
-- [ ] 3.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
+- [x] 3.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 
 ## 4. Trabajo 081 · Pantallas I (Crisol)
 
@@ -39,7 +39,7 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 4.2 Pantalla Rumbo (titular, gráfica, Hoy, Por confirmar, avisos, indicadores, ¿Y si…?) según los mockups de `docs/DISENO.md`; pruebas de componentes y Playwright a 375 px en claro y oscuro.
 - [x] 4.3 Anotar y Movimientos (MOV-01 a MOV-07) según los mockups, con el saldo de cada cuenta en dos decimales en los botones para elegirla (FMT-02, decisión 63) y la pastilla «Categoría» igual a las de cuentas (decisión 64); los movimientos y el total de una categoría salen del dominio, con su prueba MOV-07 en Vitest (Comida fuera igual al Desglose, la cuota en Intereses, la mitad de la cena y con una cuenta); pruebas de componentes y Playwright: anotar y editar un gasto, transferir entre monedas, confirmar y saltar un fijo, elegir y quitar una categoría, sin señal y sesión vencida.
 - [x] 4.4 ~~Ambiente de prueba~~: Joaquín decidió no montarlo (decisión 69); se prueba en local y se publica en el corte con vuelta atrás.
-- [ ] 4.5 Revisor Crisol en Opus que ensaya la app en local; CI en verde; sí de Joaquín para el merge.
+- [x] 4.5 Revisor Crisol en Opus que ensaya la app en local; CI en verde; sí de Joaquín para el merge.
 
 ## 5. Trabajo 084 · Pantallas II (Crisol)
 
@@ -54,5 +54,5 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 - [x] 6.1 `migracion` con los modos «solo revisar», `--aplicar` (una transacción, verificación con los dos motores, fila en `v2_migracion`) y `--volver`; pruebas contra Postgres: migración que cuadra, monto con 3 decimales que no cambia nada, verificación que no cuadra que deshace todo, ida y vuelta con un gasto anotado después.
 - [x] 6.2 Ensayo en la Mac de Joaquín con el último respaldo en modo «solo revisar»; resultado sin montos. Si hay montos raros, Joaquín decide cada uno. (16/11/2026: respaldo de las 03:30 copiado del VPS con `scp`, no de B2; 2 personas, 203 documentos, cuadra con los dos motores y `--aplicar` sobre la copia también; ningún monto raro. Copia borrada.)
 - [x] 6.3 `docs/DESPLIEGUE.md` y `docs/DOMINIO.md` con el corte, la vuelta atrás y los montos en centavos.
-- [ ] 6.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
-- [ ] 6.5 Sesión de publicar, con el sí de Joaquín: respaldo previo, `migracion --aplicar`, tag `v2.0.0`, comprobar en `rumbo.jviscafe.com` los saldos, el patrimonio y el libre, y archivar este cambio (`openspec archive rumbo-2-reescritura`).
+- [x] 6.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
+- [x] 6.5 Sesión de publicar, con el sí de Joaquín: respaldo previo, `migracion --aplicar`, tag `v2.0.0` (publicado como `v2.0.1` el 17/11/2026: el CI de `v2.0.0` no pasó Lighthouse, decisión 75), comprobar en `rumbo.jviscafe.com` los saldos, el patrimonio y el libre, y archivar este cambio (`openspec archive rumbo-2-reescritura`).
