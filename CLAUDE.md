@@ -22,14 +22,15 @@ Las reglas de este archivo mandan sobre las de Foundry dentro de este repo.
 
 ## Código
 
-- **v1, en producción hasta el corte:** una sola página, `index.html` en la raíz, sin compilación ni librerías. La
-  sirve el servidor de `servidor/*.mjs` (Node 24, PostgreSQL 17, `pg` como única dependencia) en
-  `rumbo.jviscafe.com`, detrás de Cloudflare Access. Solo recibe arreglos.
-- **Rumbo 2, en construcción** (cambio `rumbo-2-reescritura`, trabajos 075 a 080): monorepo con workspaces de npm
+- **Rumbo 2, en producción desde `v2.0.1`** (17/11/2026, cambio `rumbo-2-reescritura` archivado, trabajos 075 a 084): monorepo con workspaces de npm
   (`paquetes/dominio`, `paquetes/contratos`, `app`, `servidor`, `migracion`, `e2e`), React 18.3.1, TypeScript 5.9.3,
   Vite 7.3.8, Vitest 4.1.12, Zod 4 y dependency-cruiser 17.4.3, en versiones exactas con `package-lock.json` y
   `npm ci`. Dinero en centavos enteros. Seis capas como Strata: las dependencias apuntan hacia adentro y
-  `npm run capas` lo comprueba.
+  `npm run capas` lo comprueba. Se despliega con `deploy/Dockerfile.v2` en `rumbo.jviscafe.com`, detrás de
+  Cloudflare Access; sus datos en centavos viven en las tablas `v2_*`.
+- **v1, solo para volver atrás:** `index.html` de la raíz y `servidor/*.mjs` (tag `v1.0.0`, `deploy/Dockerfile`) con
+  sus tablas `principal` y `docs`, que no se tocan; `migracion --volver` pasa los datos de Rumbo 2 a ellas
+  (`docs/DESPLIEGUE.md`). No recibe cambios; retirarla es otro trabajo, con su sí.
 - `pruebas/v1/` es la v1.0.0 congelada, el oráculo de la v2 (`pruebas/v1/LEEME.md`). No se edita.
 - Pruebas: `npm run verificar` (v1: modelo de dinero, que cada vista se dibuje y el guardado), `npm run
   probar-servidor` (servidores de la v1 y la v2 contra un Postgres; variables `PG*`), `npm run tipos`, `npm run capas`, `npm run
