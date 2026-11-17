@@ -222,3 +222,8 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     Joaquín como root), no bajándolo de B2, para no crear otra clave de B2 en la Mac. Resultado: 2 personas, 203
     documentos, cuadra en «solo revisar» y en `--aplicar` sobre la copia; ningún monto con más de 2 decimales. La copia
     y su Postgres se borraron al terminar.
+75. (C) 17/11/2026, trabajo 084: las fuentes se piden recién cuando la primera pantalla ya está dibujada, no al abrir la
+    página. Antes, en una máquina lenta como las del CI, llegaban antes de esa primera pintada y Lighthouse sumaba su
+    bajada por 4G lento: el tag `v2.0.0` dio 86 y 88 de rendimiento con el mismo código que en `main` había dado más de
+    90. Ahora da 99 también con el procesador 8 veces más lento. Se ve igual que antes: primero la letra del sistema y
+    luego Bricolage e Instrument Sans.
