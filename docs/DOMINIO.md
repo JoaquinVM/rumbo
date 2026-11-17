@@ -84,12 +84,25 @@ Dinero de una cuenta que reservas para una meta, sin moverlo.
 | Proyección | Mes a mes, con rendimiento por cuenta, amortización e inflación |
 | Metas y topes | «Vas bien» o «No alcanza»; avance de cada tope (80 % ámbar, 100 % rojo) |
 
+## Montos
+
+En Rumbo 2 todo monto de dinero se guarda como un **entero de centavos** de su moneda (FMT-05): Bs 3.550,50 es `355050`
+y US$ 12 es `1200`. Son dinero estos campos: en Ajustes `irregular`; en cuentas `saldoInicial`; en categorías `tope`;
+en movimientos `monto`, `montoDestino`, `interes` y `capital`; en fijos `monto`; en deudas `saldoInicial` y `cuota`; en
+metas `monto`; y en apartados `monto`. El tipo de cambio, la inflación, el rendimiento y el `interes` de una deuda son
+tasas y se guardan con sus decimales. La v1 guardaba los mismos campos en decimales; la migración (DAT-08,
+`migracion/`) los pasa de una forma a otra y de vuelta.
+
 ## Dónde se guarda
 
 En `rumbo.jviscafe.com`, en la base propia de Rumbo (PostgreSQL, `servidor/esquema.sql`), privado por correo de
 Cloudflare Access: la tabla `principal` guarda los Ajustes (`{aj}`) y la tabla `docs` cada documento de las colecciones
 `cuentas`, `categorias`, `movs`, `fijos`, `ocurrencias`, `deudas`, `metas` y `apartados`, tal como lo manda la página
 (JSON, con su `id`). El servidor no interpreta montos ni campos: todas las cuentas las hace la página.
+
+Rumbo 2 usa sus propias tablas, iguales pero con montos en centavos: `v2_principal` y `v2_docs`, y `v2_migracion`
+anota cuándo se pasaron los datos de la v1 (sin esa fila, Rumbo 2 no arranca sano). Su servidor valida cada documento
+con los contratos compartidos antes de guardarlo (DAT-09). Las tablas de la v1 no cambian con la migración.
 
 Dentro del artifact, que se dejó de usar, en su base, privado por persona: `data/users/<id>/rumbo` guarda los Ajustes
 y debajo hay una colección por entidad, con los mismos nombres. Sin ninguna de las dos, en el navegador.

@@ -1,5 +1,6 @@
-# What reaches the build of Rumbo 2's image (deploy/Dockerfile.v2): the workspaces' manifests, the page and the server
-# sources. Never e2e/servidor-prueba.mjs (the fake Access), the v1, tests or anything built here.
+# What reaches the build of Rumbo 2's image (deploy/Dockerfile.v2): the workspaces' manifests, the page, the server
+# and the migration sources, and the frozen v1 the migration compares with. Never e2e/servidor-prueba.mjs (the fake
+# Access), tests or anything built here.
 *
 !package.json
 !package-lock.json
@@ -20,6 +21,11 @@
 !servidor/tsconfig*.json
 !servidor/src/
 !migracion/package.json
+!migracion/tsconfig.json
+!migracion/vite.config.ts
+!migracion/src/
+!pruebas/v1/motor.mjs
+!pruebas/v1/index.html
 !e2e/package.json
 **/*.test.ts
 **/*.test.tsx

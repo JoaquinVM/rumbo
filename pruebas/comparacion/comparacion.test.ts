@@ -5,7 +5,7 @@ process.env.TZ = 'America/La_Paz'; // where Rumbo is used; the v1 works with loc
 import * as dominio from '@rumbo/dominio';
 import { describe, expect, it } from 'vitest';
 import { cargarMotor } from '../v1/motor.mjs';
-import { comparar } from './comparar';
+import { comparar } from '../../migracion/src/comparar';
 import { azar, generar } from './generador';
 
 const ESTADOS = 400;

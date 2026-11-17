@@ -12,14 +12,16 @@
   ],
   "scripts": {
     "verificar": "node pruebas/verificar.mjs && node pruebas/nube.mjs && node pruebas/servidor-pagina.mjs",
-    "probar-servidor": "node --test pruebas/servidor.test.mjs && vitest run --config servidor/vitest.config.ts",
+    "probar-servidor": "node --test pruebas/servidor.test.mjs && vitest run --config servidor/vitest.config.ts && vitest run --config migracion/vitest.config.ts",
     "construir-servidor": "tsc -b servidor/tsconfig.build.json",
     "tipos": "tsc --noEmit -p . && tsc --noEmit -p servidor && npm run tipos --workspaces --if-present",
     "capas": "depcruise paquetes app/src servidor/src migracion/src --config .dependency-cruiser.cjs",
     "unitarias": "vitest run",
     "construir": "npm run construir -w @rumbo/app",
     "e2e": "npm run e2e -w @rumbo/e2e",
-    "lighthouse": "npm run lighthouse -w @rumbo/e2e"
+    "lighthouse": "npm run lighthouse -w @rumbo/e2e",
+    "construir-migracion": "npm run construir -w @rumbo/migracion",
+    "migrar": "node migracion/dist/cli.js"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

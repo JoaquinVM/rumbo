@@ -1,5 +1,5 @@
 # Rumbo 2's image (design.md «CI/CD», PUB-01, PUB-02): it builds the page (app) and the server (servidor/src) and keeps
-# only what runs, as the unprivileged `node` user. It is not deployed until the cut (job 080): deploy/docker-compose.yml
+# only what runs, as the unprivileged `node` user, with the migration's command (migracion/dist/cli.js). It is not deployed until the cut (job 080): deploy/docker-compose.yml
 # still builds deploy/Dockerfile, the v1. Only the files in Dockerfile.v2.dockerignore reach the build, so the fake
 # Access of the e2e tests (e2e/servidor-prueba.mjs) never gets in; pruebas/imagen-v2.sh checks it in the CI.
 # Build: docker build -f deploy/Dockerfile.v2 -t rumbo-v2 .
@@ -15,11 +15,12 @@ COPY servidor/package.json servidor/
 COPY migracion/package.json migracion/
 COPY e2e/package.json e2e/
 RUN npm ci --no-audit --no-fund --include-workspace-root \
-      -w @rumbo/dominio -w @rumbo/contratos -w @rumbo/app -w rumbo-servidor
+      -w @rumbo/dominio -w @rumbo/contratos -w @rumbo/app -w rumbo-servidor -w @rumbo/migracion
 COPY paquetes paquetes
 COPY app app
 COPY servidor servidor
-RUN npm run construir && npm run construir-servidor
+COPY migracion migracion
+RUN npm run construir && npm run construir-servidor && npm run construir-migracion
 
 # 2 · Only what the server needs to run: pg and zod
 FROM node:24.21.0-alpine3.24 AS dependencias
@@ -42,6 +43,9 @@ COPY --from=construir /src/paquetes/contratos/dist paquetes/contratos/dist
 COPY servidor/package.json servidor/
 COPY --from=construir /src/servidor/dist servidor/dist
 COPY --from=construir /src/app/dist app/dist
+# The migration (DAT-08) and the frozen v1 it compares with, to run once at the cut (docs/DESPLIEGUE.md)
+COPY --from=construir /src/migracion/dist migracion/dist
+COPY pruebas/v1/motor.mjs pruebas/v1/index.html pruebas/v1/
 ENV NODE_ENV=production PORT=8080
 USER node
 EXPOSE 8080

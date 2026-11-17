@@ -1,9 +1,9 @@
-// Compares every money rule of the v1 (the frozen oracle) with Rumbo 2 on one state, with the tolerances of
+// The verification of the migration (DAT-08) and the comparison of the CI: compares every money rule of the v1 (the frozen oracle) with Rumbo 2 on one state, with the tolerances of
 // design.md («Inventario de reglas de dinero»): «exacto» is the same number to the cent; «≤ 1 c» is at most one cent
 // for each rounding the v2 does where the v1 kept decimals (a dollar account, debt, movement or goal). Returns every
 // difference it finds; none means Rumbo 2 gives the v1's numbers.
 import type * as Dominio from '@rumbo/dominio';
-import type { EstadoV1 } from './generador';
+import type { EstadoV1 } from './estado-v1';
 
 type V1 = Record<string, any>;
 type Dom = typeof Dominio;

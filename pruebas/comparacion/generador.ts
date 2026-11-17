@@ -15,17 +15,8 @@ export function azar(semilla: number): Azar {
 }
 
 type Doc = Record<string, any>;
-export interface EstadoV1 {
-  aj: Doc;
-  cuentas: Doc[];
-  categorias: Doc[];
-  movs: Doc[];
-  fijos: Doc[];
-  ocurrencias: Doc[];
-  deudas: Doc[];
-  metas: Doc[];
-  apartados: Doc[];
-}
+export type { EstadoV1 } from '../../migracion/src/estado-v1';
+import type { EstadoV1 } from '../../migracion/src/estado-v1';
 
 const pad = (n: number): string => String(n).padStart(2, '0');
 const dia = (t: number): string => { const d = new Date(t); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`; };
