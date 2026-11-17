@@ -11,7 +11,8 @@ Navegador ─► Cloudflare Access (Google o correo + código) ─► túnel «a
 
 - **VPS:** el de Akhana Admin (Contabo, Ubuntu 24.04). Rumbo no comparte nada con Akhana: ni carpeta, ni proyecto de
   Docker, ni red, ni túnel, ni `.env`, ni clave de respaldo. Ningún contenedor publica puertos.
-- **Contenedores:** `rumbo-db-1` (Postgres 17, 384 MiB), `rumbo-app-1` (Node 24, 256 MiB) y `apps-tunel-cloudflared-1`
+- **Contenedores:** `rumbo-db-1` (Postgres 17, 384 MiB), `rumbo-app-1` (Node 24, 256 MiB; desde `v2.0.0`, Rumbo 2,
+  imagen `deploy/Dockerfile.v2`; los tags `v1.x` construyen la v1, `deploy/Dockerfile`) y `apps-tunel-cloudflared-1`
   (128 MiB). Todos corren sin root, sin capacidades de Linux y sin `docker.sock`.
 - **Entrada:** se entra con Google o con un código por correo. Cloudflare Access deja pasar solo los correos de su
   política. El servidor valida además el token de Access y la lista `CORREOS_PERMITIDOS`. Cada correo tiene sus propios
