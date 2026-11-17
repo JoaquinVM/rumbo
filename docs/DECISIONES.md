@@ -218,3 +218,7 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     congelada al lado, porque en el corte corre en el VPS antes de que Rumbo 2 arranque. «Solo revisar» no crea ni
     escribe nada; `--aplicar` se niega a repetirse si ya hay una migración anotada (salvo `--de-nuevo`), porque Rumbo 2
     podría tener datos nuevos; el informe no muestra montos (las diferencias, que sí los tienen, solo con `--detalle`).
+74. (J) 16/11/2026, trabajo 084: el ensayo de la migración se hizo con el respaldo local del VPS (copiado con `scp` por
+    Joaquín como root), no bajándolo de B2, para no crear otra clave de B2 en la Mac. Resultado: 2 personas, 203
+    documentos, cuadra en «solo revisar» y en `--aplicar` sobre la copia; ningún monto con más de 2 decimales. La copia
+    y su Postgres se borraron al terminar.

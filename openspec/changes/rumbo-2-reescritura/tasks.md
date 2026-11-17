@@ -52,7 +52,7 @@ nombradas con el ID del requirement; las de la v1 (`pruebas/verificar.mjs`) qued
 ## 6. Trabajo 084 · Migración y corte (Crisol)
 
 - [x] 6.1 `migracion` con los modos «solo revisar», `--aplicar` (una transacción, verificación con los dos motores, fila en `v2_migracion`) y `--volver`; pruebas contra Postgres: migración que cuadra, monto con 3 decimales que no cambia nada, verificación que no cuadra que deshace todo, ida y vuelta con un gasto anotado después.
-- [ ] 6.2 Ensayo en la Mac de Joaquín con el último respaldo de B2 en modo «solo revisar»; resultado sin montos. Si hay montos raros, Joaquín decide cada uno.
+- [x] 6.2 Ensayo en la Mac de Joaquín con el último respaldo en modo «solo revisar»; resultado sin montos. Si hay montos raros, Joaquín decide cada uno. (16/11/2026: respaldo de las 03:30 copiado del VPS con `scp`, no de B2; 2 personas, 203 documentos, cuadra con los dos motores y `--aplicar` sobre la copia también; ningún monto raro. Copia borrada.)
 - [x] 6.3 `docs/DESPLIEGUE.md` y `docs/DOMINIO.md` con el corte, la vuelta atrás y los montos en centavos.
 - [ ] 6.4 Revisor Crisol en Opus; CI en verde; sí de Joaquín para el merge.
 - [ ] 6.5 Sesión de publicar, con el sí de Joaquín: respaldo previo, `migracion --aplicar`, tag `v2.0.0`, comprobar en `rumbo.jviscafe.com` los saldos, el patrimonio y el libre, y archivar este cambio (`openspec archive rumbo-2-reescritura`).
