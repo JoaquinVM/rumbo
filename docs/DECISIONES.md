@@ -228,3 +228,8 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     90. Los informes del CI (que no se guardaban: su carpeta es oculta) mostraron además que el gráfico saltaba al
     llegar las fuentes (CLS 0,19). Las fuentes van con `display=optional`: si no están cuando se dibuja el texto, esa
     visita sigue con la letra del sistema y nada se mueve; las siguientes las encuentran en la caché del teléfono.
+76. (J) 22/11/2026, trabajo 104: los íconos (`/iconos/*`) y el manifest de Rumbo se entregan sin iniciar sesión, con
+    una aplicación de Access aparte («Rumbo íconos», política *Bypass*), porque el iPhone pide el ícono de la pantalla
+    de inicio sin la sesión de Access. Solo tienen la brújula, el nombre y los colores; la página y la API siguen
+    detrás de Access. Se descartó meter el ícono dentro de la página: no es seguro que el iPhone lo tome y no ayuda a
+    Android.
