@@ -8,7 +8,7 @@ pantalla de entrada en lugar de la imagen.
 
 ## What Changes
 
-- Una aplicación aparte en Cloudflare Access, «Rumbo íconos», con una política *Bypass* solo para
+- Una aplicación aparte en Cloudflare Access, «Rumbo iconos», con una política *Bypass* solo para
   `rumbo.jviscafe.com/iconos/*` y `rumbo.jviscafe.com/manifest.webmanifest`: esos archivos se entregan sin iniciar
   sesión. Solo tienen la brújula, el nombre «Rumbo» y los colores; ningún dato.
 - La página, la API y todo lo demás siguen detrás de la aplicación «Rumbo», que no cambia. La API sigue exigiendo el
@@ -28,5 +28,5 @@ Ninguna.
 
 ## Impact
 
-- Cloudflare Zero Trust (`empty-truth-cd43`): aplicación nueva «Rumbo íconos» con política *Bypass*.
+- Cloudflare Zero Trust (`empty-truth-cd43`): aplicación nueva «Rumbo iconos» con política *Bypass*.
 - `docs/DESPLIEGUE.md` y `docs/DECISIONES.md`.

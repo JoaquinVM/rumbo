@@ -16,7 +16,7 @@ Navegador ─► Cloudflare Access (Google o correo + código) ─► túnel «a
   (128 MiB). Todos corren sin root, sin capacidades de Linux y sin `docker.sock`.
 - **Entrada:** se entra con Google o con un código por correo. Cloudflare Access deja pasar solo los correos de su
   política. Solo los íconos (`/iconos/*`) y el manifest se entregan sin iniciar sesión, con la aplicación aparte
-  «Rumbo íconos» (ver «Íconos sin iniciar sesión»). El servidor valida además el token de Access y la lista `CORREOS_PERMITIDOS`. Cada correo tiene sus propios
+  «Rumbo iconos» (ver «Íconos sin iniciar sesión»). El servidor valida además el token de Access y la lista `CORREOS_PERMITIDOS`. Cada correo tiene sus propios
   datos.
 
 | En el VPS | Qué es |
@@ -198,7 +198,7 @@ El correo de Google es el mismo con el que se entra con código, así que se ven
 El iPhone y Android piden el ícono y el manifest sin la sesión de Access; si Access les contesta con la pantalla de
 entrada, la app queda sin ícono. Por eso hay una segunda aplicación en **Access > Applications**:
 
-- **Rumbo íconos**, *self-hosted*, con los destinos `rumbo.jviscafe.com/iconos/*` y
+- **Rumbo iconos**, *self-hosted*, con los destinos `rumbo.jviscafe.com/iconos/*` y
   `rumbo.jviscafe.com/manifest.webmanifest`, y una política *Bypass* para *Everyone*.
 
 Esos archivos solo tienen la brújula, el nombre «Rumbo» y los colores. Si se agrega otro archivo público, va en esta
