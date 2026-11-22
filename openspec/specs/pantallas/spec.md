@@ -35,11 +35,15 @@ El sistema SHALL mostrar los avisos solo dentro de la app, porque un artifact no
 - **THEN** aparece en la pantalla, no como notificación del teléfono
 
 ### Requirement: PAN-06 Estilo visual
-El sistema SHALL seguir el estilo Bloques sólidos de `docs/DISENO.md`: cada color tiene un solo significado (azul dinero de hoy, ámbar pendiente y avisos, verde metas y ahorro, rojo solo al pasarse de un tope, ladrillo deudas, tinta oscura solo para acciones), las listas usan íconos SVG y nunca letras ni emojis, y los botones se distinguen de las tarjetas y de las opciones.
+El sistema SHALL seguir el estilo Bloques sólidos de `docs/DISENO.md`: cada color tiene un solo significado (azul dinero de hoy, ámbar pendiente y avisos, verde metas y ahorro, rojo solo al pasarse de un tope, ladrillo deudas, tinta oscura solo para acciones), las listas usan íconos SVG y nunca letras ni emojis, y los botones se distinguen de las tarjetas y de las opciones. Las letras son Bricolage Grotesque en títulos y cifras grandes e Instrument Sans en el resto; van dentro de Rumbo, sin pedirse a otro sitio.
 
 #### Scenario: Estilo
 - **WHEN** se abre cualquier pantalla
 - **THEN** usa el fondo verde grisáceo, los colores con significado y las piezas de `docs/DISENO.md`
+
+#### Scenario: Letra de los números
+- **WHEN** se abre la pantalla Rumbo en el teléfono
+- **THEN** el «Libre» de Hoy se ve en Bricolage Grotesque, que llega desde Rumbo mismo y no desde Google Fonts
 
 #### Scenario: Botón principal
 - **WHEN** una pantalla tiene una acción principal, como «Confirmar Bs 180»
