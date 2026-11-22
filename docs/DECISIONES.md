@@ -233,3 +233,6 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     de inicio sin la sesión de Access. Solo tienen la brújula, el nombre y los colores; la página y la API siguen
     detrás de Access. Se descartó meter el ícono dentro de la página: no es seguro que el iPhone lo tome y no ayuda a
     Android.
+77. (J) 22/11/2026, trabajo 106: el Desglose muestra «De dónde entró» debajo de los gastos y de «Te quedas tú»: una
+    fila por categoría de ingreso del mes, de mayor a menor, con su total, de cada 100 que entraron y que lleva a
+    Movimientos de esa categoría (DES-06). Las filas suman los mismos ingresos que «Entró»; sin ingresos, no aparece.
