@@ -1,4 +1,4 @@
-// Layer 5 · Presentation: the Desglose (DES-01 to DES-05), the v1's vDesglose. Tapping a category opens Movimientos of
+// Layer 5 · Presentation: the Desglose (DES-01 to DES-06), the v1's vDesglose. Tapping a category opens Movimientos of
 // that month with that category and every account (DES-05, decision 64).
 import type { CategoriaDesglose, VistaDesglose } from '@rumbo/contratos';
 import { Icono } from './comunes';
@@ -12,7 +12,7 @@ export interface AccionesDesglose {
 const Flecha = () => <span className="m" aria-hidden="true">›</span>;
 
 export function Desglose({ v, acc }: { v: VistaDesglose; acc: AccionesDesglose }) {
-  const ing = v.entro || 1, max = Math.max(1, ...v.categorias.map((l) => l.total));
+  const ing = v.entro || 1, max = Math.max(1, ...v.categorias.map((l) => l.total)), maxIng = Math.max(1, ...v.ingresos.map((l) => l.total));
   const det = (l: CategoriaDesglose): string =>
     `${v.entro && l.deCada100 != null ? `Bs ${decimal(l.deCada100)} de cada 100` : ''}${l.horas != null ? ` · ${l.horas} h` : ''}${l.enDiezAnios ? ` · en 10 años: ${compacto(l.enDiezAnios / 100)}` : ''}`;
   const fuera = [
@@ -65,6 +65,24 @@ export function Desglose({ v, acc }: { v: VistaDesglose; acc: AccionesDesglose }
       }) : <div className="empty"><h3>Sin gastos en {nombreDelMes(v.mes)}</h3>Cuando anotes gastos verás a dónde va tu dinero.</div>}
       {v.quedo > 0 && v.entro > 0 && (
         <section className="blk v"><div className="sp"><span style={{ fontWeight: 600 }}>Te quedas tú</span><span style={{ font: '800 22px var(--display)' }}>{dinero(v.quedo)}</span></div><span className="xs" style={{ opacity: 0.92 }}>Bs {decimal((v.quedo / ing) * 100)} de cada 100</span></section>
+      )}
+      {v.ingresos.length > 0 && (
+        <section aria-label="De dónde entró" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h2 className="h2" style={{ margin: '6px 0 0' }}>De dónde entró</h2>
+          {v.ingresos.map((l) => {
+            const k = l.categoria;
+            return (
+              <button key={k.id} className="card" onClick={() => acc.categoria(k.id)} style={{ gap: 6, padding: '12px 14px' }}>
+                <div className="sp" style={{ alignItems: 'center' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}><span className="dt" style={{ width: 30, height: 30, borderRadius: 9, background: k.color }}><Icono nombre={k.icono} /></span>{k.nombre}</span>
+                  <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}><span className="amt" style={{ color: 'var(--in)' }}>{dinero(l.total)}</span><Flecha /></span>
+                </div>
+                <div className="bar"><span style={{ width: `${(l.total / maxIng) * 100}%`, background: k.color }} /></div>
+                <div className="xs m">Bs {decimal(l.deCada100)} de cada 100</div>
+              </button>
+            );
+          })}
+        </section>
       )}
       <p className="xs m" style={{ margin: 0 }}>«En 10 años» usa tu promedio de los últimos 3 meses, sin inflación ni rendimiento.</p>
     </>

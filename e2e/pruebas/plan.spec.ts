@@ -1,4 +1,4 @@
-// DES-05, PAN-03, PAN-07, PAN-08, PAN-09, DEU-02, FIJ-06, MET-02, FMT-02: the Desglose to a category's movements, Plan,
+// DES-05, DES-06, PAN-03, PAN-07, PAN-08, PAN-09, DEU-02, FIJ-06, MET-02, FMT-02: the Desglose to a category's movements, Plan,
 // paying a loan's installment and setting money aside for a goal. Every check reads what reached the server.
 import { abrir, datosDePrueba, expect, hoy, sinScrollHorizontal, test, type Datos } from './persona';
 
@@ -24,6 +24,34 @@ test('el Desglose lleva de una categoría a sus movimientos con el mismo total',
   await expect(page.getByRole('button', { name: 'Quitar el filtro Súper' })).toBeVisible();
   await expect(page.getByRole('group', { name: 'Filtrar por cuenta' }).getByRole('button', { name: 'Todas' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.card').filter({ hasText: 'Súper' })).toContainText('−Bs 320,50');
+});
+
+test('DES-06 el Desglose muestra de dónde entró y lleva a los movimientos de ese ingreso', async ({ page, persona }) => {
+  const d = datosDePrueba(), h = hoy();
+  d.cols.movs = [...d.cols.movs!,
+    { id: 'sueldo', tipo: 'ingreso', cuentaId: 'bn', categoriaId: 'sueldo', monto: 900000, fecha: h },
+    { id: 'venta', tipo: 'ingreso', cuentaId: 'ef', categoriaId: 'negocio', monto: 80000, fecha: h },
+  ];
+  await persona.cargar(d);
+  await abrir(page, '/#desglose');
+  await expect(page.getByRole('region', { name: 'Resumen del mes' })).toContainText('Bs 9.800');
+  const ingresos = page.getByRole('region', { name: 'De dónde entró' });
+  await expect(ingresos.getByRole('button')).toHaveCount(2);
+  await expect(ingresos.getByRole('button').first()).toContainText('Sueldo');
+  await expect(ingresos.getByRole('button').first()).toContainText('Bs 92 de cada 100');
+  await expect(ingresos.getByRole('button').nth(1)).toContainText('Bs 800');
+  await sinScrollHorizontal(page);
+  await ingresos.getByRole('button', { name: /Negocio/ }).click();
+  await expect(page).toHaveURL(/#movimientos$/);
+  await expect(page.getByRole('button', { name: 'Quitar el filtro Negocio' })).toBeVisible();
+  await expect(page.locator('.card').filter({ hasText: 'Negocio' }).first()).toContainText('Bs 800,00');
+});
+
+test('DES-06 sin ingresos en el mes el Desglose no muestra de dónde entró', async ({ page, persona }) => {
+  await persona.cargar(datosDePrueba());
+  await abrir(page, '/#desglose');
+  await expect(page.getByRole('region', { name: 'Resumen del mes' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'De dónde entró' })).toHaveCount(0);
 });
 
 test('Plan: patrimonio, cuentas con dos decimales y cuadrar', async ({ page, persona }) => {
