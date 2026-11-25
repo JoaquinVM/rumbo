@@ -18,9 +18,9 @@
     <title>Rumbo</title>
     <!-- The data are asked for while the code loads; almacen-servidor.ts takes this first answer -->
     <script>window.__rumboDatos = fetch('/api/v2/datos', { cache: 'no-store', credentials: 'same-origin', redirect: 'manual' });</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- The fonts are asked for after the first screen is drawn (Inicio.tsx, PUB-06): the page shows with the system font and swaps when they arrive -->
+    <!-- The fonts go with the app and are asked for at once, next to the code (estilos.css, decision 78) -->
+    <link rel="preload" href="/src/presentacion/react/fuentes/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/src/presentacion/react/fuentes/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
   </head>
   <body>
     <div id="raiz"></div>

@@ -1,4 +1,4 @@
-// PAN-02, PAN-04, DAT-01, FIJ-02: the Rumbo screen at 375 px in the phone's theme, and confirming and skipping a fixed item.
+// PAN-02, PAN-04, PAN-06, DAT-01, FIJ-02: the Rumbo screen at 375 px in the phone's theme, and confirming and skipping a fixed item.
 import { datosDePrueba, expect, hoy, sinScrollHorizontal, test } from './persona';
 
 test('sin datos guardados se ve el ejemplo, sin scroll horizontal y en el tema del teléfono', async ({ page, persona }, info) => {
@@ -11,6 +11,23 @@ test('sin datos guardados se ve el ejemplo, sin scroll horizontal y en el tema d
   const oscuro = info.project.use.colorScheme === 'dark';
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(oscuro ? 'rgb(14, 20, 17)' : 'rgb(237, 240, 234)');
   expect(await persona.leer()).toMatchObject({ main: null }); // the example is never saved
+});
+
+test('PAN-06: los números grandes van en Bricolage Grotesque, que llega desde Rumbo', async ({ page, persona }) => {
+  expect(persona.token).toBeTruthy(); // Access lets this person in
+  const afuera: string[] = [];
+  page.on('request', (r) => { if (!r.url().startsWith('http://localhost:4173/')) afuera.push(r.url()); });
+  await page.goto('/');
+  await expect(page.getByRole('region', { name: 'Hoy' })).toContainText('Libre');
+  await page.evaluate(() => document.fonts.ready);
+  const fuentes = await page.evaluate(() => {
+    const listas: string[] = [];
+    document.fonts.forEach((f) => { if (f.status === 'loaded') listas.push(f.family.replace(/"/g, '')); });
+    return listas;
+  });
+  expect(fuentes).toEqual(expect.arrayContaining(['Bricolage Grotesque', 'Instrument Sans']));
+  expect(await page.evaluate(() => getComputedStyle(document.querySelector('.blk .big')!).fontFamily)).toMatch(/^"?Bricolage Grotesque/);
+  expect(afuera).toEqual([]);
 });
 
 test('confirmar un fijo con otro monto y saltar otro', async ({ page, persona }) => {

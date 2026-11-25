@@ -1,5 +1,5 @@
 // A person of their own for each test (the fake Access of servidor-prueba.mjs), starting with nothing saved, and
-// their data straight from the server. The token goes only to Rumbo's server, never to Google Fonts.
+// their data straight from the server. The token goes only to Rumbo's server.
 import { test as base, expect, type APIRequestContext } from '@playwright/test';
 
 export const TOKEN = 'token-de-prueba-e2e'; // same as servidor-prueba.mjs
@@ -86,10 +86,9 @@ export async function abrirAnotar(page: import('@playwright/test').Page): Promis
   return hoja;
 }
 
-// Opens a page and waits for the fonts: they arrive after the first paint (PUB-06) and move the layout a little, so a
-// tap in that instant could land on something else, in WebKit above all.
+// Opens a page and waits for the fonts (they go with the app, decision 78): if one arrived late it could move the
+// layout a little, so a tap in that instant could land on something else, in WebKit above all.
 export async function abrir(page: import('@playwright/test').Page, ruta: string): Promise<void> {
   await page.goto(ruta);
-  await page.waitForFunction(() => !!document.getElementById('fuentes')); // asked for after the first screen
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }

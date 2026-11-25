@@ -23,7 +23,6 @@ const vistaDeLaDireccion = (): Vista => {
   const v = location.hash.slice(1) as Vista;
   return VISTAS.includes(v) ? v : 'rumbo';
 };
-const FUENTES = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=optional';
 const EDITABLES = new Set(['gasto', 'ingreso', 'transferencia']);
 
 const Pestana = ({ v, actual, children }: { v: Vista; actual: boolean; children: React.ReactNode }) =>
@@ -76,25 +75,6 @@ export function Inicio({ app }: { app: App }) {
     addEventListener('hashchange', cambio);
     return () => removeEventListener('hashchange', cambio);
   }, []);
-
-  // The fonts, only once the first screen is drawn (PUB-06, decision 75): asked for before, on a slow phone they arrive
-  // before that first paint and hold it back the time they take to download. `optional`: if they are not there when the
-  // text is drawn, that visit keeps the system font instead of moving the page (the chart jumped); the next visits
-  // find them in the cache.
-  useEffect(() => {
-    if (!est.cargado || document.getElementById('fuentes')) return undefined;
-    let t: ReturnType<typeof setTimeout> | undefined;
-    const r = requestAnimationFrame(() => {
-      t = setTimeout(() => {
-        const l = document.createElement('link');
-        l.id = 'fuentes';
-        l.rel = 'stylesheet';
-        l.href = FUENTES;
-        document.head.appendChild(l);
-      }, 0);
-    });
-    return () => { cancelAnimationFrame(r); if (t) clearTimeout(t); };
-  }, [est.cargado]);
 
   // AJU-05: the main color the person chose
   useEffect(() => {
