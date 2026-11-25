@@ -46,6 +46,27 @@ describe('Desglose (DES-01, DES-05)', () => {
   });
 });
 
+describe('Desglose (DES-06)', () => {
+  it('sin ingresos no muestra «De dónde entró»; con un sueldo lo muestra y tocarlo abre Movimientos con Sueldo', () => {
+    const { app } = appDePrueba();
+    render(<Inicio app={app} />);
+    ir('#desglose');
+    expect(screen.queryByRole('region', { name: 'De dónde entró' })).toBeNull();
+    cleanup();
+    app.anotar({ id: 'i', tipo: 'ingreso', cuentaId: 'bn', cuentaDestinoId: null, categoriaId: 'sueldo', monto: '1600', montoDestino: '', nota: '', fecha: '2026-11-10', usarTc: false });
+    render(<Inicio app={app} />);
+    ir('#desglose');
+    const ingresos = screen.getByRole('region', { name: 'De dónde entró' });
+    expect(ingresos.textContent).toContain('Sueldo');
+    expect(ingresos.textContent).toContain('Bs 1.600');
+    expect(ingresos.textContent).toContain('Bs 100 de cada 100');
+    fireEvent.click(within(ingresos).getByRole('button', { name: /Sueldo/ }));
+    expect(location.hash).toBe('#movimientos');
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    expect(screen.getByRole('button', { name: 'Quitar el filtro Sueldo' })).toBeTruthy();
+  });
+});
+
 describe('Plan (PAN-03, FMT-02)', () => {
   it('muestra el patrimonio primero y cada cuenta con su saldo en dos decimales y «Cuadrar»', () => {
     const { app } = appDePrueba();

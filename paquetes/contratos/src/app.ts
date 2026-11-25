@@ -227,6 +227,13 @@ export interface VistaDesglose {
   cambio: number;
   cierres: number;
   categorias: CategoriaDesglose[];
+  ingresos: IngresoDesglose[]; // DES-06: biggest first; they add up to `entro`
+}
+
+export interface IngresoDesglose {
+  categoria: CategoriaVista;
+  total: number;
+  deCada100: number; // DES-06: of every 100 that came in
 }
 
 // ---------- Plan (PAN-03, PAN-07 to PAN-09) ----------

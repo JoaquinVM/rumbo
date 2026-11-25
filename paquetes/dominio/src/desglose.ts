@@ -1,5 +1,5 @@
 // The month's breakdown (DES-01 to DES-04): what came in, what went out and what stayed, in whole cents.
-import { aBs, centavos, restar, sumarPor, type Centavos } from './dinero';
+import { aBs, centavos, restar, sumar, sumarPor, type Centavos } from './dinero';
 import type { Mes } from './fechas';
 import { deudaDe, monedaDe, type Estado } from './modelo';
 import { gastoMesCat, nivelTope, type Nivel } from './movimientos';
@@ -11,17 +11,22 @@ export interface ResumenMes {
   salio: Centavos;
   quedo: Centavos;
   cats: Record<string, Centavos>;
+  ingCats: Record<string, Centavos>; // DES-06: income by category; it adds up to `entro`
   capital: Centavos; // capital of the month's debt payments: not an expense
   ajustes: Centavos; // DES-03: adjustments when squaring accounts
   cambio: Centavos; // DES-03: exchange difference when buying or selling dollars
   cierres: Centavos; // DES-03: debts closed without paying or collecting
 }
 
-// DES-01: income, expenses (fixed and variable) and what stayed. DES-03: what changed net worth without being income
+// DES-01: income, expenses (fixed and variable) and what stayed. DES-06: income by category, each in Bs with its own
+// exchange rate (MOV-06), the same movements as `entro`. DES-03: what changed net worth without being income
 // or expense, apart, so that what stayed + those lines = change of net worth by movements.
 export function resumenMes(S: Estado, mes: Mes): ResumenMes {
   const ms = S.movs.filter((m) => m.fecha.slice(0, 7) === mes);
-  const entro = sumarPor(ms.filter((m) => m.tipo === 'ingreso'), (m) => bsMov(S, m));
+  const ings = ms.filter((m) => m.tipo === 'ingreso');
+  const entro = sumarPor(ings, (m) => bsMov(S, m));
+  const ingCats: Record<string, Centavos> = {};
+  for (const m of ings) { const k = m.categoriaId ?? 'undefined'; ingCats[k] = sumar(ingCats[k] ?? (0 as Centavos), bsMov(S, m)); }
   const cats = gastoMesCat(S, mes), salio = sumarPor(Object.values(cats), (v) => v);
   const capital = sumarPor(ms.filter((m) => m.tipo === 'pago'), (m) => bsMov(S, m, m.capital ?? m.monto));
   const ajustes = sumarPor(ms.filter((m) => m.tipo === 'ajuste'), (m) => centavos((m.sentido || 1) * bsMov(S, m)));
@@ -32,7 +37,7 @@ export function resumenMes(S: Estado, mes: Mes): ResumenMes {
       return monedaDe(S, m.cuentaId) === 'BOB' ? restar(aBs(destino, 'USD', tc), m.monto) : restar(destino, aBs(m.monto, 'USD', tc));
     });
   const cierres = sumarPor(ms.filter((m) => m.tipo === 'cierre'), (m) => centavos((deudaDe(S, m.deudaId)?.tipo === 'teDeben' ? -1 : 1) * bsMov(S, m)));
-  return { entro, salio, quedo: restar(entro, salio), cats, capital, ajustes, cambio, cierres };
+  return { entro, salio, quedo: restar(entro, salio), cats, ingCats, capital, ajustes, cambio, cierres };
 }
 
 export interface DetalleCategoria {

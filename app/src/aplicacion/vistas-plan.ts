@@ -12,7 +12,7 @@ import {
 } from '@rumbo/dominio';
 import { categoriaDe, filaMovimiento, vistaCategoria } from './vistas';
 
-// DES-01 to DES-04: the month in categories, biggest first, with what each one means.
+// DES-01 to DES-04 and DES-06: the month in categories, biggest first, with what each one means.
 export function vistaDesglose(S: Estado, hoy: Dia, mes: Mes): VistaDesglose {
   const R0 = resumenMes(S, mes), R = ritmo(S, hoy);
   const lista = Object.entries(R0.cats).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
@@ -27,6 +27,9 @@ export function vistaDesglose(S: Estado, hoy: Dia, mes: Mes): VistaDesglose {
         deCada100: d.deCada100, horas: d.horas, enDiezAnios: d.enDiezAnios,
       };
     }),
+    // DES-06: where the month's income came from, biggest first.
+    ingresos: Object.entries(R0.ingCats).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+      .map(([id, total]) => ({ categoria: vistaCategoria(categoriaDe(S, id)), total, deCada100: (total / R0.entro) * 100 })),
   };
 }
 

@@ -86,7 +86,7 @@ export async function abrirAnotar(page: import('@playwright/test').Page): Promis
   return hoja;
 }
 
-// Opens a page and waits for the fonts (they go with the app, decision 77): if one arrived late it could move the
+// Opens a page and waits for the fonts (they go with the app, decision 78): if one arrived late it could move the
 // layout a little, so a tap in that instant could land on something else, in WebKit above all.
 export async function abrir(page: import('@playwright/test').Page, ruta: string): Promise<void> {
   await page.goto(ruta);

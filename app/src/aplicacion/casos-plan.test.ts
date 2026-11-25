@@ -307,7 +307,7 @@ describe('respaldo (DAT-04) y borrar todo (DAT-06)', () => {
   });
 });
 
-describe('Desglose (DES-01, DES-02, DES-05)', () => {
+describe('Desglose (DES-01, DES-02, DES-05, DES-06)', () => {
   it('DES-05: el total de cada categoría del Desglose es el de Movimientos con esa categoría', () => {
     const { app } = appDePrueba(conDeudas());
     app.pagar({ deudaId: 'banco', tipo: 'pago', cuentaId: 'bn', monto: '900', fecha: '2026-11-10', esCuota: true });
@@ -317,6 +317,21 @@ describe('Desglose (DES-01, DES-02, DES-05)', () => {
       expect(app.movimientos({ mes: '2026-11', cuenta: 'todas', categoria: k.categoria.id }).categoria!.total).toBe(k.total);
     }
     expect(D.salio).toBe(D.categorias.reduce((t, k) => t + k.total, 0));
+  });
+
+  it('DES-06: los ingresos del mes por categoría, de mayor a menor, con su de cada 100 y el total de Movimientos', () => {
+    const { app } = appDePrueba();
+    const ingreso = (id: string, categoriaId: string, monto: string) =>
+      app.anotar({ id, tipo: 'ingreso', cuentaId: 'bn', cuentaDestinoId: null, categoriaId, monto, montoDestino: '', nota: '', fecha: '2026-11-10', usarTc: false });
+    ingreso('a', 'extra', '800');
+    ingreso('b', 'sueldo', '9000');
+    const D = app.desglose('2026-11');
+    expect(D.ingresos.map((l) => [l.categoria.id, l.total, Math.round(l.deCada100)])).toEqual([['sueldo', 900000, 92], ['extra', 80000, 8]]);
+    expect(D.entro).toBe(D.ingresos.reduce((t, l) => t + l.total, 0));
+    for (const l of D.ingresos) {
+      expect(app.movimientos({ mes: '2026-11', cuenta: 'todas', categoria: l.categoria.id }).categoria!.total).toBe(l.total);
+    }
+    expect(app.desglose('2026-10').ingresos).toEqual([]);
   });
 
   it('DES-02: de cada 100 y las horas de trabajo; sin horas en Ajustes no las muestra', () => {

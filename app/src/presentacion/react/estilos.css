@@ -1,5 +1,5 @@
 /* Bloques sólidos (docs/DISENO.md), the v1's styles as they are: one color per meaning; what contrasts can be tapped. */
-/* The fonts go with the app (PUB-06, decision 77): same origin, cached for good, preloaded by index.html so they are
+/* The fonts go with the app (PUB-06, decision 78): same origin, cached for good, preloaded by index.html so they are
    there before the first text is drawn. `optional`: if one is late, that visit keeps the system font instead of moving
    the page. Latin subset, variable (one file per family, every weight). */
 @font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:600 800;font-display:optional;src:url(./fuentes/bricolage-grotesque-latin.woff2) format("woff2")}

@@ -179,6 +179,37 @@ describe('desglose', () => {
     expect(resumenMes(S, '2026-11').cambio).toBe(500);
   });
 
+  it('DES-06 en octubre entraron 9000 de Sueldo y 800 de Extra: cada uno aparte y suman los 9.800 de «Entró»', () => {
+    const S = base();
+    S.movs = [
+      { id: 'i1', tipo: 'ingreso', cuentaId: 'bn', categoriaId: 'sueldo', monto: c(900000), fecha: '2026-10-25' },
+      { id: 'i2', tipo: 'ingreso', cuentaId: 'ef', categoriaId: 'extra', monto: c(50000), fecha: '2026-10-10' },
+      { id: 'i3', tipo: 'ingreso', cuentaId: 'bn', categoriaId: 'extra', monto: c(30000), fecha: '2026-10-28' },
+      { id: 'n', tipo: 'ingreso', cuentaId: 'bn', categoriaId: 'sueldo', monto: c(100000), fecha: '2026-11-01' }, // another month
+      { id: 't', tipo: 'transferencia', cuentaId: 'bn', cuentaDestinoId: 'ef', monto: c(20000), fecha: '2026-10-12' }, // not income
+      { id: 'r', tipo: 'recibido', cuentaId: 'bn', deudaId: 'x', monto: c(40000), fecha: '2026-10-12' }, // a loan received is not income
+    ];
+    const r = resumenMes(S, '2026-10');
+    expect(r.ingCats).toEqual({ sueldo: 900000, extra: 80000 });
+    expect(r.entro).toBe(980000);
+  });
+
+  it('DES-06 entran Bs 1.000 de Sueldo y US$ 100 de Extra con tipo 12,5: Extra suma Bs 1.250 y «Entró» Bs 2.250', () => {
+    const S = base();
+    S.movs = [
+      { id: 'i1', tipo: 'ingreso', cuentaId: 'bn', categoriaId: 'sueldo', monto: c(100000), fecha: HOY },
+      { id: 'i2', tipo: 'ingreso', cuentaId: 'us', categoriaId: 'extra', monto: c(10000), tc: 12.5, fecha: HOY },
+    ];
+    const r = resumenMes(S, '2026-11');
+    expect(r.ingCats.extra).toBe(125000);
+    expect(r.entro).toBe(225000);
+    expect(Object.values(r.ingCats).reduce((t, v) => t + v, 0)).toBe(r.entro);
+  });
+
+  it('DES-06 un mes sin ingresos no tiene ingresos por categoría', () => {
+    expect(resumenMes(base(), '2026-11').ingCats).toEqual({});
+  });
+
   it('DES-04 cuota de 900 con 214,67 de interés este mes: el promedio de Intereses usa 214,67', () => {
     const S = conFijos(base(), [{ nombre: 'Cuota', tipo: 'gasto', monto: c(90000), categoriaId: 'intereses', dia: 20, deudaId: 'pr' }]);
     S.deudas = [prestamo()];

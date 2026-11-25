@@ -233,7 +233,10 @@ Registro de las decisiones tomadas al construir Rumbo, con su motivo. Las de pro
     de inicio sin la sesión de Access. Solo tienen la brújula, el nombre y los colores; la página y la API siguen
     detrás de Access. Se descartó meter el ícono dentro de la página: no es seguro que el iPhone lo tome y no ayuda a
     Android.
-77. (C) 22/11/2026, trabajo 106: las fuentes (Bricolage Grotesque e Instrument Sans, solo letras latinas, una por
+77. (J) 22/11/2026, trabajo 106: el Desglose muestra «De dónde entró» debajo de los gastos y de «Te quedas tú»: una
+    fila por categoría de ingreso del mes, de mayor a menor, con su total, de cada 100 que entraron y que lleva a
+    Movimientos de esa categoría (DES-06). Las filas suman los mismos ingresos que «Entró»; sin ingresos, no aparece.
+78. (C) 22/11/2026, trabajo 107: las fuentes (Bricolage Grotesque e Instrument Sans, solo letras latinas, una por
     familia con todos sus gruesos) van dentro de Rumbo y ya no se piden a Google Fonts. Con la carga de la 75, pedidas
     a Google después de la primera pantalla, casi nunca llegaban a tiempo y Joaquín veía los números en la letra del
     teléfono (Avenir Next en el iPhone). Ahora se piden al abrir la página, junto con el código, y quedan guardadas para
